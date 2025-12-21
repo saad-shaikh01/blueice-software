@@ -19,6 +19,12 @@ enum UserRole {
   INVENTORY_MGR   // Plant Operator
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  NONBINARY
+}
+
 enum CustomerType {
   RESIDENTIAL     // Ghar
   COMMERCIAL      // Office/Shop
@@ -57,6 +63,16 @@ model User {
   suspended   Boolean   @default(false)
   fcmTokens   String[]  // Push Notifications
   
+  // Profile Fields
+  designation         String?
+  imageUrl            String?
+  birthDate           DateTime?
+  gender              Gender?
+
+  // Password Reset
+  resetPasswordToken  String?
+  resetPasswordExpire DateTime?
+
   // Relations (Polymorphic style logic)
   customerProfile CustomerProfile?
   driverProfile   DriverProfile?

@@ -45,7 +45,7 @@ export const createCustomerSchema = z.object({
   deliveryDays: z
     .array(z.number().int().min(0).max(6))
     .min(1, 'At least one delivery day is required')
-    .refine((days) => [...new Set(days)].length === days.length, {
+    .refine((days) => new Set(days).size === days.length, {
       message: 'Delivery days must be unique',
     }),
 

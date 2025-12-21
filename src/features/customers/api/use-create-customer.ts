@@ -10,11 +10,16 @@ export const useCreateCustomer = () => {
   return useMutation({
     mutationFn: async (data: CreateCustomerInput) => {
       const response = await client.api.customers.$post({
-        json: data,
+        json: {
+          ...data,
+          email: data.email ?? undefined,
+          manualCode: data.manualCode ?? undefined,
+          landmark: data.landmark ?? undefined,
+        },
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = (await response.json()) as { error?: string };
         throw new Error(error.error || 'Failed to create customer');
       }
 

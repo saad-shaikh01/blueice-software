@@ -1,10 +1,8 @@
-import { ExternalLink, Trash } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useEditTaskModal } from '@/features/tasks/hooks/use-edit-task-modal';
-import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
 import { useConfirm } from '@/hooks/use-confirm';
 import { useUpdateStatus } from '../api/use-update-status';
 
@@ -15,9 +13,7 @@ interface UserActionsProps {
 
 export const UserActions = ({ id, suspended, children }: PropsWithChildren<UserActionsProps>) => {
   const router = useRouter();
-  const workspaceId = useWorkspaceId();
 
-  const { open } = useEditTaskModal();
   const [ConfirmDialog, confirm] = useConfirm(
     suspended ? 'Activate User' : 'Suspend User',
     suspended
@@ -34,10 +30,6 @@ export const UserActions = ({ id, suspended, children }: PropsWithChildren<UserA
     updateStatus({ param: { userId: id }, json: { suspended: !suspended } });
   };
 
-  const onOpenUser = () => {
-    router.push(`/workspaces/${workspaceId}/tasks/${id}`);
-  };
-
   return (
     <div className="flex justify-end">
       <ConfirmDialog />
@@ -48,11 +40,6 @@ export const UserActions = ({ id, suspended, children }: PropsWithChildren<UserA
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={onOpenUser} disabled={isPending} className="p-[10px] font-medium">
-            <ExternalLink className="mr-2 size-4 stroke-2" />
-            User Details
-          </DropdownMenuItem>
-
           <DropdownMenuItem onClick={onUpdate} disabled={isPending} className="p-[10px] font-medium text-amber-700 focus:text-amber-700">
             <Trash className="mr-2 size-4 stroke-2" />
             {suspended ? 'Activate User' : 'Suspend User'}

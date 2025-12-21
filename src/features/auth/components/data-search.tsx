@@ -2,14 +2,14 @@ import { SearchIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
-import { useTaskFilters } from '@/features/tasks/hooks/use-task-filters';
+import { useUserFilters } from '@/features/auth/hooks/user-filters';
 import { useDebounce } from '@/hooks/use-debounce';
 
 export const DataSearch = () => {
   const [value, setValue] = useState('');
 
   const debouncedValue = useDebounce(value);
-  const [_filters, setFilters] = useTaskFilters();
+  const [_filters, setFilters] = useUserFilters();
 
   useEffect(() => {
     setFilters({ search: debouncedValue.trim().length > 0 ? debouncedValue : null });

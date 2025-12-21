@@ -96,4 +96,4 @@ export const DEFAULT_FORM_VALUES = {
   openingCashBalance: '0',
   openingBottleBalance: 0,
   productId: null,
-} as const;
+};

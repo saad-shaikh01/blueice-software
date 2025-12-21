@@ -380,7 +380,7 @@ const app = new Hono()
         // Send email
         await sendMail({
           email: process.env.SMTP_SERVER_USERNAME || '',
-          sendTo: user.email,
+          sendTo: email,
           subject: 'Password Recovery',
           text: message,
         });

@@ -28,7 +28,10 @@ export const SignUpCard = () => {
   const onSubmit = (values: z.infer<typeof signUpFormSchema>) => {
     register(
       {
-        json: values,
+        json: {
+          ...values,
+          email: values.email === null ? undefined : values.email,
+        },
       },
       {
         onSuccess: () => {
@@ -100,7 +103,7 @@ export const SignUpCard = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input {...field} type="email" placeholder="Email address (optional)" />
+                    <Input {...field} value={field.value ?? ''} type="email" placeholder="Email address (optional)" />
                   </FormControl>
 
                   <FormMessage />

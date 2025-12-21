@@ -40,7 +40,10 @@ const app = new Hono()
     const data = ctx.req.valid('json');
 
     try {
-      const customer = await createCustomerWithProfile(data);
+      const customer = await createCustomerWithProfile({
+        ...data,
+        email: data.email ?? null,
+      });
 
       return ctx.json({
         data: customer,
