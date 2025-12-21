@@ -1,3 +1,4 @@
+import { UserRole } from '@prisma/client';
 import { getCookie } from 'hono/cookie';
 import { createMiddleware } from 'hono/factory';
 import 'server-only';
@@ -11,9 +12,9 @@ type AdditionalContext = {
     userId: string;
     user: {
       id: string;
-      email: string;
+      email: string | null;
       name: string;
-      role: string;
+      role: UserRole;
     };
 
   };

@@ -1,0 +1,23 @@
+# Dependencies (Inhe Claude kabhi na parhay, ye bohot badi hoti hain)
+node_modules/
+vendor/
+.venv/
+
+# Build outputs (Taiyar shuda code parhne ka faida nahi)
+dist/
+build/
+out/
+.next/
+
+# Logs aur Temp files
+*.log
+tmp/
+.cache/
+
+# Sensitive data (Security ke liye)
+.env
+*.pem
+*.key
+
+# Git internal files
+.git/

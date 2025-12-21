@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -6,9 +6,9 @@ const prisma = new PrismaClient();
 
 export interface AuthUser {
   id: string;
-  email: string;
+  email: string | null;
   name: string;
-  role: string;
+  role: UserRole;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -39,26 +39,35 @@ export async function verifyToken(token: string): Promise<User | null> {
   }
 }
 
-export async function createUser(name: string, email: string, password: string) {
+export async function createUser(name: string, email: string | null, phoneNumber: string, password: string, role?: UserRole) {
   const hashedPassword = await hashPassword(password);
   return prisma.user.create({
     data: {
       name,
       email,
+      phoneNumber,
       password: hashedPassword,
+      role: role || UserRole.CUSTOMER,
     },
     select: {
       id: true,
       email: true,
       name: true,
+      phoneNumber: true,
       role: true
     }
   });
 }
 
-export async function authenticateUser(email: string, password: string) {
-  const user = await prisma.user.findUnique({
-    where: { email },
+export async function authenticateUser(emailOrPhone: string, password: string) {
+  // Try to find user by email first, then by phoneNumber
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: emailOrPhone },
+        { phoneNumber: emailOrPhone }
+      ]
+    }
   });
 
   if (!user || !user.password) {
@@ -70,5 +79,5 @@ export async function authenticateUser(email: string, password: string) {
     throw new Error('Invalid credentials');
   }
 
-  return user
+  return user;
 }

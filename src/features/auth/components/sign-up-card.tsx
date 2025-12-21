@@ -19,6 +19,7 @@ export const SignUpCard = () => {
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
       name: '',
+      phoneNumber: '',
       email: '',
       password: '',
     },
@@ -79,12 +80,27 @@ export const SignUpCard = () => {
 
             <FormField
               disabled={isPending}
+              name="phoneNumber"
+              control={signUpForm.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input {...field} type="tel" placeholder="Phone Number" />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              disabled={isPending}
               name="email"
               control={signUpForm.control}
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input {...field} type="email" placeholder="Email address" />
+                    <Input {...field} type="email" placeholder="Email address (optional)" />
                   </FormControl>
 
                   <FormMessage />

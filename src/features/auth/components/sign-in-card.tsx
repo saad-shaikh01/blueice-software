@@ -18,7 +18,7 @@ export const SignInCard = () => {
   const signInForm = useForm<z.infer<typeof signInFormSchema>>({
     resolver: zodResolver(signInFormSchema),
     defaultValues: {
-      email: '',
+      emailOrPhone: '',
       password: '',
     },
   });
@@ -54,12 +54,12 @@ export const SignInCard = () => {
           <form onSubmit={signInForm.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               disabled={isPending}
-              name="email"
+              name="emailOrPhone"
               control={signInForm.control}
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input {...field} type="email" placeholder="Email address" />
+                    <Input {...field} type="text" placeholder="Email or Phone Number" />
                   </FormControl>
 
                   <FormMessage />

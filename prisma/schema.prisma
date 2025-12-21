@@ -77,15 +77,18 @@ model CustomerProfile {
   userId          String       @unique
   user            User         @relation(fields: [userId], references: [id])
 
+  // --- Legacy Migration ---
+  manualCode      String?      @unique // Legacy ID like 'L-3442' for migrated customers
+
   // --- Location & Logistics ---
   area            String       // e.g., "Gulshan Blk 4" (Filtering ke liye)
   address         String       // Full text
   landmark        String?      // e.g., "Near Madina Masjid"
   floorNumber     Int          @default(0) // 0=Ground. Important for labor cost calculation
-  hasLift         Boolean      @default(false) 
+  hasLift         Boolean      @default(false)
   geoLat          Float?       // Google Maps Pin
   geoLng          Float?       // Google Maps Pin
-  
+
   // --- Routing & Grouping ---
   routeId         String?
   route           Route?       @relation(fields: [routeId], references: [id])
@@ -94,14 +97,18 @@ model CustomerProfile {
   // --- Business Logic ---
   type            CustomerType @default(RESIDENTIAL)
   deliveryDays    Int[]        // [1, 4] = Mon, Thu. (Scalable: can add Sunday [0] later)
-  
+
   // --- Financials (The Wallet) ---
   // Note: We don't store "Bottle Balance" here because products vary.
   // We store it in `CustomerBottleWallet` (See below).
-  
+
   cashBalance     Decimal      @default(0) @db.Decimal(10, 2) // (+ Advance / - Udhaar)
-  creditLimit     Decimal      @default(2000) // Is se zyada udhaar nahi milega (Auto-Stop)
-  
+  creditLimit     Decimal      @default(2000) @db.Decimal(10, 2) // Is se zyada udhaar nahi milega (Auto-Stop)
+
+  // --- Opening Balances (For Legacy Data Migration) ---
+  openingCashBalance   Decimal @default(0) @db.Decimal(10, 2) // Initial cash balance during migration
+  openingBottleBalance Int     @default(0) // Initial bottle count during migration
+
   // Relations
   orders          Order[]
   specialPrices   CustomerProductPrice[]

@@ -98,7 +98,7 @@ import { z } from 'zod';
 import { AUTH_COOKIE } from '@/features/auth/constants';
 import { resetPasswordSchema, signInFormSchema, signUpFormSchema, updateProfileSchema } from '@/features/auth/schema';
 import { authenticateUser, createUser, generateToken, hashPassword, verifyToken } from '@/lib/authenticate';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { sessionMiddleware } from '@/lib/session-middleware';
 import { db } from '@/lib/db';
 import { deleteFile, uploadFile } from '@/lib/upload';
@@ -123,13 +123,17 @@ const app = new Hono()
     return ctx.json({ data: user });
   })
   .post('/login', zValidator('json', signInFormSchema), async (ctx) => {
-    const { email, password } = ctx.req.valid('json');
+    const { emailOrPhone, password } = ctx.req.valid('json');
 
     try {
-      const user = await authenticateUser(email, password);
+      const user = await authenticateUser(emailOrPhone, password);
       // 🔒 Check if suspended
       if (user.suspended) {
         return ctx.json({ error: 'Your account has been suspended' }, 403);
+      }
+      // 🔒 Check if account is active
+      if (!user.isActive) {
+        return ctx.json({ error: 'Your account has been deactivated' }, 403);
       }
       const token = generateToken(user);
 
@@ -147,9 +151,9 @@ const app = new Hono()
     }
   })
   .post('/register', zValidator('json', signUpFormSchema), async (ctx) => {
-    const { name, email, password } = ctx.req.valid('json');
+    const { name, email, phoneNumber, password, role } = ctx.req.valid('json');
     try {
-      const user = await createUser(name, email, password);
+      const user = await createUser(name, email ?? null, phoneNumber, password, role);
       const token = generateToken(user);
 
       setCookie(ctx, AUTH_COOKIE, token, {
@@ -163,7 +167,14 @@ const app = new Hono()
       return ctx.json({ data: user });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        return ctx.json({ error: 'Email already exists' }, 400);
+        const target = (error.meta?.target as string[]) || [];
+        if (target.includes('email')) {
+          return ctx.json({ error: 'Email already exists' }, 400);
+        }
+        if (target.includes('phoneNumber')) {
+          return ctx.json({ error: 'Phone number already exists' }, 400);
+        }
+        return ctx.json({ error: 'User already exists' }, 400);
       }
       return ctx.json({ error: 'Something went wrong' }, 500);
     }
@@ -289,7 +300,8 @@ const app = new Hono()
     const user = ctx.get('user');
     const { suspended } = ctx.req.valid('json');
 
-    if (user.role !== 'admin') {
+    // Only SUPER_ADMIN and ADMIN can suspend users
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN) {
       return ctx.json({ error: 'Unauthorized access' }, 403);
     }
 
