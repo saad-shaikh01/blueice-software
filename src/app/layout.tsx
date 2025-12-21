@@ -19,7 +19,7 @@ export const metadata: Metadata = siteConfig;
 const RootLayout = ({ children }: Readonly<PropsWithChildren>) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.className, 'min-h-screen antialiased')}>
+      <body className={cn(inter.className, 'min-h-screen antialiased bg-gradient-to-br from-background to-blue-50/50 dark:to-slate-900/50')}>
         <Providers>
           <Toaster richColors closeButton />
           <FcmTokenComp />
