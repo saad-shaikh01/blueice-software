@@ -13,7 +13,7 @@ export const Logo = () => {
   return (
     <Link href="/" className="flex items-center gap-x-1.5">
       <Image src="/apple-touch-icon.png" alt="Icon" height={40} width={40} />
-      <p className={cn('text-xl font-semibold text-[#111]', font.className)}>MADCOM DIGITAL</p>
+      <p className={cn('text-xl font-semibold text-foreground', font.className)}>MADCOM DIGITAL</p>
     </Link>
   );
 };

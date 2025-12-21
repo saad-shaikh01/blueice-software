@@ -46,11 +46,11 @@ export const SignUpCard = () => {
         <CardDescription>
           By signing up, you agree to{' '}
           <Link href="#">
-            <span className="text-blue-700">Privacy Policy</span>
+            <span className="text-blue-700 dark:text-blue-500">Privacy Policy</span>
           </Link>{' '}
           and{' '}
           <Link href="#">
-            <span className="text-blue-700">Terms of Service</span>
+            <span className="text-blue-700 dark:text-blue-500">Terms of Service</span>
           </Link>
         </CardDescription>
       </CardHeader>
@@ -122,7 +122,7 @@ export const SignUpCard = () => {
         <p>
           Already have an account?{' '}
           <Link href="/sign-in">
-            <span className="text-blue-700">Login</span>
+            <span className="text-blue-700 dark:text-blue-500">Login</span>
           </Link>
         </p>
       </CardContent>

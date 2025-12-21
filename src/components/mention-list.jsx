@@ -156,20 +156,20 @@ const MentionList = forwardRef((props, ref) => {
 
   if (!props.items.length) {
     return (
-      <div className="bg-white border border-gray-300 rounded-lg shadow-md flex flex-col gap-1 overflow-auto p-2 relative">
-        <div className="item p-2 text-gray-500">No result</div>
+      <div className="bg-popover text-popover-foreground border border-border rounded-lg shadow-md flex flex-col gap-1 overflow-auto p-2 relative">
+        <div className="item p-2 text-muted-foreground">No result</div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white border border-gray-300 rounded-lg shadow-md flex flex-col gap-1 overflow-auto p-2 relative max-h-48 overflow-y-auto">
+    <div className="bg-popover text-popover-foreground border border-border rounded-lg shadow-md flex flex-col gap-1 overflow-auto p-2 relative max-h-48 overflow-y-auto">
       {props.items.map((item, index) => (
         <button
           type="button" // Add type to prevent form submission if inside form
           className={cn(
-            `w-full flex items-center gap-2 text-left px-3 py-2 rounded-md transition-colors duration-150 hover:bg-gray-100 focus:outline-none`,
-            index === selectedIndex && 'bg-blue-100 text-blue-800 border-l-2 border-blue-500'
+            `w-full flex items-center gap-2 text-left px-3 py-2 rounded-md transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus:outline-none`,
+            index === selectedIndex && 'bg-accent text-accent-foreground border-l-2 border-primary'
           )}
           key={item.id}
           onClick={() => selectItem(index)}

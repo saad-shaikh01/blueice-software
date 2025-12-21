@@ -258,7 +258,7 @@ export const TiptapEditor = ({
   };
 
   return (
-    <div className="flex flex-col border border-slate-300 rounded-md overflow-hidden">
+    <div className="flex flex-col border border-border rounded-md overflow-hidden">
       {variant === "create" && (
         <MenuBar editor={editor} />
       )}
@@ -269,11 +269,11 @@ export const TiptapEditor = ({
             <img
               src={URL.createObjectURL(image)}
               alt="preview"
-              className="rounded object-cover w-full h-full border"
+              className="rounded object-cover w-full h-full border border-border"
             />
             <button
               onClick={() => setImage(null)}
-              className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1"
+              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
             >
               <XIcon className="w-3 h-3" />
             </button>
@@ -281,7 +281,7 @@ export const TiptapEditor = ({
         </div>
       )}
 
-      <div className="flex items-center gap-2 px-2 py-2 border-t">
+      <div className="flex items-center gap-2 px-2 py-2 border-t border-border">
         <Button
           disabled={disabled}
           size="icon"
@@ -320,7 +320,7 @@ export const TiptapEditor = ({
                 disabled={disabled || isEmpty}
                 size="sm"
                 onClick={() => handleSubmit(editor)}
-                className="bg-[#2563eb] text-white hover:bg-[#2563eb]/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Save
               </Button>
@@ -334,7 +334,7 @@ export const TiptapEditor = ({
             disabled={disabled || isEmpty}
             onClick={() => handleSubmit(editor)}
             size="icon"
-            className="ml-auto bg-[#2563eb] text-white hover:bg-[#2563eb]/90"
+            className="ml-auto bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <MdSend className="w-4 h-4" />
           </Button>

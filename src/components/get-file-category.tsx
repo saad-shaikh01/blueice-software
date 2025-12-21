@@ -21,17 +21,17 @@ type FileIconElement = React.ReactElement;
 export const getFileIcon = (type: string): FileIconElement => {
   // Image files
   if (type.startsWith('image/')) {
-    return <FileImage className="w-9 h-9 text-blue-500" />;
+    return <FileImage className="w-9 h-9 text-blue-500 dark:text-blue-400" />;
   }
 
   // Video files
   if (type.startsWith('video/')) {
-    return <FileVideo className="w-9 h-9 text-purple-500" />;
+    return <FileVideo className="w-9 h-9 text-purple-500 dark:text-purple-400" />;
   }
 
   // Audio files  
   if (type.startsWith('audio/')) {
-    return <FileAudio className="w-9 h-9 text-pink-500" />;
+    return <FileAudio className="w-9 h-9 text-pink-500 dark:text-pink-400" />;
   }
 
   // PDF files
@@ -45,7 +45,7 @@ export const getFileIcon = (type: string): FileIconElement => {
     type === 'application/msword' ||
     type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   ) {
-    return <FileType className="w-9 h-9 text-blue-700" />;
+    return <FileType className="w-9 h-9 text-blue-700 dark:text-blue-500" />;
   }
 
   // Excel files
@@ -53,7 +53,7 @@ export const getFileIcon = (type: string): FileIconElement => {
     type === 'application/vnd.ms-excel' ||
     type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   ) {
-    return <FileType className="w-9 h-9 text-green-600" />;
+    return <FileType className="w-9 h-9 text-green-600 dark:text-green-500" />;
   }
 
   // PowerPoint files
@@ -61,7 +61,7 @@ export const getFileIcon = (type: string): FileIconElement => {
     type === 'application/vnd.ms-powerpoint' ||
     type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
   ) {
-    return <FileType className="w-9 h-9 text-orange-500" />;
+    return <FileType className="w-9 h-9 text-orange-500 dark:text-orange-400" />;
   }
 
   // Archive files
@@ -71,7 +71,7 @@ export const getFileIcon = (type: string): FileIconElement => {
     type === 'application/x-rar-compressed' ||
     type === 'application/x-7z-compressed'
   ) {
-    return <FileArchive className="w-9 h-9 text-yellow-600" />;
+    return <FileArchive className="w-9 h-9 text-yellow-600 dark:text-yellow-500" />;
   }
 
   // Text files
@@ -79,7 +79,7 @@ export const getFileIcon = (type: string): FileIconElement => {
     type === 'text/plain' ||
     type === 'text/markdown'
   ) {
-    return <FileText className="w-9 h-9 text-gray-500" />;
+    return <FileText className="w-9 h-9 text-gray-500 dark:text-gray-400" />;
   }
 
   // JSON/XML files
@@ -87,7 +87,7 @@ export const getFileIcon = (type: string): FileIconElement => {
     type === 'application/json' ||
     type === 'application/xml'
   ) {
-    return <FileJson className="w-9 h-9 text-orange-600" />;
+    return <FileJson className="w-9 h-9 text-orange-600 dark:text-orange-500" />;
   }
 
   // Code files
@@ -99,9 +99,9 @@ export const getFileIcon = (type: string): FileIconElement => {
     type === 'application/javascript' ||
     type === 'application/typescript'
   ) {
-    return <FileCode className="w-9 h-9 text-indigo-600" />;
+    return <FileCode className="w-9 h-9 text-indigo-600 dark:text-indigo-400" />;
   }
 
   // Default file icon
-  return <File className="w-9 h-9 text-gray-500" />;
+  return <File className="w-9 h-9 text-gray-500 dark:text-gray-400" />;
 };

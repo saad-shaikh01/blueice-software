@@ -201,8 +201,8 @@ const MultiFileUpload = forwardRef<MultiFileUploadRef, MultiFileUploadProps>(({
                 className={cn(
                   "relative border-2 border-dashed rounded-lg p-8 text-center transition-colors",
                   dragActive
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
-                    : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-muted-foreground/50",
                   isPending && "opacity-50 cursor-not-allowed"
                 )}
                 onDragEnter={handleDrag}
@@ -221,19 +221,19 @@ const MultiFileUpload = forwardRef<MultiFileUploadRef, MultiFileUploadProps>(({
                 />
 
                 <div className="flex flex-col items-center space-y-4">
-                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                    <Upload className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                    <Upload className="w-6 h-6 text-muted-foreground" />
                   </div>
 
                   <div className="space-y-2">
                     <p className="text-lg font-medium">
                       {dragActive ? 'Drop files here' : 'Drag & drop files here'}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       or{' '}
                       <button
                         type="button"
-                        className="text-blue-600 hover:text-blue-500 font-medium"
+                        className="text-primary hover:text-primary/90 font-medium"
                         onClick={() => inputRef.current?.click()}
                         disabled={isPending}
                       >
@@ -242,7 +242,7 @@ const MultiFileUpload = forwardRef<MultiFileUploadRef, MultiFileUploadProps>(({
                     </p>
                   </div>
 
-                  <div className="text-xs text-gray-400 space-y-1">
+                  <div className="text-xs text-muted-foreground space-y-1">
                     <p>Maximum {maxFiles} files, up to {maxFileSize}MB each</p>
 
                   </div>
@@ -253,7 +253,7 @@ const MultiFileUpload = forwardRef<MultiFileUploadRef, MultiFileUploadProps>(({
               {errors.length > 0 && (
                 <div className="space-y-2">
                   {errors.map((error, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-950/20 p-2 rounded">
+                    <div key={index} className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-2 rounded">
                       <AlertCircle className="w-4 h-4" />
                       {error}
                     </div>
@@ -271,7 +271,7 @@ const MultiFileUpload = forwardRef<MultiFileUploadRef, MultiFileUploadProps>(({
                     {files.map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-card border border-border rounded-lg"
                       >
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                           {file.preview ? (
@@ -281,13 +281,13 @@ const MultiFileUpload = forwardRef<MultiFileUploadRef, MultiFileUploadProps>(({
                               className="w-10 h-10 object-cover rounded"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
                               {getFileIcon(file.type)}
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{file.name}</p>
-                            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                            <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
                           </div>
                         </div>
                         <Button

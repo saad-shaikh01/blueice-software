@@ -203,8 +203,8 @@ export const MenuBar = ({ editor }: any) => {
     <button
       onClick={onClick}
       className={cn(
-        "w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-700",
-        isActive && "bg-gray-200 text-blue-600"
+        "w-8 h-8 flex items-center justify-center rounded hover:bg-muted text-muted-foreground",
+        isActive && "bg-muted text-primary"
       )}
     >
       <Icon className="w-4 h-4" />
@@ -212,7 +212,7 @@ export const MenuBar = ({ editor }: any) => {
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-1 px-2 py-1 border-b border-gray-200">
+    <div className="flex flex-wrap items-center gap-1 px-2 py-1 border-b border-border">
       <Btn
         onClick={() => editor.chain().focus().toggleBold().run()}
         icon={Bold}

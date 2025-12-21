@@ -27,7 +27,7 @@ export const Hint = (props: Props) => {
         <TooltipContent
           side={side}
           align={align}
-          className="bg-black text-white border-white/5"
+          className="bg-popover text-popover-foreground border-border"
         >
           <p className="font-medium text-xs">
             {label}

@@ -41,7 +41,7 @@ export const EmojiPopover = ({
               {children}
             </TooltipTrigger>
           </PopoverTrigger>
-          <TooltipContent className="bg-black text-white border border-white/5">
+          <TooltipContent className="bg-popover text-popover-foreground border border-border">
             <p className="font-medium text-xs">
               {hint}
             </p>

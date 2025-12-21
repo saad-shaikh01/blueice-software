@@ -89,7 +89,7 @@ export const SignInCard = () => {
         </Form>
       </CardContent>
       <Link href="/password/forgot" className="px-7 text-right float-end">
-        <span className="text-blue-700">Forgot Password</span>
+        <span className="text-blue-700 dark:text-blue-500">Forgot Password</span>
       </Link>
 
       <div className="px-7">
@@ -100,7 +100,7 @@ export const SignInCard = () => {
         <p>
           Don&apos;t have an account?{' '}
           <Link href="/sign-up">
-            <span className="text-blue-700">Register</span>
+            <span className="text-blue-700 dark:text-blue-500">Register</span>
           </Link>
         </p>
       </CardContent>

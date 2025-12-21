@@ -79,7 +79,7 @@ export const ForgotPassCard = () => {
         <p>
           Don&apos;t have an account?{' '}
           <Link href="/sign-up">
-            <span className="text-blue-700">Register</span>
+            <span className="text-blue-700 dark:text-blue-500">Register</span>
           </Link>
         </p>
       </CardContent>
