@@ -1,0 +1,258 @@
+// --------------------------------------------------------
+// 1. CONFIGURATION & ENUMS
+// --------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN     // Owner
+  ADMIN           // Manager
+  DRIVER          // Rider
+  CUSTOMER        // Client
+  INVENTORY_MGR   // Plant Operator
+}
+
+enum CustomerType {
+  RESIDENTIAL     // Ghar
+  COMMERCIAL      // Office/Shop
+  CORPORATE       // Large Factories (Tax logic different)
+}
+
+enum OrderStatus {
+  SCHEDULED       // Auto-generated via Cron
+  PENDING         // Driver assigned
+  IN_PROGRESS     // Driver on the way
+  COMPLETED       // Delivered & Cash Collected
+  CANCELLED       // Customer refused
+  RESCHEDULED     // Moved to next day
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE_TRANSFER // Bank/JazzCash
+  PREPAID_WALLET  // App Balance
+  CREDIT          // Udhaar
+}
+
+// --------------------------------------------------------
+// 2. AUTHENTICATION & USERS (Decoupled Logic)
+// --------------------------------------------------------
+
+model User {
+  id          String    @id @default(uuid())
+  email       String?   @unique // Optional because Drivers/Staff might only have Phone
+  phoneNumber String    @unique // Primary identifier in PK
+  password    String    // Hashed
+  name        String
+  role        UserRole  @default(CUSTOMER)
+  
+  isActive    Boolean   @default(true) // Soft Delete (Data kabhi delete nahi hota)
+  suspended   Boolean   @default(false)
+  fcmTokens   String[]  // Push Notifications
+  
+  // Relations (Polymorphic style logic)
+  customerProfile CustomerProfile?
+  driverProfile   DriverProfile?
+  
+  // Audit Logs (Who did what?)
+  actionsPerformed AuditLog[]  @relation("Actor")
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// --------------------------------------------------------
+// 3. CUSTOMER ENGINE (The Heart of CRM)
+// --------------------------------------------------------
+
+model CustomerProfile {
+  id              String       @id @default(uuid())
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id])
+
+  // --- Location & Logistics ---
+  area            String       // e.g., "Gulshan Blk 4" (Filtering ke liye)
+  address         String       // Full text
+  landmark        String?      // e.g., "Near Madina Masjid"
+  floorNumber     Int          @default(0) // 0=Ground. Important for labor cost calculation
+  hasLift         Boolean      @default(false) 
+  geoLat          Float?       // Google Maps Pin
+  geoLng          Float?       // Google Maps Pin
+  
+  // --- Routing & Grouping ---
+  routeId         String?
+  route           Route?       @relation(fields: [routeId], references: [id])
+  sequenceOrder   Int?         // Driver ki list mein ye kis number par aayega (Route Optimization)
+
+  // --- Business Logic ---
+  type            CustomerType @default(RESIDENTIAL)
+  deliveryDays    Int[]        // [1, 4] = Mon, Thu. (Scalable: can add Sunday [0] later)
+  
+  // --- Financials (The Wallet) ---
+  // Note: We don't store "Bottle Balance" here because products vary.
+  // We store it in `CustomerBottleWallet` (See below).
+  
+  cashBalance     Decimal      @default(0) @db.Decimal(10, 2) // (+ Advance / - Udhaar)
+  creditLimit     Decimal      @default(2000) // Is se zyada udhaar nahi milega (Auto-Stop)
+  
+  // Relations
+  orders          Order[]
+  specialPrices   CustomerProductPrice[]
+  bottleWallets   CustomerBottleWallet[]
+  ledgers         Ledger[]
+}
+
+model Route {
+  id          String            @id @default(uuid())
+  name        String            // e.g., "Morning - DHA Phase 6"
+  description String?
+  customers   CustomerProfile[]
+  // Future: Assigned default driver for this route
+}
+
+// --------------------------------------------------------
+// 4. INVENTORY & PRODUCTS (Flexible Catalog)
+// --------------------------------------------------------
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String   // "19L Mineral Water", "5L Bottle", "Dispenser"
+  sku         String   @unique
+  basePrice   Decimal  @db.Decimal(10, 2) // Default market price
+  
+  // Inventory Tracking
+  isReturnable Boolean @default(true) // Pani ki bottle wapis aati hai, Dispenser nahi
+  stockFilled  Int     @default(0)    // Plant Warehouse
+  stockEmpty   Int     @default(0)    // Plant Warehouse
+  
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  orderItems    OrderItem[]
+  specialPrices CustomerProductPrice[]
+  bottleWallets CustomerBottleWallet[]
+}
+
+// Customer Specific Pricing (Tier System Override)
+model CustomerProductPrice {
+  id          String          @id @default(uuid())
+  customerId  String
+  productId   String
+  customPrice Decimal         @db.Decimal(10, 2) // e.g., 180 instead of 200
+  
+  customer    CustomerProfile @relation(fields: [customerId], references: [id])
+  product     Product         @relation(fields: [productId], references: [id])
+
+  @@unique([customerId, productId]) // Ek customer ki ek product ki ek hi price hogi
+}
+
+// Customer Bottle Holding (Scalable Inventory at Customer End)
+model CustomerBottleWallet {
+  id          String          @id @default(uuid())
+  customerId  String
+  productId   String
+  
+  // Kitni bottles customer ke paas hain (Net Balance)
+  balance     Int             @default(0) 
+  
+  customer    CustomerProfile @relation(fields: [customerId], references: [id])
+  product     Product         @relation(fields: [productId], references: [id])
+
+  @@unique([customerId, productId])
+}
+
+// --------------------------------------------------------
+// 5. OPERATIONS (Orders & Delivery)
+// --------------------------------------------------------
+
+model Order {
+  id             String      @id @default(uuid())
+  readableId     Int         @default(autoincrement()) // "Order #1005" for receipt
+  
+  customerId     String
+  customer       CustomerProfile @relation(fields: [customerId], references: [id])
+  
+  driverId       String?
+  driver         DriverProfile?  @relation(fields: [driverId], references: [id])
+  
+  scheduledDate  DateTime    @db.Date // Sirf Date (Time nahi)
+  status         OrderStatus @default(SCHEDULED)
+  
+  // Financial Snapshot
+  totalAmount    Decimal     @default(0) @db.Decimal(10, 2)
+  discount       Decimal     @default(0) @db.Decimal(10, 2)
+  deliveryCharge Decimal     @default(0) @db.Decimal(10, 2) // Lift na hone par extra charge logic
+  
+  // Proof of Delivery
+  deliveredAt    DateTime?
+  signatureUrl   String?     // Driver app pe sign
+  
+  orderItems     OrderItem[]
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  productId   String
+  
+  quantity    Int      // Kitni bottles mangwai
+  priceAtTime Decimal  @db.Decimal(10, 2) // Price changes history maintain karne ke liye
+  
+  // Bottle Exchange Logic (The Core of this Business)
+  filledGiven Int      @default(0) // Driver ne kitni di
+  emptyTaken  Int      @default(0) // Driver ne kitni wapis li
+  
+  order       Order    @relation(fields: [orderId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model DriverProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  
+  vehicleNo      String?
+  licenseNo      String?
+  currentLat     Float?   // Live Tracking (Synced from Redis periodically)
+  currentLng     Float?
+  
+  orders         Order[]
+}
+
+// --------------------------------------------------------
+// 6. FINANCE & AUDIT (The Ledger)
+// --------------------------------------------------------
+
+model Ledger {
+  id             String        @id @default(uuid())
+  customerId     String
+  customer       CustomerProfile @relation(fields: [customerId], references: [id])
+  
+  amount         Decimal       @db.Decimal(10, 2) // +ve for Credit, -ve for Debit
+  description    String        // "Order #1005 Delivery", "Cash Payment Received"
+  balanceAfter   Decimal       @db.Decimal(10, 2) // Running Balance
+  
+  referenceId    String?       // Order ID or Payment ID
+  createdAt      DateTime      @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorId     String
+  actor       User     @relation("Actor", fields: [actorId], references: [id])
+  
+  action      String   // "UPDATE_PRICE", "DELETE_ORDER"
+  details     Json?    // { oldPrice: 200, newPrice: 220 }
+  
+  createdAt   DateTime @default(now())
+}
