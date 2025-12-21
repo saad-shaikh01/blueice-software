@@ -1,7 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// import { ThemeProvider as NextThemesProvider } from 'next-themes'
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { PropsWithChildren } from 'react';
 
 const queryClient = new QueryClient();
@@ -9,18 +9,14 @@ const queryClient = new QueryClient();
 export function Providers({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* <NextThemesProvider
+      <NextThemesProvider
         attribute="class"
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
-        enableColorScheme
-      > */}
-
-      {/* <ThemeProvider attribute="class" defaultTheme="system" enableSystem > */}
-      {children}
-      {/* </ThemeProvider> */}
-      {/* </NextThemesProvider> */}
+      >
+        {children}
+      </NextThemesProvider>
     </QueryClientProvider>
   );
 }

@@ -50,7 +50,7 @@ export const Navbar = () => {
           <BellIcon />
         </Link> */}
 
-        {/* <ModeToggle /> */}
+        <ModeToggle />
 
         {/* <NotificationButton /> */}
         <UserButton />

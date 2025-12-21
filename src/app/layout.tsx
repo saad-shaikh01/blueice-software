@@ -18,10 +18,10 @@ export const metadata: Metadata = siteConfig;
 
 const RootLayout = ({ children }: Readonly<PropsWithChildren>) => {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.className, 'min-h-screen antialiased')}>
         <Providers>
-          <Toaster theme="light" richColors closeButton />
+          <Toaster richColors closeButton />
           <FcmTokenComp />
           {children}
         </Providers>
