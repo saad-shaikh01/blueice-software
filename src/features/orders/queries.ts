@@ -171,6 +171,10 @@ export async function updateOrder(
   const { items, ...orderData } = data;
 
   return await db.$transaction(async (tx) => {
+    // Fetch existing order to check status transition
+    const existingOrder = await tx.order.findUnique({ where: { id } });
+    if (!existingOrder) throw new Error('Order not found');
+
     // Update basic fields
     if (Object.keys(orderData).length > 0) {
       await tx.order.update({
@@ -189,12 +193,6 @@ export async function updateOrder(
 
     // Update items if provided
     if (items) {
-      // Strategy: Delete all and recreate? Or partial update?
-      // Since items is "optional" in input, if it's provided, we assume it's the NEW list.
-      // Easiest to delete existing and create new to handle removals.
-      // But we lose "id" reference if we do that (might matter for history).
-      // Let's do delete/create for simplicity now.
-
       // Fetch products to recalc total
       const productIds = items.map((i) => i.productId);
       const products = await tx.product.findMany({
@@ -228,11 +226,9 @@ export async function updateOrder(
 
       // Recalculate order total
       // We need existing delivery/discount if not provided in update
-      const currentOrder = await tx.order.findUnique({ where: { id } });
-      if (!currentOrder) throw new Error('Order not found');
-
-      const deliveryCharge = orderData.deliveryCharge !== undefined ? new Prisma.Decimal(orderData.deliveryCharge) : currentOrder.deliveryCharge;
-      const discount = orderData.discount !== undefined ? new Prisma.Decimal(orderData.discount) : currentOrder.discount;
+      // We can use orderData or fallback to existingOrder
+      const deliveryCharge = orderData.deliveryCharge !== undefined ? new Prisma.Decimal(orderData.deliveryCharge) : existingOrder.deliveryCharge;
+      const discount = orderData.discount !== undefined ? new Prisma.Decimal(orderData.discount) : existingOrder.discount;
 
       const finalTotal = totalAmount.add(deliveryCharge).sub(discount);
 
@@ -242,6 +238,75 @@ export async function updateOrder(
           totalAmount: finalTotal,
         },
       });
+    }
+
+    // Business Logic: Handle Completion
+    if (orderData.status === OrderStatus.COMPLETED && existingOrder.status !== OrderStatus.COMPLETED) {
+      const updatedOrder = await tx.order.findUnique({ where: { id } });
+      if (!updatedOrder) throw new Error('Order not found after update');
+
+      const customer = await tx.customerProfile.findUnique({ where: { id: updatedOrder.customerId } });
+      if (!customer) throw new Error('Customer not found');
+
+      // 1. Create Ledger Entry & Update Cash Balance
+      // Debit amount (Increase debt or decrease advance)
+      const amount = updatedOrder.totalAmount;
+      const newBalance = customer.cashBalance.sub(amount);
+
+      await tx.ledger.create({
+        data: {
+          customerId: updatedOrder.customerId,
+          amount: amount.neg(),
+          description: `Order #${updatedOrder.readableId} Completed`,
+          balanceAfter: newBalance,
+          referenceId: id,
+        },
+      });
+
+      await tx.customerProfile.update({
+        where: { id: updatedOrder.customerId },
+        data: { cashBalance: newBalance },
+      });
+
+      // 2. Update Bottle Wallets & Stock
+      const orderItems = await tx.orderItem.findMany({ where: { orderId: id } });
+
+      for (const item of orderItems) {
+        const netChange = item.filledGiven - item.emptyTaken;
+
+        const wallet = await tx.customerBottleWallet.findUnique({
+          where: {
+            customerId_productId: {
+              customerId: updatedOrder.customerId,
+              productId: item.productId,
+            },
+          },
+        });
+
+        if (wallet) {
+          await tx.customerBottleWallet.update({
+            where: { id: wallet.id },
+            data: { balance: { increment: netChange } },
+          });
+        } else {
+          await tx.customerBottleWallet.create({
+            data: {
+              customerId: updatedOrder.customerId,
+              productId: item.productId,
+              balance: netChange,
+            },
+          });
+        }
+
+        // 3. Update Inventory
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stockFilled: { decrement: item.filledGiven },
+            stockEmpty: { increment: item.emptyTaken },
+          },
+        });
+      }
     }
 
     return await tx.order.findUnique({
