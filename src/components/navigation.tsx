@@ -1,33 +1,47 @@
 'use client';
 
-import { MessageCircleDashedIcon, Settings, UsersIcon } from 'lucide-react';
+import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { GoCheckCircle, GoCheckCircleFill, GoHome, GoHomeFill, GoProjectRoadmap, GoProjectTemplate } from 'react-icons/go';
 import { cn } from '@/lib/utils';
 
 const routes = [
   {
-    label: 'Home',
+    label: 'Dashboard',
     href: '',
-    icon: GoHome,
-    activeIcon: GoHomeFill,
+    icon: LayoutDashboard,
+    activeIcon: LayoutDashboard,
   },
-
   {
-    label: 'Settings',
-    href: '/settings',
-    icon: Settings,
-    activeIcon: Settings,
+    label: 'Customers',
+    href: 'customers',
+    icon: Users,
+    activeIcon: Users,
   },
-
   {
-    label: 'Users',
-    href: '/users',
-    icon: UsersIcon,
-    activeIcon: UsersIcon,
+    label: 'Orders',
+    href: 'orders',
+    icon: ShoppingCart,
+    activeIcon: ShoppingCart,
   },
-
+  {
+    label: 'Products',
+    href: 'products',
+    icon: Package,
+    activeIcon: Package,
+  },
+  {
+    label: 'Drivers',
+    href: 'drivers',
+    icon: Truck,
+    activeIcon: Truck,
+  },
+  {
+    label: 'Routes',
+    href: 'routes',
+    icon: Map,
+    activeIcon: Map,
+  },
 ];
 
 export const Navigation = () => {
