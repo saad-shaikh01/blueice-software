@@ -1,7 +1,9 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Pencil, Trash, Eye } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useDeleteCustomer } from '@/features/customers/api/use-delete-customer';
+import { useConfirm } from '@/hooks/use-confirm';
 
 // Define the shape of your data based on the API response
 // This should match the return type of getCustomers in queries.ts
@@ -34,6 +38,62 @@ export type Customer = {
   route: {
     name: string;
   } | null;
+};
+
+const ActionCell = ({ customer }: { customer: Customer }) => {
+  const router = useRouter();
+  const { mutate: deleteCustomer, isPending } = useDeleteCustomer();
+  const [ConfirmDialog, confirm] = useConfirm(
+    'Delete Customer',
+    'Are you sure you want to delete this customer? This action cannot be undone.',
+    'destructive'
+  );
+
+  const handleDelete = async () => {
+    const ok = await confirm();
+    if (ok) {
+      deleteCustomer({ param: { id: customer.id } });
+    }
+  };
+
+  return (
+    <>
+      <ConfirmDialog />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={() => navigator.clipboard.writeText(customer.id)}
+          >
+            Copy customer ID
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => router.push(`/customers/${customer.id}/edit`)}>
+            <Eye className="mr-2 h-4 w-4" />
+            View details
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push(`/customers/${customer.id}/edit`)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit customer
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleDelete}
+            disabled={isPending}
+            className="text-red-600 focus:text-red-600"
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Delete customer
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  );
 };
 
 export const columns: ColumnDef<Customer>[] = [
@@ -98,30 +158,6 @@ export const columns: ColumnDef<Customer>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
-      const customer = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(customer.id)}
-            >
-              Copy customer ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Edit customer</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    cell: ({ row }) => <ActionCell customer={row.original} />,
   },
 ];

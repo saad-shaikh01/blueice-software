@@ -326,6 +326,7 @@ export async function updateCustomerProfile(
     name: string;
     phoneNumber: string;
     email: string | null;
+    manualCode: string | null;
     area: string;
     address: string;
     landmark: string | null;
@@ -385,5 +386,35 @@ export async function updateCustomerProfile(
     });
 
     return updatedProfile;
+  });
+}
+
+/**
+ * Delete customer
+ * Warning: This will delete the user and profile.
+ * If there are related orders/financials, this might fail due to DB constraints.
+ */
+export async function deleteCustomer(customerId: string) {
+  return await db.$transaction(async (tx) => {
+    const profile = await tx.customerProfile.findUnique({
+      where: { id: customerId },
+      select: { userId: true },
+    });
+
+    if (!profile) {
+      throw new Error('Customer not found');
+    }
+
+    // Delete customer profile first
+    await tx.customerProfile.delete({
+      where: { id: customerId },
+    });
+
+    // Delete user
+    await tx.user.delete({
+      where: { id: profile.userId },
+    });
+
+    return true;
   });
 }

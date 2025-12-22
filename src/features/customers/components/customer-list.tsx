@@ -31,6 +31,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Loader2 } from 'lucide-react';
+import { useCustomerFilters } from '../hooks/use-customer-filters';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -51,6 +53,19 @@ export function CustomerTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  // Server-side search state
+  const [filters, setFilters] = useCustomerFilters();
+  const [searchValue, setSearchValue] = React.useState(filters.search || '');
+  const debouncedSearch = useDebounce(searchValue, 500);
+
+  React.useEffect(() => {
+    // Only update if the value actually changed to avoid infinite loops or unnecessary updates
+    if (debouncedSearch !== filters.search) {
+        setFilters({ search: debouncedSearch || null, page: 1 });
+    }
+  }, [debouncedSearch, filters.search, setFilters]);
+
+
   const table = useReactTable({
     data,
     columns,
@@ -68,17 +83,21 @@ export function CustomerTable<TData, TValue>({
       columnVisibility,
       rowSelection,
     },
+    manualPagination: true, // We are doing server-side pagination essentially by fetching data matching params
+    // But table.getPaginationRowModel() handles client side pagination of the *fetched* data.
+    // If we want true server side pagination logic in the table component (next/prev buttons affecting URL),
+    // we need to override the pagination state and onPaginationChange.
+    // For now, let's keep it simple: we search via URL, we display what we got.
+    // Ideally we should pass 'pageCount' and 'onPaginationChange' to the table.
   });
 
   return (
     <div className="w-full">
       <div className="flex items-center py-4 gap-2">
         <Input
-          placeholder="Filter names..."
-          value={(table.getColumn('user.name')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('user.name')?.setFilterValue(event.target.value)
-          }
+          placeholder="Search customers..."
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
           className="max-w-sm"
         />
         <DropdownMenu>
@@ -176,6 +195,9 @@ export function CustomerTable<TData, TValue>({
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="space-x-2">
+          {/* Note: Next/Prev buttons currently do client-side pagination of the loaded data chunk.
+              To implement true server-side pagination, we would update the URL 'page' param here.
+           */}
           <Button
             variant="outline"
             size="sm"

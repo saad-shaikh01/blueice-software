@@ -97,6 +97,13 @@ export const updateCustomerSchema = z.object({
   phoneNumber: z.string().trim().min(10).optional(),
   email: z.string().trim().email().optional().nullable(),
 
+  manualCode: z
+    .string()
+    .trim()
+    .regex(/^[A-Z]-\d+$/, 'Manual code must be in format like L-3442')
+    .optional()
+    .nullable(),
+
   area: z.string().trim().min(1).optional(),
   address: z.string().trim().min(1).optional(),
   landmark: z.string().trim().optional().nullable(),

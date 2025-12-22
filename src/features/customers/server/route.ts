@@ -6,6 +6,7 @@ import { sessionMiddleware } from '@/lib/session-middleware';
 import { createCustomerSchema, getCustomersQuerySchema, updateCustomerSchema } from '@/features/customers/schema';
 import {
   createCustomerWithProfile,
+  deleteCustomer,
   getCustomerWithOrderHistory,
   getCustomers,
   updateCustomerProfile,
@@ -164,6 +165,35 @@ const app = new Hono()
       }
 
       return ctx.json({ error: 'Failed to update customer' }, 500);
+    }
+  })
+
+  /**
+   * DELETE /api/customers/:id
+   * Delete customer
+   */
+  .delete('/:id', sessionMiddleware, async (ctx) => {
+    const user = ctx.get('user');
+    const { id } = ctx.req.param();
+
+    // Only SUPER_ADMIN and ADMIN can delete customers
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN) {
+      return ctx.json({ error: 'Unauthorized: Only admins can delete customers' }, 403);
+    }
+
+    try {
+      await deleteCustomer(id);
+      return ctx.json({ success: true, message: 'Customer deleted successfully' });
+    } catch (error) {
+      console.error('[DELETE_CUSTOMER]:', error);
+
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2003') { // ForeignKeyViolation
+          return ctx.json({ error: 'Cannot delete customer with existing orders or records' }, 400);
+        }
+      }
+
+      return ctx.json({ error: 'Failed to delete customer' }, 500);
     }
   });
 
