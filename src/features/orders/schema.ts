@@ -1,0 +1,51 @@
+import { z } from 'zod';
+import { OrderStatus } from '@prisma/client';
+
+export const createOrderSchema = z.object({
+  customerId: z.string().uuid('Invalid customer'),
+  driverId: z.string().uuid().optional().nullable(),
+  scheduledDate: z.coerce.date(),
+  status: z.nativeEnum(OrderStatus).default(OrderStatus.SCHEDULED),
+  deliveryCharge: z.coerce.number().min(0).default(0),
+  discount: z.coerce.number().min(0).default(0),
+
+  items: z.array(z.object({
+    productId: z.string().uuid(),
+    quantity: z.coerce.number().int().min(1),
+    price: z.coerce.number().min(0).optional(), // Optional, fetch from product if missing
+  })).min(1, 'At least one item is required'),
+});
+
+export const updateOrderSchema = z.object({
+  customerId: z.string().uuid().optional(),
+  driverId: z.string().uuid().optional().nullable(),
+  scheduledDate: z.coerce.date().optional(),
+  status: z.nativeEnum(OrderStatus).optional(),
+  deliveryCharge: z.coerce.number().min(0).optional(),
+  discount: z.coerce.number().min(0).optional(),
+  deliveredAt: z.coerce.date().optional().nullable(),
+
+  // Full replacement of items or updates?
+  // Let's assume for update we might send the full list state for simplicity in UI
+  items: z.array(z.object({
+    id: z.string().optional(),
+    productId: z.string().uuid(),
+    quantity: z.coerce.number().int().min(1),
+    price: z.coerce.number().min(0).optional(),
+    filledGiven: z.coerce.number().int().min(0).optional(),
+    emptyTaken: z.coerce.number().int().min(0).optional(),
+  })).optional(),
+});
+
+export const getOrdersQuerySchema = z.object({
+  search: z.string().optional(), // Search by customer name or order ID
+  status: z.nativeEnum(OrderStatus).optional(),
+  customerId: z.string().uuid().optional(),
+  driverId: z.string().uuid().optional(),
+  date: z.string().optional(), // Filter by specific date
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+});
+
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;

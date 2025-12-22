@@ -1,0 +1,90 @@
+import { zValidator } from '@hono/zod-validator';
+import { Hono } from 'hono';
+import { Prisma, UserRole } from '@prisma/client';
+
+import { sessionMiddleware } from '@/lib/session-middleware';
+import { createOrderSchema, getOrdersQuerySchema, updateOrderSchema } from '@/features/orders/schema';
+import {
+  createOrder,
+  deleteOrder,
+  getOrder,
+  getOrders,
+  updateOrder,
+} from '@/features/orders/queries';
+
+const app = new Hono()
+  .get('/', sessionMiddleware, zValidator('query', getOrdersQuerySchema), async (ctx) => {
+    const params = ctx.req.valid('query');
+
+    try {
+      const result = await getOrders(params);
+      return ctx.json(result);
+    } catch (error) {
+      return ctx.json({ error: 'Failed to fetch orders' }, 500);
+    }
+  })
+  .get('/:id', sessionMiddleware, async (ctx) => {
+    const { id } = ctx.req.param();
+
+    try {
+      const order = await getOrder(id);
+      if (!order) return ctx.json({ error: 'Order not found' }, 404);
+      return ctx.json({ data: order });
+    } catch (error) {
+      return ctx.json({ error: 'Failed to fetch order' }, 500);
+    }
+  })
+  .post('/', sessionMiddleware, zValidator('json', createOrderSchema), async (ctx) => {
+    const user = ctx.get('user');
+
+    if (!([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR] as UserRole[]).includes(user.role)) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const data = ctx.req.valid('json');
+
+    try {
+      const order = await createOrder(data);
+      return ctx.json({ data: order });
+    } catch (error) {
+      console.error(error);
+      return ctx.json({ error: 'Failed to create order' }, 500);
+    }
+  })
+  .patch('/:id', sessionMiddleware, zValidator('json', updateOrderSchema), async (ctx) => {
+    const user = ctx.get('user');
+    const { id } = ctx.req.param();
+
+    // Drivers should be able to update orders assigned to them, but for now we restrict to admins/drivers generally
+    // Ideally we check if driverId matches user.id
+    if (!([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR, UserRole.DRIVER] as UserRole[]).includes(user.role)) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const data = ctx.req.valid('json');
+
+    try {
+      const order = await updateOrder(id, data);
+      return ctx.json({ data: order });
+    } catch (error) {
+      console.error(error);
+      return ctx.json({ error: 'Failed to update order' }, 500);
+    }
+  })
+  .delete('/:id', sessionMiddleware, async (ctx) => {
+    const user = ctx.get('user');
+    const { id } = ctx.req.param();
+
+    if (!([UserRole.SUPER_ADMIN, UserRole.ADMIN] as UserRole[]).includes(user.role)) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
+    }
+
+    try {
+      await deleteOrder(id);
+      return ctx.json({ success: true });
+    } catch (error) {
+      return ctx.json({ error: 'Failed to delete order' }, 500);
+    }
+  });
+
+export default app;
