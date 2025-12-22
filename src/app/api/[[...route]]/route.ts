@@ -3,6 +3,7 @@ import { handle } from 'hono/vercel';
 
 import auth from '@/features/auth/server/route';
 import customers from '@/features/customers/server/route';
+import products from '@/features/products/server/route';
 
 export const runtime = 'nodejs';
 
@@ -20,6 +21,7 @@ app.get('/hello', (c) => {
 const routes = app
   .route('/auth', auth)
   .route('/customers', customers)
+  .route('/products', products)
 
 export type AppType = typeof routes;
 

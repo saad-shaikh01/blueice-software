@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { CreateCustomerInput } from '@/features/customers/schema';
-import { useGetProducts } from '@/features/customers/api/use-get-products';
+import { useGetProducts } from '@/features/products/api/use-get-products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export const LegacyMigrationStep = () => {
