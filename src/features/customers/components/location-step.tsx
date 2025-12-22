@@ -10,9 +10,18 @@ import { Separator } from '@/components/ui/separator';
 import type { CreateCustomerInput } from '@/features/customers/schema';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGetRoutes } from '@/features/routes/api/use-get-routes';
+
+interface Route {
+  id: string;
+  name: string;
+}
 
 export const LocationStep = () => {
   const form = useFormContext<CreateCustomerInput>();
+  const { data: routesData } = useGetRoutes();
+  const routes = (routesData?.routes as Route[]) || [];
 
   return (
     <div className="space-y-6">
@@ -174,6 +183,65 @@ export const LocationStep = () => {
               <span className="text-xs">Click on map to auto-fill coordinates</span>
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Delivery Route</CardTitle>
+          <CardDescription>Assign customer to a delivery route</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <FormField
+            control={form.control}
+            name="routeId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Route</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value || undefined} value={field.value || undefined}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a route" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {routes.map((route) => (
+                      <SelectItem key={route.id} value={route.id}>
+                        {route.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Drivers follow this route for delivery
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="sequenceOrder"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sequence Number (Optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 10"
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Order in which driver visits (1, 2, 3...)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </CardContent>
       </Card>
     </div>
