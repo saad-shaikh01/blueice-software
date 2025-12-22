@@ -1,0 +1,112 @@
+'use client';
+
+import { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal, ArrowUpDown, Pencil, Trash } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useDeleteDriver } from '../api/use-delete-driver';
+import { useConfirm } from '@/hooks/use-confirm';
+
+export type Driver = {
+  id: string;
+  userId: string;
+  vehicleNo: string | null;
+  licenseNo: string | null;
+  user: {
+    name: string;
+    email: string | null;
+    phoneNumber: string;
+    isActive: boolean;
+    suspended: boolean;
+  };
+};
+
+const ActionCell = ({ driver }: { driver: Driver }) => {
+  const router = useRouter();
+  const { mutate: deleteDriver, isPending } = useDeleteDriver();
+  const [ConfirmDialog, confirm] = useConfirm(
+    'Delete Driver',
+    'Are you sure you want to delete this driver? This action cannot be undone.',
+    'destructive'
+  );
+
+  const handleDelete = async () => {
+    const ok = await confirm();
+    if (ok) {
+      deleteDriver({ param: { id: driver.id } });
+    }
+  };
+
+  return (
+    <>
+      <ConfirmDialog />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => router.push(`/drivers/${driver.id}/edit`)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleDelete}
+            disabled={isPending}
+            className="text-red-600 focus:text-red-600"
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  );
+};
+
+export const columns: ColumnDef<Driver>[] = [
+  {
+    accessorKey: 'user.name',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="pl-4 font-medium">{row.original.user.name}</div>,
+  },
+  {
+    accessorKey: 'user.phoneNumber',
+    header: 'Phone',
+  },
+  {
+    accessorKey: 'vehicleNo',
+    header: 'Vehicle No',
+    cell: ({ row }) => row.getValue('vehicleNo') || '-',
+  },
+  {
+    accessorKey: 'licenseNo',
+    header: 'License No',
+    cell: ({ row }) => row.getValue('licenseNo') || '-',
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => <ActionCell driver={row.original} />,
+  },
+];
