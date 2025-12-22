@@ -74,7 +74,7 @@ const ActionCell = ({ customer }: { customer: Customer }) => {
             Copy customer ID
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push(`/customers/${customer.id}/edit`)}>
+          <DropdownMenuItem onClick={() => router.push(`/customers/${customer.id}`)}>
             <Eye className="mr-2 h-4 w-4" />
             View details
           </DropdownMenuItem>
