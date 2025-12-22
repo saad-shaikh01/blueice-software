@@ -25,8 +25,6 @@ export const updateOrderSchema = z.object({
   discount: z.coerce.number().min(0).optional(),
   deliveredAt: z.coerce.date().optional().nullable(),
 
-  // Full replacement of items or updates?
-  // Let's assume for update we might send the full list state for simplicity in UI
   items: z.array(z.object({
     id: z.string().optional(),
     productId: z.string().uuid(),
@@ -35,6 +33,11 @@ export const updateOrderSchema = z.object({
     filledGiven: z.coerce.number().int().min(0).optional(),
     emptyTaken: z.coerce.number().int().min(0).optional(),
   })).optional(),
+});
+
+export const bulkAssignSchema = z.object({
+  orderIds: z.array(z.string().uuid()),
+  driverId: z.string().uuid(),
 });
 
 export const getOrdersQuerySchema = z.object({
@@ -49,3 +52,4 @@ export const getOrdersQuerySchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
+export type BulkAssignInput = z.infer<typeof bulkAssignSchema>;

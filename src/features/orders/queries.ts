@@ -323,3 +323,15 @@ export async function deleteOrder(id: string) {
     where: { id },
   });
 }
+
+export async function bulkAssignOrders(data: { orderIds: string[]; driverId: string }) {
+  return await db.order.updateMany({
+    where: {
+      id: { in: data.orderIds },
+    },
+    data: {
+      driverId: data.driverId,
+      status: OrderStatus.PENDING,
+    },
+  });
+}

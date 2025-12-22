@@ -33,6 +33,7 @@ import {
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { useOrderFilters } from '../hooks/use-order-filters';
 import { useDebounce } from '@/hooks/use-debounce';
+import { AssignDriverModal } from './assign-driver-modal';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,7 +41,7 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
 }
 
-export function OrderTable<TData, TValue>({
+export function OrderTable<TData extends { id: string }, TValue>({
   columns,
   data,
   isLoading,
@@ -52,6 +53,7 @@ export function OrderTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [isAssignOpen, setIsAssignOpen] = React.useState(false);
 
   const [filters, setFilters] = useOrderFilters();
   const [searchValue, setSearchValue] = React.useState(filters.search || '');
@@ -66,6 +68,7 @@ export function OrderTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    getRowId: (row) => row.id,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -82,8 +85,22 @@ export function OrderTable<TData, TValue>({
     },
   });
 
+  const selectedIds = Object.keys(rowSelection);
+
   return (
     <div className="w-full">
+      <AssignDriverModal
+         open={isAssignOpen}
+         onOpenChange={setIsAssignOpen}
+         orderIds={selectedIds}
+         onSuccess={() => setRowSelection({})}
+      />
+      {selectedIds.length > 0 && (
+        <div className="bg-muted p-2 rounded-md mb-4 flex items-center justify-between">
+           <span className="text-sm font-medium">{selectedIds.length} orders selected</span>
+           <Button size="sm" onClick={() => setIsAssignOpen(true)}>Assign Driver</Button>
+        </div>
+      )}
       <div className="flex items-center py-4 gap-2">
         <Input
           placeholder="Search orders..."

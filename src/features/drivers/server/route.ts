@@ -12,8 +12,21 @@ import {
   getDrivers,
   updateDriver,
 } from '@/features/drivers/queries';
+import { getDriverStats } from '@/features/driver-view/queries';
 
 const app = new Hono()
+  .get('/me/stats', sessionMiddleware, async (ctx) => {
+    const user = ctx.get('user');
+    try {
+      const driver = await getDriverByUserId(user.id);
+      if (!driver) return ctx.json({ error: 'Driver not found' }, 404);
+
+      const stats = await getDriverStats(driver.id, new Date());
+      return ctx.json({ data: stats });
+    } catch (error) {
+      return ctx.json({ error: 'Failed to fetch stats' }, 500);
+    }
+  })
   .get('/me', sessionMiddleware, async (ctx) => {
     const user = ctx.get('user');
     try {

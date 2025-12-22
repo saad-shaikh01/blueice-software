@@ -3,8 +3,9 @@ import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
 
 import { sessionMiddleware } from '@/lib/session-middleware';
-import { createOrderSchema, getOrdersQuerySchema, updateOrderSchema } from '@/features/orders/schema';
+import { bulkAssignSchema, createOrderSchema, getOrdersQuerySchema, updateOrderSchema } from '@/features/orders/schema';
 import {
+  bulkAssignOrders,
   createOrder,
   deleteOrder,
   getOrder,
@@ -49,6 +50,22 @@ const app = new Hono()
     } catch (error) {
       console.error(error);
       return ctx.json({ error: 'Failed to create order' }, 500);
+    }
+  })
+  .post('/bulk-assign', sessionMiddleware, zValidator('json', bulkAssignSchema), async (ctx) => {
+    const user = ctx.get('user');
+
+    if (!([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR] as UserRole[]).includes(user.role)) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const data = ctx.req.valid('json');
+
+    try {
+      const result = await bulkAssignOrders(data);
+      return ctx.json({ data: result });
+    } catch (error) {
+      return ctx.json({ error: 'Failed to assign orders' }, 500);
     }
   })
   .patch('/:id', sessionMiddleware, zValidator('json', updateOrderSchema), async (ctx) => {
