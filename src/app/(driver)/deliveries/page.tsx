@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { PageLoader } from '@/components/page-loader';
 import { Order } from '@/features/orders/components/columns';
 import { DriverStats } from '@/features/driver-view/components/driver-stats';
+import { LoadSheet } from '@/features/driver-view/components/load-sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DeliveriesContent() {
@@ -55,6 +56,7 @@ function DeliveriesContent() {
   return (
     <div className="space-y-6">
       <DriverStats />
+      <LoadSheet orders={pendingOrders} />
 
       <Tabs defaultValue="pending">
         <TabsList className="grid w-full grid-cols-2">

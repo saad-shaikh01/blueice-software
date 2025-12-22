@@ -62,6 +62,9 @@ model User {
   isActive    Boolean   @default(true) // Soft Delete (Data kabhi delete nahi hota)
   suspended   Boolean   @default(false)
   fcmTokens   String[]  // Push Notifications
+
+  @@index([name])
+  @@index([phoneNumber])
   
   // Profile Fields
   designation         String?
@@ -109,6 +112,8 @@ model CustomerProfile {
   routeId         String?
   route           Route?       @relation(fields: [routeId], references: [id])
   sequenceOrder   Int?         // Driver ki list mein ye kis number par aayega (Route Optimization)
+
+  @@index([routeId])
 
   // --- Business Logic ---
   type            CustomerType @default(RESIDENTIAL)
@@ -232,7 +237,8 @@ model Order {
   deliveredAt    DateTime?
   signatureUrl   String?     // Driver app pe sign
   cashCollected  Decimal     @default(0) @db.Decimal(10, 2)
-  
+  paymentMethod  PaymentMethod @default(CASH)
+
   orderItems     OrderItem[]
   
   createdAt      DateTime    @default(now())

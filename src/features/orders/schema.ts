@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentMethod } from '@prisma/client';
 
 export const createOrderSchema = z.object({
   customerId: z.string().uuid('Invalid customer'),
@@ -25,6 +25,7 @@ export const updateOrderSchema = z.object({
   discount: z.coerce.number().min(0).optional(),
   deliveredAt: z.coerce.date().optional().nullable(),
   cashCollected: z.coerce.number().min(0).optional(),
+  paymentMethod: z.nativeEnum(PaymentMethod).optional(),
 
   items: z.array(z.object({
     id: z.string().optional(),

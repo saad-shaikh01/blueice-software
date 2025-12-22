@@ -4,11 +4,12 @@ import { useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { Loader2, Check } from 'lucide-react';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentMethod } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageLoader } from '@/components/page-loader';
@@ -29,6 +30,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
   const form = useForm({
     defaultValues: {
       cashCollected: 0,
+      paymentMethod: PaymentMethod.CASH,
       items: [] as any[],
     },
   });
@@ -42,6 +44,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
     if (order) {
       form.reset({
         cashCollected: Number(order.totalAmount),
+        paymentMethod: PaymentMethod.CASH,
         items: order.orderItems.map((item: any) => ({
           productId: item.productId,
           productName: item.product.name, // For display
@@ -59,6 +62,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
       json: {
         status: OrderStatus.COMPLETED,
         cashCollected: data.cashCollected,
+        paymentMethod: data.paymentMethod,
         items: data.items.map((item: any) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -101,7 +105,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-4">
               <FormField
                 control={form.control}
                 name="cashCollected"
@@ -116,6 +120,30 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                         onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Method</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select method" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.values(PaymentMethod).map((method) => (
+                          <SelectItem key={method} value={method}>
+                            {method.replace('_', ' ')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

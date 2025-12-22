@@ -1,4 +1,4 @@
-import { Prisma, OrderStatus } from '@prisma/client';
+import { Prisma, OrderStatus, PaymentMethod } from '@prisma/client';
 import { db } from '@/lib/db';
 
 export async function getOrders(params: {
@@ -280,6 +280,7 @@ export async function updateOrder(
     discount: number;
     deliveredAt: Date | null;
     cashCollected: number;
+    paymentMethod: PaymentMethod;
     items: {
       id?: string;
       productId: string;
@@ -311,6 +312,9 @@ export async function updateOrder(
           }),
           ...(orderData.cashCollected !== undefined && {
             cashCollected: new Prisma.Decimal(orderData.cashCollected),
+          }),
+          ...(orderData.paymentMethod !== undefined && {
+            paymentMethod: orderData.paymentMethod,
           }),
         },
       });
