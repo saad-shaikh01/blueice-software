@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash, Eye } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Pencil, Trash, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { OrderStatus } from '@prisma/client';
 import { format } from 'date-fns';
@@ -64,6 +64,10 @@ const ActionCell = ({ order }: { order: Order }) => {
           <DropdownMenuItem onClick={() => router.push(`/orders/${order.id}/edit`)}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit Order
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push(`/orders/${order.id}/invoice`)}>
+            <FileText className="mr-2 h-4 w-4" />
+            Print Invoice
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
