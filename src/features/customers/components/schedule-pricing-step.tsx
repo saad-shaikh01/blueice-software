@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormContext } from 'react-hook-form';
-import { Calendar, DollarSign, Truck } from 'lucide-react';
+import { Calendar, DollarSign, Package, Truck } from 'lucide-react';
 
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -11,10 +11,14 @@ import type { CreateCustomerInput } from '@/features/customers/schema';
 import { DELIVERY_DAYS, CUSTOMER_TYPES } from '@/features/customers/constants';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useGetProducts } from '@/features/products/api/use-get-products';
+import { Loader2 } from 'lucide-react';
 
 export const SchedulePricingStep = () => {
   const form = useFormContext<CreateCustomerInput>();
   const selectedDays = form.watch('deliveryDays') || [];
+  const { data: productsData, isLoading: isLoadingProducts } = useGetProducts();
+  const products = productsData || [];
 
   const toggleDay = (dayValue: number) => {
     const currentDays = form.getValues('deliveryDays') || [];
@@ -30,6 +34,74 @@ export const SchedulePricingStep = () => {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="size-5" />
+            Automatic Ordering
+          </CardTitle>
+          <CardDescription>Configure what product is ordered automatically on delivery days</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="defaultProductId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default Product</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || undefined}
+                    disabled={isLoadingProducts}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isLoadingProducts ? (
+                        <div className="flex items-center justify-center p-2">
+                          <Loader2 className="animate-spin h-4 w-4" />
+                        </div>
+                      ) : (
+                        products.map((product: any) => (
+                          <SelectItem key={product.id} value={product.id}>
+                            {product.name} ({product.sku})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>This product will be added to generated orders.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="defaultQuantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default Quantity</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
