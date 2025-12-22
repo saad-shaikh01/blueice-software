@@ -112,6 +112,24 @@ export async function getDriver(id: string) {
   });
 }
 
+export async function getDriverByUserId(userId: string) {
+  return await db.driverProfile.findUnique({
+    where: { userId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          isActive: true,
+          suspended: true,
+        },
+      },
+    },
+  });
+}
+
 export async function updateDriver(
   id: string,
   data: Partial<{

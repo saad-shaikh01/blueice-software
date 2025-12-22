@@ -8,11 +8,22 @@ import {
   createDriver,
   deleteDriver,
   getDriver,
+  getDriverByUserId,
   getDrivers,
   updateDriver,
 } from '@/features/drivers/queries';
 
 const app = new Hono()
+  .get('/me', sessionMiddleware, async (ctx) => {
+    const user = ctx.get('user');
+    try {
+      const driver = await getDriverByUserId(user.id);
+      if (!driver) return ctx.json({ error: 'Driver not found' }, 404);
+      return ctx.json({ data: driver });
+    } catch (error) {
+      return ctx.json({ error: 'Failed to fetch driver' }, 500);
+    }
+  })
   .get('/', sessionMiddleware, zValidator('query', getDriversQuerySchema), async (ctx) => {
     const params = ctx.req.valid('query');
 
