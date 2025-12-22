@@ -28,6 +28,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
 
   const form = useForm({
     defaultValues: {
+      cashCollected: 0,
       items: [] as any[],
     },
   });
@@ -40,6 +41,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
   useEffect(() => {
     if (order) {
       form.reset({
+        cashCollected: Number(order.totalAmount),
         items: order.orderItems.map((item: any) => ({
           productId: item.productId,
           productName: item.product.name, // For display
@@ -56,6 +58,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
       param: { id: orderId },
       json: {
         status: OrderStatus.COMPLETED,
+        cashCollected: data.cashCollected,
         items: data.items.map((item: any) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -97,6 +100,29 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <FormField
+                control={form.control}
+                name="cashCollected"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Actual Cash Collected</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Bottle Exchange</CardTitle>

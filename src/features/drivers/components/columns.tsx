@@ -20,6 +20,7 @@ export type Driver = {
   userId: string;
   vehicleNo: string | null;
   licenseNo: string | null;
+  cashCollectedToday?: string;
   user: {
     name: string;
     email: string | null;
@@ -104,6 +105,14 @@ export const columns: ColumnDef<Driver>[] = [
     accessorKey: 'licenseNo',
     header: 'License No',
     cell: ({ row }) => row.getValue('licenseNo') || '-',
+  },
+  {
+    accessorKey: 'cashCollectedToday',
+    header: 'Cash (Today)',
+    cell: ({ row }) => {
+      const amount = parseFloat(row.original.cashCollectedToday || '0');
+      return <div>{new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(amount)}</div>;
+    },
   },
   {
     id: 'actions',

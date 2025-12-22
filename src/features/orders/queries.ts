@@ -158,6 +158,7 @@ export async function updateOrder(
     deliveryCharge: number;
     discount: number;
     deliveredAt: Date | null;
+    cashCollected: number;
     items: {
       id?: string;
       productId: string;
@@ -186,6 +187,9 @@ export async function updateOrder(
           }),
           ...(orderData.discount !== undefined && {
             discount: new Prisma.Decimal(orderData.discount),
+          }),
+          ...(orderData.cashCollected !== undefined && {
+            cashCollected: new Prisma.Decimal(orderData.cashCollected),
           }),
         },
       });
@@ -251,21 +255,41 @@ export async function updateOrder(
       // 1. Create Ledger Entry & Update Cash Balance
       // Debit amount (Increase debt or decrease advance)
       const amount = updatedOrder.totalAmount;
-      const newBalance = customer.cashBalance.sub(amount);
+      // Use cashCollected if provided, otherwise 0?
+      // If we are updating status to COMPLETED, we expect cashCollected to be set if paid.
+      // We read it from updatedOrder because it was updated in step 1.
+      const cashCollected = updatedOrder.cashCollected; // Decimal
 
+      // Ledger 1: Sale (Debit)
+      const afterSaleBalance = customer.cashBalance.sub(amount);
       await tx.ledger.create({
         data: {
           customerId: updatedOrder.customerId,
           amount: amount.neg(),
-          description: `Order #${updatedOrder.readableId} Completed`,
-          balanceAfter: newBalance,
+          description: `Order #${updatedOrder.readableId} Sale`,
+          balanceAfter: afterSaleBalance,
           referenceId: id,
         },
       });
 
+      // Ledger 2: Payment (Credit)
+      let finalBalance = afterSaleBalance;
+      if (cashCollected.gt(0)) {
+        finalBalance = finalBalance.add(cashCollected);
+        await tx.ledger.create({
+          data: {
+            customerId: updatedOrder.customerId,
+            amount: cashCollected,
+            description: `Order #${updatedOrder.readableId} Payment`,
+            balanceAfter: finalBalance,
+            referenceId: id,
+          },
+        });
+      }
+
       await tx.customerProfile.update({
         where: { id: updatedOrder.customerId },
-        data: { cashBalance: newBalance },
+        data: { cashBalance: finalBalance },
       });
 
       // 2. Update Bottle Wallets & Stock

@@ -216,6 +216,7 @@ model Order {
   // Proof of Delivery
   deliveredAt    DateTime?
   signatureUrl   String?     // Driver app pe sign
+  cashCollected  Decimal     @default(0) @db.Decimal(10, 2)
   
   orderItems     OrderItem[]
   

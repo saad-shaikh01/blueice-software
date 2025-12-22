@@ -18,7 +18,7 @@ export async function getDriverStats(driverId: string, date: Date) {
     db.order.count({ where: { driverId, scheduledDate: { gte: startOfDay, lte: endOfDay }, status: { not: OrderStatus.COMPLETED } } }),
     db.order.aggregate({
       where: { driverId, scheduledDate: { gte: startOfDay, lte: endOfDay }, status: OrderStatus.COMPLETED },
-      _sum: { totalAmount: true }
+      _sum: { cashCollected: true }
     })
   ]);
 
@@ -26,6 +26,6 @@ export async function getDriverStats(driverId: string, date: Date) {
     totalOrders,
     completedOrders,
     pendingOrders,
-    cashCollected: revenueData._sum.totalAmount?.toString() || '0',
+    cashCollected: revenueData._sum.cashCollected?.toString() || '0',
   };
 }

@@ -24,6 +24,7 @@ export const updateOrderSchema = z.object({
   deliveryCharge: z.coerce.number().min(0).optional(),
   discount: z.coerce.number().min(0).optional(),
   deliveredAt: z.coerce.date().optional().nullable(),
+  cashCollected: z.coerce.number().min(0).optional(),
 
   items: z.array(z.object({
     id: z.string().optional(),

@@ -1,4 +1,4 @@
-import { Prisma, UserRole } from '@prisma/client';
+import { Prisma, UserRole, OrderStatus } from '@prisma/client';
 import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/authenticate';
 
@@ -83,8 +83,29 @@ export async function getDrivers(params: {
     db.driverProfile.count({ where }),
   ]);
 
+  const driversWithStats = await Promise.all(drivers.map(async (driver) => {
+    const startOfDay = new Date();
+    startOfDay.setHours(0,0,0,0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23,59,59,999);
+
+    const result = await db.order.aggregate({
+       where: {
+          driverId: driver.id,
+          scheduledDate: { gte: startOfDay, lte: endOfDay },
+          status: OrderStatus.COMPLETED
+       },
+       _sum: { cashCollected: true }
+    });
+
+    return {
+       ...driver,
+       cashCollectedToday: result._sum.cashCollected?.toString() || '0'
+    };
+ }));
+
   return {
-    drivers,
+    drivers: driversWithStats,
     pagination: {
       total,
       page,
