@@ -133,11 +133,21 @@ model CustomerProfile {
 }
 
 model Route {
-  id          String            @id @default(uuid())
-  name        String            // e.g., "Morning - DHA Phase 6"
-  description String?
-  customers   CustomerProfile[]
-  // Future: Assigned default driver for this route
+  id              String            @id @default(uuid())
+  name            String
+  defaultDriverId String?           // Primary Driver for this route
+  defaultDriver   DriverProfile?    @relation(fields: [defaultDriverId], references: [id])
+  customers       CustomerProfile[]
+  assignments     RouteAssignment[] // History/Current active driver
+}
+
+model RouteAssignment {
+  id        String   @id @default(uuid())
+  routeId   String
+  driverId  String
+  date      DateTime @db.Date
+  route     Route    @relation(fields: [routeId], references: [id])
+  driver    DriverProfile @relation(fields: [driverId], references: [id])
 }
 
 // --------------------------------------------------------
@@ -251,6 +261,8 @@ model DriverProfile {
   currentLng     Float?
   
   orders         Order[]
+  defaultRoutes    Route[]          
+  routeAssignments RouteAssignment[]
 }
 
 // --------------------------------------------------------
