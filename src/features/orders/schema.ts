@@ -41,6 +41,11 @@ export const bulkAssignSchema = z.object({
   driverId: z.string().uuid(),
 });
 
+export const generateOrdersSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  routeId: z.string().uuid().optional(),
+});
+
 export const getOrdersQuerySchema = z.object({
   search: z.string().optional(), // Search by customer name or order ID
   status: z.nativeEnum(OrderStatus).optional(),
@@ -54,3 +59,4 @@ export const getOrdersQuerySchema = z.object({
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
 export type BulkAssignInput = z.infer<typeof bulkAssignSchema>;
+export type GenerateOrdersInput = z.infer<typeof generateOrdersSchema>;

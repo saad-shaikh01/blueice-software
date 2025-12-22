@@ -121,6 +121,10 @@ model CustomerProfile {
   cashBalance     Decimal      @default(0) @db.Decimal(10, 2) // (+ Advance / - Udhaar)
   creditLimit     Decimal      @default(2000) @db.Decimal(10, 2) // Is se zyada udhaar nahi milega (Auto-Stop)
 
+  // --- Automated Ordering Defaults ---
+  defaultProductId String?     // What to order automatically
+  defaultQuantity  Int         @default(1)
+
   // --- Opening Balances (For Legacy Data Migration) ---
   openingCashBalance   Decimal @default(0) @db.Decimal(10, 2) // Initial cash balance during migration
   openingBottleBalance Int     @default(0) // Initial bottle count during migration

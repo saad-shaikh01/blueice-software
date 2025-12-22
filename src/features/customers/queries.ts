@@ -22,6 +22,8 @@ interface CreateCustomerData {
   sequenceOrder?: number | null;
   type: CustomerType;
   deliveryDays: number[];
+  defaultProductId?: string | null;
+  defaultQuantity: number;
   creditLimit: string;
   openingCashBalance: string;
   openingBottleBalance: number;
@@ -53,6 +55,8 @@ export async function createCustomerWithProfile(data: CreateCustomerData) {
     sequenceOrder,
     type,
     deliveryDays,
+    defaultProductId,
+    defaultQuantity,
     creditLimit,
     openingCashBalance,
     openingBottleBalance,
@@ -104,6 +108,8 @@ export async function createCustomerWithProfile(data: CreateCustomerData) {
         sequenceOrder,
         type,
         deliveryDays,
+        defaultProductId,
+        defaultQuantity,
         creditLimit: creditLimitDecimal,
         cashBalance: openingCashDecimal, // Set initial cash balance
         openingCashBalance: openingCashDecimal,
@@ -338,6 +344,8 @@ export async function updateCustomerProfile(
     sequenceOrder: number | null;
     type: CustomerType;
     deliveryDays: number[];
+    defaultProductId: string | null;
+    defaultQuantity: number;
     creditLimit: string;
   }>
 ) {

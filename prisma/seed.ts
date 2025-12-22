@@ -68,6 +68,9 @@ async function main() {
         },
       },
     },
+    include: {
+      driverProfile: true,
+    },
   });
 
   const driver2 = await prisma.user.upsert({
@@ -85,6 +88,9 @@ async function main() {
           licenseNo: 'LIC-1122',
         },
       },
+    },
+    include: {
+      driverProfile: true,
     },
   });
 

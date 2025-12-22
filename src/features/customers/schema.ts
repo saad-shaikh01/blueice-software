@@ -49,6 +49,10 @@ export const createCustomerSchema = z.object({
       message: 'Delivery days must be unique',
     }),
 
+  // Automated Ordering Defaults
+  defaultProductId: z.string().uuid().optional().nullable(),
+  defaultQuantity: z.coerce.number().int().min(1).default(1),
+
   // Financials
   creditLimit: z
     .string()
@@ -117,6 +121,9 @@ export const updateCustomerSchema = z.object({
 
   type: z.nativeEnum(CustomerType).optional(),
   deliveryDays: z.array(z.number().int().min(0).max(6)).optional(),
+
+  defaultProductId: z.string().uuid().optional().nullable(),
+  defaultQuantity: z.coerce.number().int().min(1).optional(),
 
   creditLimit: z
     .string()

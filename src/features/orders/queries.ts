@@ -7,10 +7,11 @@ export async function getOrders(params: {
   customerId?: string;
   driverId?: string;
   date?: string;
+  routeId?: string;
   page: number;
   limit: number;
 }) {
-  const { search, status, customerId, driverId, date, page, limit } = params;
+  const { search, status, customerId, driverId, date, routeId, page, limit } = params;
   const skip = (page - 1) * limit;
 
   const where: Prisma.OrderWhereInput = {
@@ -26,6 +27,7 @@ export async function getOrders(params: {
       status ? { status } : {},
       customerId ? { customerId } : {},
       driverId ? { driverId } : {},
+      routeId ? { customer: { routeId } } : {},
       date ? { scheduledDate: { equals: new Date(date) } } : {},
     ],
   };
@@ -91,6 +93,125 @@ export async function getOrder(id: string) {
       },
     },
   });
+}
+
+export async function generateOrders(data: { date: string; routeId?: string }) {
+  const { date, routeId } = data;
+  const scheduledDate = new Date(date);
+  // Get day of week: 0=Sunday, 1=Monday, etc.
+  // getDay() returns 0 for Sunday
+  let dayOfWeek = scheduledDate.getDay();
+  // We use 0=Sunday in our logic, matching JS getDay()
+
+  // 1. Find matching customers
+  const where: Prisma.CustomerProfileWhereInput = {
+    // CustomerProfile doesn't have isActive, User does.
+    user: {
+      isActive: true,
+      suspended: false,
+    },
+    deliveryDays: {
+      has: dayOfWeek,
+    },
+    defaultProductId: {
+      not: null, // Must have a default product
+    },
+    ...(routeId ? { routeId } : {}),
+  };
+
+  const customers = await db.customerProfile.findMany({
+    where,
+    select: {
+      id: true,
+      defaultProductId: true,
+      defaultQuantity: true,
+      routeId: true,
+    },
+  });
+
+  if (customers.length === 0) {
+    return { count: 0, message: 'No matching customers found' };
+  }
+
+  // 2. Filter out customers who already have an order for this date
+  const existingOrders = await db.order.findMany({
+    where: {
+      scheduledDate: scheduledDate,
+      customerId: { in: customers.map((c) => c.id) },
+    },
+    select: {
+      customerId: true,
+    },
+  });
+
+  const existingCustomerIds = new Set(existingOrders.map((o) => o.customerId));
+  const customersToCreate = customers.filter((c) => !existingCustomerIds.has(c.id));
+
+  if (customersToCreate.length === 0) {
+    return { count: 0, message: 'Orders already exist for all matching customers' };
+  }
+
+  // 3. Fetch Product Prices
+  // We need to know the price for the OrderItem.
+  // Optimization: Fetch all unique products needed.
+  const productIds = Array.from(new Set(customersToCreate.map((c) => c.defaultProductId!)));
+  const products = await db.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, basePrice: true },
+  });
+  const productMap = new Map(products.map((p) => [p.id, p]));
+
+  // 4. Create Orders Transaction
+  // Prisma doesn't support "createMany" with relation "create" (nested writes) efficiently in one go for diverse data.
+  // We have to loop or use a raw query.
+  // Ideally, we use Promise.all for parallelism, but too many concurrent writes can lock DB.
+  // Let's use a transaction with batched operations if possible, or just Promise.all with chunking.
+  // Given "production-level", let's use a transaction to ensure atomicity?
+  // Actually, if one fails, do we want all to fail? Probably yes for "Generation".
+
+  // Important: We need to calculate Total Amount.
+
+  let createdCount = 0;
+
+  await db.$transaction(
+    async (tx) => {
+      for (const customer of customersToCreate) {
+        const product = productMap.get(customer.defaultProductId!);
+        if (!product) continue; // Should not happen due to where clause, but safety check
+
+        const price = product.basePrice;
+        const quantity = customer.defaultQuantity;
+        const totalAmount = price.mul(quantity);
+
+        await tx.order.create({
+          data: {
+            customerId: customer.id,
+            scheduledDate: scheduledDate,
+            status: OrderStatus.SCHEDULED,
+            totalAmount: totalAmount,
+            // If customer has a preferred driver (route default), we could assign here,
+            // but requirements say "Bulk Assign" is a separate step usually.
+            // Let's leave driverId null for now.
+
+            orderItems: {
+              create: {
+                productId: product.id,
+                quantity: quantity,
+                priceAtTime: price,
+              },
+            },
+          },
+        });
+        createdCount++;
+      }
+    },
+    {
+      maxWait: 5000, // 5s
+      timeout: 10000, // 10s
+    }
+  );
+
+  return { count: createdCount, message: `Successfully created ${createdCount} orders` };
 }
 
 export async function createOrder(data: {
