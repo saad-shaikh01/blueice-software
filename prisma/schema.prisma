@@ -135,6 +135,7 @@ model CustomerProfile {
 model Route {
   id              String            @id @default(uuid())
   name            String
+  description String?
   defaultDriverId String?           // Primary Driver for this route
   defaultDriver   DriverProfile?    @relation(fields: [defaultDriverId], references: [id])
   customers       CustomerProfile[]
