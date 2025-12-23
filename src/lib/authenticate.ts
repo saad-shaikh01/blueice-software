@@ -29,10 +29,24 @@ export function generateToken(user: AuthUser): string {
 
 export async function verifyToken(token: string): Promise<User | null> {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthUser;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthUser & { iat: number };
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id }
+      where: { id: decoded.id },
     });
+
+    if (!user) {
+      return null;
+    }
+
+    // Check if password was changed after token was issued
+    if (user.passwordChangedAt) {
+      const passwordChangedTimestamp = Math.floor(user.passwordChangedAt.getTime() / 1000);
+      if (decoded.iat < passwordChangedTimestamp) {
+        // Token was issued before password change - invalidate it
+        return null;
+      }
+    }
+
     return user;
   } catch {
     return null;

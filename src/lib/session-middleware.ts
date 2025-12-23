@@ -33,6 +33,15 @@ export const sessionMiddleware = createMiddleware<AdditionalContext>(async (ctx,
     return ctx.json({ error: 'Invalid or expired session.' }, 401);
   }
 
+  // Check if user is suspended or inactive
+  if (user.suspended) {
+    return ctx.json({ error: 'Your account has been suspended.' }, 403);
+  }
+
+  if (!user.isActive) {
+    return ctx.json({ error: 'Your account has been deactivated.' }, 403);
+  }
+
   // Set user info in context
   ctx.set('userId', user.id);
   ctx.set('user', user);

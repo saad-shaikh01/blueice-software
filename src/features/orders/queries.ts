@@ -129,6 +129,8 @@ export async function generateOrders(data: { date: string; routeId?: string }) {
       defaultProductId: true,
       defaultQuantity: true,
       routeId: true,
+      cashBalance: true,
+      creditLimit: true,
     },
   });
 
@@ -137,48 +139,103 @@ export async function generateOrders(data: { date: string; routeId?: string }) {
   }
 
   // 2. Filter out customers who already have an order for this date
-  const existingOrders = await db.order.findMany({
-    where: {
-      scheduledDate: scheduledDate,
-      customerId: { in: customers.map((c) => c.id) },
-    },
-    select: {
-      customerId: true,
-    },
+  // Using a transaction to prevent race conditions during concurrent order generation
+  let existingCustomerIds: Set<string>;
+
+  await db.$transaction(async (tx) => {
+    const existingOrders = await tx.order.findMany({
+      where: {
+        scheduledDate: scheduledDate,
+        customerId: { in: customers.map((c) => c.id) },
+      },
+      select: {
+        customerId: true,
+      },
+    });
+
+    existingCustomerIds = new Set(existingOrders.map((o) => o.customerId));
   });
 
-  const existingCustomerIds = new Set(existingOrders.map((o) => o.customerId));
-  const customersToCreate = customers.filter((c) => !existingCustomerIds.has(c.id));
+  const eligibleCustomers = customers.filter((c) => !existingCustomerIds!.has(c.id));
 
-  if (customersToCreate.length === 0) {
+  if (eligibleCustomers.length === 0) {
     return { count: 0, message: 'Orders already exist for all matching customers' };
   }
 
-  // 3. Fetch Product Prices
+  // 3. Fetch Product Prices and check stock availability
   // We need to know the price for the OrderItem.
   // Optimization: Fetch all unique products needed.
-  const productIds = Array.from(new Set(customersToCreate.map((c) => c.defaultProductId!)));
+  const productIds = Array.from(new Set(eligibleCustomers.map((c) => c.defaultProductId!)));
   const products = await db.product.findMany({
     where: { id: { in: productIds } },
-    select: { id: true, basePrice: true },
+    select: { id: true, basePrice: true, stockFilled: true },
   });
   const productMap = new Map(products.map((p) => [p.id, p]));
 
-  // 4. Create Orders Transaction
-  // Prisma doesn't support "createMany" with relation "create" (nested writes) efficiently in one go for diverse data.
-  // We have to loop or use a raw query.
-  // Ideally, we use Promise.all for parallelism, but too many concurrent writes can lock DB.
-  // Let's use a transaction with batched operations if possible, or just Promise.all with chunking.
-  // Given "production-level", let's use a transaction to ensure atomicity?
-  // Actually, if one fails, do we want all to fail? Probably yes for "Generation".
+  // 4. Calculate total stock needed per product
+  const stockNeeded = new Map<string, number>();
+  for (const customer of eligibleCustomers) {
+    const productId = customer.defaultProductId!;
+    const currentNeed = stockNeeded.get(productId) || 0;
+    stockNeeded.set(productId, currentNeed + customer.defaultQuantity);
+  }
 
-  // Important: We need to calculate Total Amount.
+  // 5. Validate stock availability
+  const insufficientStock: string[] = [];
+  for (const [productId, needed] of stockNeeded.entries()) {
+    const product = productMap.get(productId);
+    if (!product || product.stockFilled < needed) {
+      insufficientStock.push(productId);
+    }
+  }
 
+  if (insufficientStock.length > 0) {
+    return {
+      count: 0,
+      message: `Insufficient stock for products. Cannot generate orders.`,
+      insufficientStock,
+    };
+  }
+
+  // 6. Filter customers by credit limit
+  const customersToCreate = eligibleCustomers.filter((c) => {
+    const product = productMap.get(c.defaultProductId!);
+    if (!product) return false;
+
+    const orderAmount = product.basePrice.mul(c.defaultQuantity);
+    const newBalance = c.cashBalance.sub(orderAmount);
+
+    // Check if new balance would exceed credit limit
+    return newBalance.gte(c.creditLimit.neg());
+  });
+
+  const skippedDueToCredit = eligibleCustomers.length - customersToCreate.length;
+
+  if (customersToCreate.length === 0) {
+    return {
+      count: 0,
+      message: `All ${skippedDueToCredit} eligible customers have reached their credit limit`,
+    };
+  }
+
+  // 7. Create Orders Transaction
   let createdCount = 0;
 
   await db.$transaction(
     async (tx) => {
-      for (const customer of customersToCreate) {
+      // Re-check for duplicates within transaction to prevent race conditions
+      const existingInTx = await tx.order.findMany({
+        where: {
+          scheduledDate: scheduledDate,
+          customerId: { in: customersToCreate.map((c) => c.id) },
+        },
+        select: { customerId: true },
+      });
+
+      const existingInTxIds = new Set(existingInTx.map((o) => o.customerId));
+      const finalCustomersToCreate = customersToCreate.filter((c) => !existingInTxIds.has(c.id));
+
+      for (const customer of finalCustomersToCreate) {
         const product = productMap.get(customer.defaultProductId!);
         if (!product) continue; // Should not happen due to where clause, but safety check
 
@@ -192,9 +249,6 @@ export async function generateOrders(data: { date: string; routeId?: string }) {
             scheduledDate: scheduledDate,
             status: OrderStatus.SCHEDULED,
             totalAmount: totalAmount,
-            // If customer has a preferred driver (route default), we could assign here,
-            // but requirements say "Bulk Assign" is a separate step usually.
-            // Let's leave driverId null for now.
 
             orderItems: {
               create: {
@@ -214,7 +268,12 @@ export async function generateOrders(data: { date: string; routeId?: string }) {
     }
   );
 
-  return { count: createdCount, message: `Successfully created ${createdCount} orders` };
+  const message =
+    skippedDueToCredit > 0
+      ? `Successfully created ${createdCount} orders. ${skippedDueToCredit} customers skipped due to credit limit.`
+      : `Successfully created ${createdCount} orders`;
+
+  return { count: createdCount, message };
 }
 
 export async function createOrder(data: {
@@ -436,11 +495,27 @@ export async function updateOrder(
         });
 
         if (wallet) {
+          const newBalance = wallet.balance + netChange;
+
+          // Prevent negative bottle wallet balance
+          if (newBalance < 0) {
+            throw new Error(
+              `Invalid bottle exchange: Customer currently holds ${wallet.balance} bottles but trying to return ${item.emptyTaken} bottles while receiving ${item.filledGiven}. This would result in negative balance.`
+            );
+          }
+
           await tx.customerBottleWallet.update({
             where: { id: wallet.id },
-            data: { balance: { increment: netChange } },
+            data: { balance: newBalance },
           });
         } else {
+          // New wallet - ensure first transaction is not negative
+          if (netChange < 0) {
+            throw new Error(
+              `Invalid bottle exchange: Cannot create negative bottle balance. Customer is returning ${item.emptyTaken} bottles but only receiving ${item.filledGiven}.`
+            );
+          }
+
           await tx.customerBottleWallet.create({
             data: {
               customerId: updatedOrder.customerId,
@@ -450,7 +525,22 @@ export async function updateOrder(
           });
         }
 
-        // 3. Update Inventory
+        // 3. Update Inventory with validation
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { stockFilled: true, stockEmpty: true },
+        });
+
+        if (!product) {
+          throw new Error(`Product not found: ${item.productId}`);
+        }
+
+        if (product.stockFilled < item.filledGiven) {
+          throw new Error(
+            `Insufficient stock for product ${item.productId}. Available: ${product.stockFilled}, Required: ${item.filledGiven}`
+          );
+        }
+
         await tx.product.update({
           where: { id: item.productId },
           data: {
@@ -469,8 +559,22 @@ export async function updateOrder(
 }
 
 export async function deleteOrder(id: string) {
-  // Check if completed?
-  // For now just delete.
+  // Prevent deletion of completed orders to maintain financial/inventory integrity
+  const order = await db.order.findUnique({
+    where: { id },
+    select: { status: true, readableId: true },
+  });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  if (order.status === OrderStatus.COMPLETED) {
+    throw new Error(
+      `Cannot delete completed order #${order.readableId}. Completed orders have ledger entries and inventory changes that cannot be automatically reversed.`
+    );
+  }
+
   return await db.order.delete({
     where: { id },
   });

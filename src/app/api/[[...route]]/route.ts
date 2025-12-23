@@ -8,6 +8,7 @@ import drivers from '@/features/drivers/server/route';
 import routesRouter from '@/features/routes/server/route';
 import orders from '@/features/orders/server/route';
 import dashboard from '@/features/dashboard/server/route';
+import tracking from '@/features/tracking/server/route';
 
 export const runtime = 'nodejs';
 
@@ -30,6 +31,7 @@ const routes = app
   .route('/routes', routesRouter)
   .route('/orders', orders)
   .route('/dashboard', dashboard)
+  .route('/tracking', tracking)
 
 export type AppType = typeof routes;
 

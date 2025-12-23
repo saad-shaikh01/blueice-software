@@ -12,6 +12,7 @@ import { Order } from '@/features/orders/components/columns';
 import { DriverStats } from '@/features/driver-view/components/driver-stats';
 import { LoadSheet } from '@/features/driver-view/components/load-sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DriverLocationTracker } from '@/features/tracking/components/driver-location-tracker';
 
 function DeliveriesContent() {
   const { data: driver, isLoading: isLoadingDriver } = useCurrentDriver();
@@ -58,6 +59,7 @@ function DeliveriesContent() {
   return (
     <div className="space-y-6">
       <DriverStats />
+      <DriverLocationTracker />
       <LoadSheet orders={pendingOrders} />
 
       <Tabs defaultValue="pending">
