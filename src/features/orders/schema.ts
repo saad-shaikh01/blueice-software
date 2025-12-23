@@ -53,6 +53,9 @@ export const getOrdersQuerySchema = z.object({
   customerId: z.string().uuid().optional(),
   driverId: z.string().uuid().optional(),
   date: z.string().optional(), // Filter by specific date
+  from: z.string().optional(),
+  to: z.string().optional(),
+  routeId: z.string().uuid().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
 });

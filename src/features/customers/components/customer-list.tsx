@@ -33,6 +33,8 @@ import {
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { useCustomerFilters } from '../hooks/use-customer-filters';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useGetRoutes } from '@/features/routes/api/use-get-routes';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -57,6 +59,9 @@ export function CustomerTable<TData, TValue>({
   const [filters, setFilters] = useCustomerFilters();
   const [searchValue, setSearchValue] = React.useState(filters.search || '');
   const debouncedSearch = useDebounce(searchValue, 500);
+
+  const { data: routesData, isLoading: isLoadingRoutes } = useGetRoutes();
+  const routes = routesData?.routes || [];
 
   React.useEffect(() => {
     // Only update if the value actually changed to avoid infinite loops or unnecessary updates
@@ -100,6 +105,25 @@ export function CustomerTable<TData, TValue>({
           onChange={(event) => setSearchValue(event.target.value)}
           className="max-w-sm"
         />
+        <div className="w-[200px]">
+          <Select
+             value={filters.routeId || "all"}
+             onValueChange={(val) => setFilters({ routeId: val === "all" ? null : val, page: 1 })}
+             disabled={isLoadingRoutes}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Route" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Routes</SelectItem>
+              {routes.map((route: any) => (
+                <SelectItem key={route.id} value={route.id}>
+                  {route.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

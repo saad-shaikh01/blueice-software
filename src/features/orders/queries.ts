@@ -7,11 +7,13 @@ export async function getOrders(params: {
   customerId?: string;
   driverId?: string;
   date?: string;
+  from?: string;
+  to?: string;
   routeId?: string;
   page: number;
   limit: number;
 }) {
-  const { search, status, customerId, driverId, date, routeId, page, limit } = params;
+  const { search, status, customerId, driverId, date, from, to, routeId, page, limit } = params;
   const skip = (page - 1) * limit;
 
   const where: Prisma.OrderWhereInput = {
@@ -29,6 +31,7 @@ export async function getOrders(params: {
       driverId ? { driverId } : {},
       routeId ? { customer: { routeId } } : {},
       date ? { scheduledDate: { equals: new Date(date) } } : {},
+      (from && to) ? { scheduledDate: { gte: new Date(from), lte: new Date(to) } } : {},
     ],
   };
 

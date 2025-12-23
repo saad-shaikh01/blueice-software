@@ -4,6 +4,8 @@ import { Users, ShoppingCart, Truck, CreditCard, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGetStats } from '../api/use-get-stats';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RevenueChart } from './revenue-chart';
+import { OrderStatusChart } from './order-status-chart';
 
 export const DashboardStats = () => {
   const { data: stats, isLoading } = useGetStats();
@@ -15,6 +17,7 @@ export const DashboardStats = () => {
   if (!stats) return null;
 
   return (
+    <div className="space-y-4">
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -69,6 +72,11 @@ export const DashboardStats = () => {
           </p>
         </CardContent>
       </Card>
+    </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <RevenueChart data={stats.dailyRevenue} />
+        <OrderStatusChart data={stats.orderStatusDistribution} />
+    </div>
     </div>
   );
 };

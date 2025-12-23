@@ -15,9 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DeliveriesContent() {
   const { data: driver, isLoading: isLoadingDriver } = useCurrentDriver();
+  const today = format(new Date(), 'yyyy-MM-dd');
 
   const { data: ordersData, isLoading: isLoadingOrders } = useGetOrders({
     driverId: driver?.id,
+    date: today,
   });
 
   if (isLoadingDriver || isLoadingOrders) return <PageLoader />;
