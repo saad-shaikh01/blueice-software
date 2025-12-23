@@ -161,6 +161,24 @@ export function OrderTable<TData extends { id: string }, TValue>({
             </SelectContent>
           </Select>
         </div>
+        <div className="w-[180px]">
+          <Select
+             value={filters.status || "all"}
+             onValueChange={(val) => setFilters({ status: val === "all" ? null : val === "UNASSIGNED" ? null : val, driverId: val === "UNASSIGNED" ? "unassigned" : null, page: 1 })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="grid gap-2">
             <Popover>
                 <PopoverTrigger asChild>

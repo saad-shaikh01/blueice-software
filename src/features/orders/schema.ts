@@ -51,7 +51,7 @@ export const getOrdersQuerySchema = z.object({
   search: z.string().optional(), // Search by customer name or order ID
   status: z.nativeEnum(OrderStatus).optional(),
   customerId: z.string().uuid().optional(),
-  driverId: z.string().uuid().optional(),
+  driverId: z.string().optional(), // Allow 'unassigned' or UUID
   date: z.string().optional(), // Filter by specific date
   from: z.string().optional(),
   to: z.string().optional(),

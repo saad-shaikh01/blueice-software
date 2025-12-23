@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, Check, FileText, MapPin } from 'lucide-react';
 import { OrderStatus, PaymentMethod } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
@@ -91,6 +91,27 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
             <a href={`tel:${order.customer.user.phoneNumber}`} className="text-sm text-blue-600 block mt-1">
               {order.customer.user.phoneNumber}
             </a>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => router.push(`/orders/${orderId}/invoice`)}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Invoice
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.customer.address)}`, '_blank')}
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              Map
+            </Button>
           </div>
 
           <div className="flex justify-between items-center border-t pt-4">

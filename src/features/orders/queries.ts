@@ -28,7 +28,7 @@ export async function getOrders(params: {
         : {},
       status ? { status } : {},
       customerId ? { customerId } : {},
-      driverId ? { driverId } : {},
+      driverId ? (driverId === 'unassigned' ? { driverId: null } : { driverId }) : {},
       routeId ? { customer: { routeId } } : {},
       date ? { scheduledDate: { equals: new Date(date) } } : {},
       (from && to) ? { scheduledDate: { gte: new Date(from), lte: new Date(to) } } : {},

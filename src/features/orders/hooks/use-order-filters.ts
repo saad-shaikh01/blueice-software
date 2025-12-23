@@ -8,6 +8,7 @@ export const useOrderFilters = () => {
     from: parseAsString.withDefault(''),
     to: parseAsString.withDefault(''),
     routeId: parseAsString.withDefault(''),
+    driverId: parseAsString.withDefault(''),
     page: parseAsInteger.withDefault(1),
     limit: parseAsInteger.withDefault(20),
   });
