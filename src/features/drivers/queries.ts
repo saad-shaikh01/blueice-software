@@ -57,12 +57,7 @@ export async function getDrivers(params: {
       }
     : {};
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date();
-  endOfDay.setHours(23, 59, 59, 999);
-
-  const [drivers, total, cashCollectedStats] = await Promise.all([
+  const [drivers, total] = await Promise.all([
     db.driverProfile.findMany({
       where,
       skip,
@@ -86,30 +81,28 @@ export async function getDrivers(params: {
       },
     }),
     db.driverProfile.count({ where }),
-    // Single query to get cash collected for all drivers at once
-    db.order.groupBy({
-      by: ['driverId'],
-      where: {
-        scheduledDate: { gte: startOfDay, lte: endOfDay },
-        status: OrderStatus.COMPLETED,
-        driverId: { not: null },
-      },
-      _sum: {
-        cashCollected: true,
-      },
-    }),
   ]);
 
-  // Create a map of driverId -> cashCollected for O(1) lookup
-  const cashCollectedMap = new Map(
-    cashCollectedStats.map((stat) => [stat.driverId, stat._sum.cashCollected?.toString() || '0'])
-  );
+  const driversWithStats = await Promise.all(drivers.map(async (driver) => {
+    const startOfDay = new Date();
+    startOfDay.setHours(0,0,0,0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23,59,59,999);
 
-  // Merge the stats with driver data
-  const driversWithStats = drivers.map((driver) => ({
-    ...driver,
-    cashCollectedToday: cashCollectedMap.get(driver.id) || '0',
-  }));
+    const result = await db.order.aggregate({
+       where: {
+          driverId: driver.id,
+          scheduledDate: { gte: startOfDay, lte: endOfDay },
+          status: OrderStatus.COMPLETED
+       },
+       _sum: { cashCollected: true }
+    });
+
+    return {
+       ...driver,
+       cashCollectedToday: result._sum.cashCollected?.toString() || '0'
+    };
+ }));
 
   return {
     drivers: driversWithStats,

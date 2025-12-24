@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard, MapPin } from 'lucide-react';
+import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -41,12 +41,6 @@ const routes = [
     href: 'routes',
     icon: Map,
     activeIcon: Map,
-  },
-  {
-    label: 'Live Tracking',
-    href: 'tracking',
-    icon: MapPin,
-    activeIcon: MapPin,
   },
 ];
 

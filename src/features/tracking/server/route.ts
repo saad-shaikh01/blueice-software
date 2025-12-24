@@ -1,201 +1,119 @@
-import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+import { db } from '@/lib/db';
+import { sessionMiddleware } from '@/lib/session-middleware';
+import { UserRole } from '@prisma/client';
+import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
-import {
-  updateDriverLocation,
-  getLiveDriverLocations,
-  getDriverRouteHistory,
-  toggleDriverDutyStatus,
-} from '@/features/tracking/queries';
-import { UserRole } from '@prisma/client';
+const updateLocationSchema = z.object({
+  latitude: z.number(),
+  longitude: z.number(),
+  isOnDuty: z.boolean().optional(),
+});
 
 const app = new Hono()
-  // Update driver location (called by driver app every 30 seconds)
-  .post(
-    '/location',
-    sessionMiddleware,
-    zValidator(
-      'json',
-      z.object({
-        latitude: z.number().min(-90).max(90),
-        longitude: z.number().min(-180).max(180),
-        accuracy: z.number().optional(),
-        speed: z.number().optional(),
-        heading: z.number().min(0).max(360).optional(),
-        isMoving: z.boolean().optional(),
-        batteryLevel: z.number().min(0).max(100).optional(),
-      })
-    ),
-    async (ctx) => {
-      const user = ctx.get('user');
-
-      // Only drivers can update their location
-      if (user.role !== UserRole.DRIVER) {
-        return ctx.json({ error: 'Only drivers can update location' }, 403);
-      }
-
-      const locationData = ctx.req.valid('json');
-
-      try {
-        // Get driver profile
-        const { db } = await import('@/lib/db');
-        const driverProfile = await db.driverProfile.findUnique({
-          where: { userId: user.id },
-          select: { id: true },
-        });
-
-        if (!driverProfile) {
-          return ctx.json({ error: 'Driver profile not found' }, 404);
-        }
-
-        const location = await updateDriverLocation({
-          driverId: driverProfile.id,
-          ...locationData,
-        });
-
-        // Broadcast location update via WebSocket (if available)
-        // This will be implemented in the WebSocket server
-        if (ctx.env?.io) {
-          ctx.env.io.emit('driver-location-update', {
-            driverId: driverProfile.id,
-            ...locationData,
-            timestamp: new Date(),
-          });
-        }
-
-        return ctx.json({
-          data: location,
-          message: 'Location updated successfully',
-        });
-      } catch (error) {
-        console.error('[LOCATION_UPDATE_ERROR]:', error);
-        return ctx.json({ error: 'Failed to update location' }, 500);
-      }
-    }
-  )
-
-  // Get all live driver locations (for admin map view)
-  .get('/live-locations', sessionMiddleware, async (ctx) => {
+  .get('/', sessionMiddleware, async (ctx) => {
     const user = ctx.get('user');
 
-    // Only admins can view all driver locations
-    if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
+    // Only admins can see live tracking
+    if (!([UserRole.SUPER_ADMIN, UserRole.ADMIN] as UserRole[]).includes(user.role)) {
       return ctx.json({ error: 'Unauthorized' }, 403);
     }
 
     try {
-      const drivers = await getLiveDriverLocations();
+      // Fetch active drivers (updated in last 1 hour)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+      const activeDrivers = await db.driverProfile.findMany({
+        where: {
+          currentLat: { not: null },
+          currentLng: { not: null },
+          // user: { isActive: true }, // Add this if you want only active users
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              phoneNumber: true,
+              imageUrl: true,
+            }
+          },
+          orders: {
+            where: {
+              status: 'IN_PROGRESS'
+            },
+            take: 1,
+            include: {
+              customer: {
+                include: {
+                  user: { select: { name: true } }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      const formattedDrivers = activeDrivers.map(d => ({
+        driverId: d.id,
+        name: d.user.name,
+        phoneNumber: d.user.phoneNumber,
+        imageUrl: d.user.imageUrl,
+        vehicleNo: d.vehicleNo,
+        latitude: d.currentLat,
+        longitude: d.currentLng,
+        isOnDuty: true, // You might want to add this field to DriverProfile
+        lastUpdate: new Date().toISOString(), // Mock for now, add updated_at to location log if needed
+        currentOrder: d.orders[0] ? {
+          id: d.orders[0].id,
+          readableId: d.orders[0].readableId,
+          customerName: d.orders[0].customer.user.name
+        } : null
+      }));
 
       return ctx.json({
-        data: {
-          drivers,
-          count: drivers.length,
-          lastUpdate: new Date(),
-        },
+        drivers: formattedDrivers,
+        count: formattedDrivers.length,
+        lastUpdate: new Date().toISOString()
       });
     } catch (error) {
-      console.error('[GET_LIVE_LOCATIONS_ERROR]:', error);
-      return ctx.json({ error: 'Failed to fetch driver locations' }, 500);
+      return ctx.json({ error: 'Failed to fetch tracking data' }, 500);
     }
   })
+  .post('/update', sessionMiddleware, zValidator('json', updateLocationSchema), async (ctx) => {
+    const user = ctx.get('user');
+    const { latitude, longitude, isOnDuty } = ctx.req.valid('json');
 
-  // Get driver route history for a specific date
-  .get(
-    '/:driverId/route-history',
-    sessionMiddleware,
-    zValidator(
-      'query',
-      z.object({
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format
-      })
-    ),
-    async (ctx) => {
-      const user = ctx.get('user');
-      const { driverId } = ctx.req.param();
-      const { date } = ctx.req.valid('query');
-
-      // Admins can view any driver's history, drivers can only view their own
-      if (user.role === UserRole.DRIVER) {
-        const { db } = await import('@/lib/db');
-        const driverProfile = await db.driverProfile.findUnique({
-          where: { userId: user.id },
-          select: { id: true },
-        });
-
-        if (!driverProfile || driverProfile.id !== driverId) {
-          return ctx.json({ error: 'Unauthorized to view this data' }, 403);
-        }
-      } else if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
-        return ctx.json({ error: 'Unauthorized' }, 403);
-      }
-
-      try {
-        const routeData = await getDriverRouteHistory(driverId, new Date(date));
-
-        return ctx.json({
-          data: routeData,
-          date,
-        });
-      } catch (error) {
-        console.error('[GET_ROUTE_HISTORY_ERROR]:', error);
-        return ctx.json({ error: 'Failed to fetch route history' }, 500);
-      }
+    // Only drivers can update their location
+    if (user.role !== UserRole.DRIVER) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
     }
-  )
 
-  // Toggle driver duty status (on/off duty)
-  .patch(
-    '/:driverId/duty-status',
-    sessionMiddleware,
-    zValidator(
-      'json',
-      z.object({
-        isOnDuty: z.boolean(),
-      })
-    ),
-    async (ctx) => {
-      const user = ctx.get('user');
-      const { driverId } = ctx.req.param();
-      const { isOnDuty } = ctx.req.valid('json');
+    try {
+      const driverProfile = await db.driverProfile.findUnique({
+        where: { userId: user.id }
+      });
 
-      // Drivers can only toggle their own status, admins can toggle anyone's
-      if (user.role === UserRole.DRIVER) {
-        const { db } = await import('@/lib/db');
-        const driverProfile = await db.driverProfile.findUnique({
-          where: { userId: user.id },
-          select: { id: true },
-        });
-
-        if (!driverProfile || driverProfile.id !== driverId) {
-          return ctx.json({ error: 'Unauthorized' }, 403);
-        }
-      } else if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
-        return ctx.json({ error: 'Unauthorized' }, 403);
+      if (!driverProfile) {
+        return ctx.json({ error: 'Driver profile not found' }, 404);
       }
 
-      try {
-        const driver = await toggleDriverDutyStatus(driverId, isOnDuty);
-
-        // Broadcast duty status change
-        if (ctx.env?.io) {
-          ctx.env.io.emit('driver-duty-status-change', {
-            driverId,
-            isOnDuty,
-            driverName: driver.user.name,
-          });
+      await db.driverProfile.update({
+        where: { id: driverProfile.id },
+        data: {
+          currentLat: latitude,
+          currentLng: longitude,
+          // isOnDuty: isOnDuty // Add if schema supports
         }
+      });
 
-        return ctx.json({
-          data: driver,
-          message: `Driver is now ${isOnDuty ? 'on duty' : 'off duty'}`,
-        });
-      } catch (error) {
-        console.error('[TOGGLE_DUTY_STATUS_ERROR]:', error);
-        return ctx.json({ error: 'Failed to update duty status' }, 500);
-      }
+      // WebSocket broadcast could go here
+      // (global as any).io?.emit('driver-location-update', { driverId: user.driverProfile.id, lat: latitude, lng: longitude });
+
+      return ctx.json({ success: true });
+    } catch (error) {
+      return ctx.json({ error: 'Failed to update location' }, 500);
     }
-  );
+  });
 
 export default app;

@@ -104,7 +104,6 @@ import { db } from '@/lib/db';
 import { deleteFile, uploadFile } from '@/lib/upload';
 import crypto from 'crypto';
 import { sendMail } from '@/lib/send-mail';
-import { authRateLimiter } from '@/lib/rate-limiter';
 
 
 
@@ -123,7 +122,7 @@ const app = new Hono()
 
     return ctx.json({ data: user });
   })
-  .post('/login', authRateLimiter, zValidator('json', signInFormSchema), async (ctx) => {
+  .post('/login', zValidator('json', signInFormSchema), async (ctx) => {
     const { emailOrPhone, password } = ctx.req.valid('json');
 
     try {
@@ -151,7 +150,7 @@ const app = new Hono()
       return ctx.json({ error: 'Invalid credentials' }, 401);
     }
   })
-  .post('/register', authRateLimiter, zValidator('json', signUpFormSchema), async (ctx) => {
+  .post('/register', zValidator('json', signUpFormSchema), async (ctx) => {
     const { name, email, phoneNumber, password, role } = ctx.req.valid('json');
     try {
       const user = await createUser(name, email ?? null, phoneNumber, password, role);
@@ -332,7 +331,6 @@ const app = new Hono()
   })
   .post(
     '/forgot',
-    authRateLimiter,
     zValidator(
       'json',
       z.object({
@@ -410,7 +408,6 @@ const app = new Hono()
   )
   .post(
     '/reset/:resetToken',
-    authRateLimiter,
     zValidator('json', resetPasswordSchema),
     async (ctx) => {
       const { password, confirmPassword } = ctx.req.valid('json');
@@ -445,15 +442,14 @@ const app = new Hono()
           }, 400);
         }
 
-        const hashedPassword = await hashPassword(password);
+        const hashedPassword = await hashPassword(password)
         const updatedUser = await db.user.update({
           where: { id: user.id },
           data: {
             password: hashedPassword,
             resetPasswordToken: null,
-            resetPasswordExpire: null,
-            passwordChangedAt: new Date(), // Invalidate all existing JWT tokens
-          },
+            resetPasswordExpire: null
+          }
         });
 
         // Generate JWT token for the user

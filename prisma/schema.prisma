@@ -75,7 +75,6 @@ model User {
   // Password Reset
   resetPasswordToken  String?
   resetPasswordExpire DateTime?
-  passwordChangedAt   DateTime? // Track when password was last changed (for JWT invalidation)
 
   // Relations (Polymorphic style logic)
   customerProfile CustomerProfile?
@@ -263,24 +262,18 @@ model OrderItem {
 }
 
 model DriverProfile {
-  id                  String   @id @default(uuid())
-  userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id])
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
 
-  vehicleNo           String?
-  licenseNo           String?
+  vehicleNo      String?
+  licenseNo      String?
+  currentLat     Float?   // Live Tracking (Synced from Redis periodically)
+  currentLng     Float?
 
-  // Live Location Tracking
-  currentLat          Float?
-  currentLng          Float?
-  lastLocationUpdate  DateTime?
-  isOnDuty            Boolean  @default(false)
-
-  orders              Order[]
-  defaultRoutes       Route[]
-  routeAssignments    RouteAssignment[]
-  locationHistory     DriverLocationHistory[]
-  performanceMetrics  DriverPerformanceMetrics[]
+  orders         Order[]
+  defaultRoutes    Route[]
+  routeAssignments RouteAssignment[]
 }
 
 // --------------------------------------------------------
@@ -309,106 +302,4 @@ model AuditLog {
   details     Json?    // { oldPrice: 200, newPrice: 220 }
 
   createdAt   DateTime @default(now())
-}
-
-// --------------------------------------------------------
-// 7. LIVE TRACKING & ANALYTICS (V2 Features)
-// --------------------------------------------------------
-
-model DriverLocationHistory {
-  id          String        @id @default(uuid())
-  driverId    String
-  driver      DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
-
-  latitude    Float
-  longitude   Float
-  accuracy    Float?        // GPS accuracy in meters
-  speed       Float?        // km/h
-  heading     Float?        // Direction in degrees (0-360)
-
-  // Contextual Data
-  isMoving    Boolean       @default(false)
-  batteryLevel Int?         // Percentage
-  isOnline    Boolean       @default(true)
-
-  timestamp   DateTime      @default(now())
-
-  @@index([driverId, timestamp])
-  @@index([timestamp])
-}
-
-model DailyStats {
-  id                String   @id @default(uuid())
-  date              DateTime @db.Date @unique
-
-  // Revenue Metrics
-  totalRevenue      Decimal  @default(0) @db.Decimal(10, 2)
-  cashCollected     Decimal  @default(0) @db.Decimal(10, 2)
-  creditGiven       Decimal  @default(0) @db.Decimal(10, 2)
-
-  // Order Metrics
-  ordersCompleted   Int      @default(0)
-  ordersCancelled   Int      @default(0)
-  ordersRescheduled Int      @default(0)
-  ordersPending     Int      @default(0)
-
-  // Bottle Metrics
-  bottlesDelivered  Int      @default(0)
-  bottlesReturned   Int      @default(0)
-  bottleNetChange   Int      @default(0) // delivered - returned
-
-  // Customer Metrics
-  newCustomers      Int      @default(0)
-  activeCustomers   Int      @default(0) // Customers with orders on this day
-
-  // Driver Metrics
-  driversActive     Int      @default(0)
-  totalDistance     Float?   // km driven by all drivers
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@index([date])
-}
-
-model DriverPerformanceMetrics {
-  id                String        @id @default(uuid())
-  driverId          String
-  driver            DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  date              DateTime      @db.Date
-
-  // Order Metrics
-  ordersAssigned    Int           @default(0)
-  ordersCompleted   Int           @default(0)
-  ordersCancelled   Int           @default(0)
-  ordersRescheduled Int           @default(0)
-  completionRate    Float         @default(0) // Percentage
-
-  // Bottle Metrics
-  bottlesGiven      Int           @default(0)
-  bottlesTaken      Int           @default(0)
-  bottleDiscrepancy Int           @default(0) // Given - Taken
-  bottleAccuracy    Float         @default(100) // Percentage
-
-  // Financial Metrics
-  totalBilled       Decimal       @default(0) @db.Decimal(10, 2)
-  cashCollected     Decimal       @default(0) @db.Decimal(10, 2)
-  creditGiven       Decimal       @default(0) @db.Decimal(10, 2)
-  collectionRate    Float         @default(0) // cashCollected / totalBilled * 100
-
-  // Time Metrics
-  averageDeliveryTime Int?        // Minutes per delivery
-  totalDistance       Float?      // km driven
-  workingHours        Float?      // Hours on duty
-
-  // Quality Metrics
-  customerComplaints  Int         @default(0)
-  performanceScore    Float       @default(0) // 0-100
-
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  @@unique([driverId, date])
-  @@index([date])
-  @@index([performanceScore])
 }
