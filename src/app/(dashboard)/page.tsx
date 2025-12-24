@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 
 import { getCurrent } from '@/features/auth/queries';
-import { DashboardStats } from '@/features/dashboard/components/dashboard-stats';
+import { ComprehensiveDashboard } from '@/features/dashboard/components/comprehensive-dashboard';
 
 const HomePage = async () => {
   const user = await getCurrent();
@@ -13,12 +13,7 @@ const HomePage = async () => {
     redirect('/deliveries');
   }
 
-  return (
-    <div className="flex flex-col gap-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-      <DashboardStats />
-    </div>
-  );
+  return <ComprehensiveDashboard />;
 };
 
 export default HomePage;

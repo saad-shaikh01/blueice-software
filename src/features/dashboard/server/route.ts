@@ -1,7 +1,10 @@
 import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 import { db } from '@/lib/db';
 import { sessionMiddleware } from '@/lib/session-middleware';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, UserRole } from '@prisma/client';
+import { getComprehensiveDashboardData } from '@/features/dashboard/queries-comprehensive';
 
 const app = new Hono()
   .get('/', sessionMiddleware, async (ctx) => {
@@ -69,6 +72,39 @@ const app = new Hono()
     } catch (error) {
       return ctx.json({ error: 'Failed to fetch dashboard stats' }, 500);
     }
-  });
+  })
+  .get(
+    '/comprehensive',
+    sessionMiddleware,
+    zValidator(
+      'query',
+      z.object({
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      })
+    ),
+    async (ctx) => {
+      const user = ctx.get('user');
+
+      // Only admins can access comprehensive dashboard
+      if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
+        return ctx.json({ error: 'Unauthorized' }, 403);
+      }
+
+      const { startDate, endDate } = ctx.req.valid('query');
+
+      try {
+        const data = await getComprehensiveDashboardData({
+          startDate: startDate ? new Date(startDate) : undefined,
+          endDate: endDate ? new Date(endDate) : undefined,
+        });
+
+        return ctx.json({ data });
+      } catch (error) {
+        console.error('[COMPREHENSIVE_DASHBOARD_ERROR]:', error);
+        return ctx.json({ error: 'Failed to fetch comprehensive dashboard data' }, 500);
+      }
+    }
+  );
 
 export default app;

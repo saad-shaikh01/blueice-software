@@ -223,3 +223,195 @@ export async function deleteDriver(id: string) {
     return true;
   });
 }
+
+export async function getDriverDetailStats(driverId: string, params?: { startDate?: Date; endDate?: Date }) {
+  const { startDate, endDate } = params || {};
+
+  // Default to current month if no dates provided
+  const start = startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const end = endDate || new Date();
+  end.setHours(23, 59, 59, 999);
+
+  const whereCondition: Prisma.OrderWhereInput = {
+    driverId,
+    scheduledDate: { gte: start, lte: end },
+  };
+
+  const completedWhereCondition: Prisma.OrderWhereInput = {
+    ...whereCondition,
+    status: OrderStatus.COMPLETED,
+  };
+
+  // Fetch all statistics in parallel
+  const [
+    driver,
+    totalOrders,
+    completedOrders,
+    pendingOrders,
+    cancelledOrders,
+    financialStats,
+    bottleStats,
+    recentOrders,
+    allTimeStats,
+    todayStats,
+  ] = await Promise.all([
+    // Driver basic info
+    db.driverProfile.findUnique({
+      where: { id: driverId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            isActive: true,
+            suspended: true,
+            createdAt: true,
+          },
+        },
+      },
+    }),
+
+    // Order counts for selected period
+    db.order.count({ where: whereCondition }),
+    db.order.count({ where: completedWhereCondition }),
+    db.order.count({ where: { ...whereCondition, status: { in: [OrderStatus.SCHEDULED, OrderStatus.IN_PROGRESS] } } }),
+    db.order.count({ where: { ...whereCondition, status: OrderStatus.CANCELLED } }),
+
+    // Financial statistics
+    db.order.aggregate({
+      where: completedWhereCondition,
+      _sum: {
+        cashCollected: true,
+        totalAmount: true,
+      },
+      _avg: {
+        cashCollected: true,
+      },
+    }),
+
+    // Bottle exchange statistics
+    db.orderItem.aggregate({
+      where: {
+        order: completedWhereCondition,
+      },
+      _sum: {
+        filledGiven: true,
+        emptyTaken: true,
+        quantity: true,
+      },
+    }),
+
+    // Recent completed orders
+    db.order.findMany({
+      where: completedWhereCondition,
+      include: {
+        customer: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                phoneNumber: true,
+              },
+            },
+          },
+        },
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { deliveredAt: 'desc' },
+      take: 10,
+    }),
+
+    // All-time statistics
+    db.order.aggregate({
+      where: { driverId, status: OrderStatus.COMPLETED },
+      _count: { id: true },
+      _sum: {
+        cashCollected: true,
+        totalAmount: true,
+      },
+    }),
+
+    // Today's statistics
+    db.order.aggregate({
+      where: {
+        driverId,
+        status: OrderStatus.COMPLETED,
+        scheduledDate: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+      },
+      _count: { id: true },
+      _sum: {
+        cashCollected: true,
+      },
+    }),
+  ]);
+
+  if (!driver) {
+    throw new Error('Driver not found');
+  }
+
+  return {
+    driver,
+    period: {
+      startDate: start,
+      endDate: end,
+    },
+    summary: {
+      totalOrders,
+      completedOrders,
+      pendingOrders,
+      cancelledOrders,
+      completionRate: totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0,
+    },
+    financial: {
+      totalCashCollected: financialStats._sum.cashCollected?.toString() || '0',
+      totalRevenue: financialStats._sum.totalAmount?.toString() || '0',
+      averageCashPerDelivery: financialStats._avg.cashCollected?.toString() || '0',
+    },
+    bottles: {
+      totalFilledGiven: bottleStats._sum.filledGiven || 0,
+      totalEmptyTaken: bottleStats._sum.emptyTaken || 0,
+      totalQuantityOrdered: bottleStats._sum.quantity || 0,
+      exchangeRate:
+        bottleStats._sum.filledGiven && bottleStats._sum.emptyTaken
+          ? Math.round((bottleStats._sum.emptyTaken / bottleStats._sum.filledGiven) * 100)
+          : 0,
+    },
+    recentOrders: recentOrders.map((order) => ({
+      id: order.id,
+      readableId: order.readableId,
+      customerName: order.customer.user.name,
+      customerPhone: order.customer.user.phoneNumber,
+      totalAmount: order.totalAmount.toString(),
+      cashCollected: order.cashCollected.toString(),
+      deliveredAt: order.deliveredAt,
+      items: order.orderItems.map((item) => ({
+        productName: item.product.name,
+        quantity: item.quantity,
+        filledGiven: item.filledGiven,
+        emptyTaken: item.emptyTaken,
+      })),
+    })),
+    allTime: {
+      totalDeliveries: allTimeStats._count.id,
+      totalCashCollected: allTimeStats._sum.cashCollected?.toString() || '0',
+      totalRevenue: allTimeStats._sum.totalAmount?.toString() || '0',
+    },
+    today: {
+      deliveries: todayStats._count.id,
+      cashCollected: todayStats._sum.cashCollected?.toString() || '0',
+    },
+  };
+}

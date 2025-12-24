@@ -1,6 +1,7 @@
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
+import { z } from 'zod';
 
 import { sessionMiddleware } from '@/lib/session-middleware';
 import { createDriverSchema, getDriversQuerySchema, updateDriverSchema } from '@/features/drivers/schema';
@@ -11,6 +12,7 @@ import {
   getDriverByUserId,
   getDrivers,
   updateDriver,
+  getDriverDetailStats,
 } from '@/features/drivers/queries';
 import { getDriverStats } from '@/features/driver-view/queries';
 
@@ -58,6 +60,32 @@ const app = new Hono()
       return ctx.json({ error: 'Failed to fetch driver' }, 500);
     }
   })
+  .get(
+    '/:id/stats',
+    sessionMiddleware,
+    zValidator(
+      'query',
+      z.object({
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      })
+    ),
+    async (ctx) => {
+      const { id } = ctx.req.param();
+      const { startDate, endDate } = ctx.req.valid('query');
+
+      try {
+        const stats = await getDriverDetailStats(id, {
+          startDate: startDate ? new Date(startDate) : undefined,
+          endDate: endDate ? new Date(endDate) : undefined,
+        });
+        return ctx.json({ data: stats });
+      } catch (error) {
+        console.error('[DRIVER_STATS_ERROR]:', error);
+        return ctx.json({ error: 'Failed to fetch driver statistics' }, 500);
+      }
+    }
+  )
   .post('/', sessionMiddleware, zValidator('json', createDriverSchema), async (ctx) => {
     const user = ctx.get('user');
 

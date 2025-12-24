@@ -47,6 +47,13 @@ enum PaymentMethod {
   CREDIT          // Udhaar
 }
 
+enum CashHandoverStatus {
+  PENDING         // Driver has submitted, waiting for admin verification
+  VERIFIED        // Admin has verified and accepted
+  REJECTED        // Admin rejected due to discrepancy
+  ADJUSTED        // Admin accepted with adjustments
+}
+
 // --------------------------------------------------------
 // 2. AUTHENTICATION & USERS (Decoupled Logic)
 // --------------------------------------------------------
@@ -281,6 +288,7 @@ model DriverProfile {
   routeAssignments    RouteAssignment[]
   locationHistory     DriverLocationHistory[]
   performanceMetrics  DriverPerformanceMetrics[]
+  cashHandovers       CashHandover[]
 }
 
 // --------------------------------------------------------
@@ -309,6 +317,57 @@ model AuditLog {
   details     Json?    // { oldPrice: 200, newPrice: 220 }
 
   createdAt   DateTime @default(now())
+}
+
+// --------------------------------------------------------
+// 6.5. CASH HANDOVER MANAGEMENT (Driver Journey Integration)
+// --------------------------------------------------------
+
+model CashHandover {
+  id                    String              @id @default(uuid())
+  readableId            Int                 @default(autoincrement()) // "Handover #1005"
+
+  driverId              String
+  driver                DriverProfile       @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  date                  DateTime            @db.Date // Handover date
+  shiftStart            DateTime?           // When driver started duty
+  shiftEnd              DateTime?           // When driver ended duty
+
+  // Expected vs Actual
+  expectedCash          Decimal             @db.Decimal(10, 2) // Based on completed cash orders
+  actualCash            Decimal             @db.Decimal(10, 2) // What driver actually handed over
+  discrepancy           Decimal             @db.Decimal(10, 2) // expectedCash - actualCash
+
+  // Order Summary
+  totalOrders           Int                 @default(0) // Total orders assigned
+  completedOrders       Int                 @default(0) // Orders completed
+  cashOrders            Int                 @default(0) // Orders paid in cash
+
+  // Bottle Summary
+  bottlesGiven          Int                 @default(0)
+  bottlesTaken          Int                 @default(0)
+
+  // Status & Verification
+  status                CashHandoverStatus  @default(PENDING)
+  driverNotes           String?             // Driver's explanation for any discrepancy
+
+  // Admin Verification
+  verifiedBy            String?             // Admin user ID who verified
+  verifiedAt            DateTime?
+  adminNotes            String?             // Admin's notes/adjustments
+  adjustmentAmount      Decimal?            @db.Decimal(10, 2) // If admin adjusts the amount
+  receiptUrl            String?             // Digital receipt/acknowledgement
+
+  // Metadata
+  submittedAt           DateTime            @default(now())
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@unique([driverId, date]) // One handover per driver per day
+  @@index([date])
+  @@index([status])
+  @@index([driverId, date])
 }
 
 // --------------------------------------------------------

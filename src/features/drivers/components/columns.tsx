@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Pencil, Trash, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,10 @@ const ActionCell = ({ driver }: { driver: Driver }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => router.push(`/drivers/${driver.id}`)}>
+            <Eye className="mr-2 h-4 w-4" />
+            View Details
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push(`/drivers/${driver.id}/edit`)}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit
@@ -90,7 +94,17 @@ export const columns: ColumnDef<Driver>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="pl-4 font-medium">{row.original.user.name}</div>,
+    cell: ({ row }) => {
+      const router = useRouter();
+      return (
+        <button
+          onClick={() => router.push(`/drivers/${row.original.id}`)}
+          className="pl-4 font-medium text-primary hover:underline cursor-pointer text-left"
+        >
+          {row.original.user.name}
+        </button>
+      );
+    },
   },
   {
     accessorKey: 'user.phoneNumber',
