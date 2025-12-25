@@ -112,6 +112,12 @@ function CashHandoverDetailContent() {
   const hasDiscrepancy = Math.abs(discrepancy) > 0.01;
   const isPendingHandover = handover.status === CashHandoverStatus.PENDING;
 
+  // @ts-ignore - grossCash and pendingExpenseAmount added in query update
+  const grossCash = parseFloat(handover.grossCash || '0');
+  // @ts-ignore
+  const pendingExpenses = parseFloat(handover.pendingExpenseAmount || '0');
+  const hasUnverifiedExpenses = pendingExpenses > 0;
+
   const getStatusBadge = (status: CashHandoverStatus) => {
     switch (status) {
       case CashHandoverStatus.PENDING:
@@ -180,16 +186,44 @@ function CashHandoverDetailContent() {
       </Card>
 
       {/* Cash Summary */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {hasUnverifiedExpenses && (
+        <Card className="border-yellow-200 bg-yellow-50/50 mb-6">
+          <CardContent className="flex items-center gap-4 p-4">
+            <AlertCircle className="h-6 w-6 text-yellow-600" />
+            <div>
+              <h3 className="font-semibold text-yellow-900">Unverified Expenses Detected</h3>
+              <p className="text-sm text-yellow-700">
+                This driver has <strong>PKR {pendingExpenses.toLocaleString()}</strong> in Pending expenses deducted from the expected cash.
+                Please verify their expense receipts before accepting this handover.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Expected Cash</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Cash Collected</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">PKR {grossCash.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              From {handover.cashOrders} cash orders
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Net Expected Cash</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">PKR {handover.expectedCash.toString()}</div>
             <p className="text-xs text-muted-foreground">
-              From {handover.cashOrders} cash orders
+              After expenses deduction
             </p>
           </CardContent>
         </Card>

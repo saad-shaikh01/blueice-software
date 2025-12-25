@@ -292,7 +292,7 @@ export async function getCashHandovers(params: {
  * Get single cash handover details
  */
 export async function getCashHandover(id: string) {
-  return await db.cashHandover.findUnique({
+  const handover = await db.cashHandover.findUnique({
     where: { id },
     include: {
       driver: {
@@ -309,6 +309,50 @@ export async function getCashHandover(id: string) {
       },
     },
   });
+
+  if (!handover) return null;
+
+  // Calculate potential "Hidden Expenses" (Pending) for this date range
+  const startOfDay = new Date(handover.date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(handover.date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const pendingExpenses = await db.expense.aggregate({
+    where: {
+      driverId: handover.driverId,
+      date: { gte: startOfDay, lte: endOfDay },
+      paymentMethod: 'CASH_ON_HAND',
+      status: 'PENDING',
+    },
+    _sum: { amount: true },
+  });
+
+  const pendingExpenseAmount = parseFloat(pendingExpenses._sum.amount?.toString() || '0');
+
+  // "Gross Cash" is essentially (Expected Net + Expenses Deducted)
+  // But wait, the stored `expectedCash` was calculated as (Gross - All Non-Rejected Expenses).
+  // If we want to show "Gross", we need to add back the expenses that were deducted.
+
+  // Let's fetch ALL expenses for that day to reconstruct Gross
+  const allExpenses = await db.expense.aggregate({
+    where: {
+      driverId: handover.driverId,
+      date: { gte: startOfDay, lte: endOfDay },
+      paymentMethod: 'CASH_ON_HAND',
+      status: { not: 'REJECTED' },
+    },
+    _sum: { amount: true },
+  });
+
+  const totalDeductedExpenses = parseFloat(allExpenses._sum.amount?.toString() || '0');
+  const grossCash = parseFloat(handover.expectedCash.toString()) + totalDeductedExpenses;
+
+  return {
+    ...handover,
+    grossCash: grossCash.toFixed(2),
+    pendingExpenseAmount: pendingExpenseAmount.toFixed(2),
+  };
 }
 
 /**
