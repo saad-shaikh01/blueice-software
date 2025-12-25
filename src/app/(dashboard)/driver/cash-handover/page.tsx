@@ -101,11 +101,11 @@ function CashHandoverContent() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cash Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Cash Orders Count</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary?.cashOrders || 0}</div>
+            <div className="text-2xl font-bold">{Array.isArray(summary?.cashOrders) ? summary.cashOrders.length : 0}</div>
             <p className="text-xs text-muted-foreground">
               orders paid in cash
             </p>
@@ -157,7 +157,7 @@ function CashHandoverContent() {
       </Card>
 
       {/* Cash Orders Breakdown */}
-      {summary?.cashOrders && summary.cashOrders.length > 0 && (
+      {summary?.ordersPaidInCash && summary.ordersPaidInCash.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Cash Orders Breakdown</CardTitle>
@@ -165,7 +165,7 @@ function CashHandoverContent() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {summary.cashOrders.map((order: any) => (
+              {summary.ordersPaidInCash.map((order: any) => (
                 <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
                     <p className="font-medium">Order #{order.readableId}</p>

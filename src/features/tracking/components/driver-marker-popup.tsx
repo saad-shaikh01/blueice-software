@@ -6,21 +6,16 @@ import { Separator } from '@/components/ui/separator';
 import { User, Clock, Navigation, Battery, Gauge } from 'lucide-react';
 
 interface DriverLocation {
-  id: string;
-  userId: string;
-  currentLat: number;
-  currentLng: number;
-  lastLocationUpdate: string;
+  driverId: string;
+  name: string;
+  phoneNumber: string;
+  imageUrl: string | null;
+  vehicleNo: string | null;
+  latitude: number;
+  longitude: number;
+  lastUpdate: string | null;
   isOnDuty: boolean;
-  isMoving: boolean;
-  speed: number | null;
-  heading: number | null;
-  batteryLevel: number | null;
-  accuracy: number | null;
-  user: {
-    name: string;
-    phone: string;
-  };
+  currentOrder: unknown;
 }
 
 interface DriverMarkerPopupProps {
@@ -28,8 +23,8 @@ interface DriverMarkerPopupProps {
 }
 
 export function DriverMarkerPopup({ driver }: DriverMarkerPopupProps) {
-  const lastUpdateTime = new Date(driver.lastLocationUpdate);
-  const timeAgo = formatDistanceToNow(lastUpdateTime, { addSuffix: true });
+  const lastUpdateTime = driver.lastUpdate ? new Date(driver.lastUpdate) : null;
+  const timeAgo = lastUpdateTime ? formatDistanceToNow(lastUpdateTime, { addSuffix: true }) : 'N/A';
 
   return (
     <div className="p-2 min-w-[250px]">
@@ -40,8 +35,8 @@ export function DriverMarkerPopup({ driver }: DriverMarkerPopupProps) {
             <User className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm">{driver.user.name}</h3>
-            <p className="text-xs text-muted-foreground">{driver.user.phone}</p>
+            <h3 className="font-semibold text-sm">{driver.name}</h3>
+            <p className="text-xs text-muted-foreground">{driver.phoneNumber}</p>
           </div>
         </div>
         <Badge variant={driver.isOnDuty ? 'default' : 'secondary'} className="text-xs">
@@ -67,46 +62,16 @@ export function DriverMarkerPopup({ driver }: DriverMarkerPopupProps) {
           <Navigation className="h-4 w-4 text-muted-foreground" />
           <div>
             <div className="text-muted-foreground">Status</div>
-            <div className="font-medium">{driver.isMoving ? 'Moving' : 'Idle'}</div>
+            {/* Movement status not available in aggregated view, simplifying */}
+            <div className="font-medium">{driver.isOnDuty ? 'Active' : 'Idle'}</div>
           </div>
         </div>
-
-        {/* Speed */}
-        {driver.speed !== null && (
-          <div className="flex items-center gap-2">
-            <Gauge className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <div className="text-muted-foreground">Speed</div>
-              <div className="font-medium">{Math.round(driver.speed)} km/h</div>
-            </div>
-          </div>
-        )}
-
-        {/* Battery */}
-        {driver.batteryLevel !== null && (
-          <div className="flex items-center gap-2">
-            <Battery className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <div className="text-muted-foreground">Battery</div>
-              <div className="font-medium">{driver.batteryLevel}%</div>
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Accuracy */}
-      {driver.accuracy !== null && (
-        <div className="mt-3 pt-2 border-t">
-          <div className="text-xs text-muted-foreground">
-            GPS Accuracy: <span className="font-medium text-foreground">±{Math.round(driver.accuracy)}m</span>
-          </div>
-        </div>
-      )}
 
       {/* Coordinates */}
       <div className="mt-2 pt-2 border-t">
         <div className="text-xs text-muted-foreground">
-          Coordinates: {driver.currentLat.toFixed(6)}, {driver.currentLng.toFixed(6)}
+          Coordinates: {driver.latitude.toFixed(6)}, {driver.longitude.toFixed(6)}
         </div>
       </div>
     </div>

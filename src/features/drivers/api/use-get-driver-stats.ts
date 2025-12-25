@@ -17,7 +17,10 @@ export const useGetDriverStats = ({ driverId, startDate, endDate }: UseGetDriver
 
       const response = await client.api.drivers[':id'].stats.$get({
         param: { id: driverId },
-        query: startDate || endDate ? { startDate, endDate } : undefined,
+        query: {
+          startDate: startDate ?? undefined,
+          endDate: endDate ?? undefined,
+        },
       });
 
       if (!response.ok) {

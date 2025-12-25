@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         revenue: Number(stats.totalRevenue),
         cashCollected: Number(stats.cashCollected),
         bottlesDelivered: stats.bottlesDelivered,
-        activeDrivers: stats.activeDrivers,
+        activeDrivers: stats.driversActive,
       });
     }
 

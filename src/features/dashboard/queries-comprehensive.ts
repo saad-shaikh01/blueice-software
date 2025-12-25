@@ -212,7 +212,7 @@ export async function getComprehensiveDashboardData(params?: {
 
     // Customers by type
     db.customerProfile.groupBy({
-      by: ['customerType'],
+      by: ['type'],
       _count: { id: true },
     }),
 
@@ -230,15 +230,20 @@ export async function getComprehensiveDashboardData(params?: {
     }),
 
     // Route performance
-    db.order.groupBy({
-      by: ['customer'],
-      where: {
-        scheduledDate: { gte: startDate, lte: endDate },
-        status: OrderStatus.COMPLETED,
-      },
-      _count: { id: true },
-      _sum: { totalAmount: true },
-    }),
+    db.$queryRaw`
+      SELECT
+        r.name as "routeName",
+        COUNT(o.id) as count,
+        SUM(o."totalAmount") as revenue
+      FROM "Order" o
+      JOIN "CustomerProfile" c ON o."customerId" = c.id
+      JOIN "Route" r ON c."routeId" = r.id
+      WHERE o."scheduledDate" >= ${startDate}
+        AND o."scheduledDate" <= ${endDate}
+        AND o.status = ${OrderStatus.COMPLETED}
+      GROUP BY r.name
+      ORDER BY revenue DESC
+    `,
 
     // Failed/Cancelled orders
     db.order.findMany({
@@ -398,7 +403,7 @@ export async function getComprehensiveDashboardData(params?: {
     },
     customerAnalytics: {
       byType: customersByType.map((c) => ({
-        type: c.customerType,
+        type: c.type,
         count: c._count.id,
       })),
       topCustomers: topCustomers

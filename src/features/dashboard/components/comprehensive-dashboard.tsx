@@ -130,21 +130,21 @@ export function ComprehensiveDashboard() {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             <Button
-              variant={dateRange === 'today' ? 'default' : 'outline'}
+              variant={dateRange === 'today' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setDateRange('today')}
             >
               Today
             </Button>
             <Button
-              variant={dateRange === 'week' ? 'default' : 'outline'}
+              variant={dateRange === 'week' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setDateRange('week')}
             >
               Last 7 Days
             </Button>
             <Button
-              variant={dateRange === 'month' ? 'default' : 'outline'}
+              variant={dateRange === 'month' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setDateRange('month')}
             >
@@ -420,8 +420,8 @@ export function ComprehensiveDashboard() {
                 <TrendingUp className="h-4 w-4 text-blue-600" />
               </div>
               <div className="text-2xl font-bold text-blue-600">
-                {data?.cashManagement.cashOrders > 0
-                  ? ((data?.cashManagement.totalCashCollected / (data?.overview.totalRevenue || 1)) * 100).toFixed(1)
+                {(data?.cashManagement?.cashOrders || 0) > 0
+                  ? (((data?.cashManagement.totalCashCollected || 0) / (data?.overview.totalRevenue || 1)) * 100).toFixed(1)
                   : '0'}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">Of total revenue</p>
@@ -601,7 +601,7 @@ export function ComprehensiveDashboard() {
                   outerRadius={80}
                   label
                 >
-                  {(data?.customerAnalytics.byType || []).map((entry, index) => (
+                  {(data?.customerAnalytics.byType || []).map((_entry: unknown, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

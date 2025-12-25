@@ -20,7 +20,7 @@ import {
 } from '@/features/cash-management/queries';
 import { getDriverByUserId } from '@/features/drivers/queries';
 
-const ADMIN = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
+const ADMIN: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
 
 const app = new Hono()
   // ========== DRIVER ENDPOINTS ==========

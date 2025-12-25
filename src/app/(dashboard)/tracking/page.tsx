@@ -1,22 +1,11 @@
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LiveMap } from '@/features/tracking/components/live-map';
 
 export const metadata: Metadata = {
   title: 'Live Tracking | Blue Ice CRM',
   description: 'Real-time driver location tracking and monitoring',
 };
-
-// Dynamically import the map component to avoid SSR issues with Leaflet
-const LiveMap = dynamic(() => import('@/features/tracking/components/live-map').then((mod) => mod.LiveMap), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[600px] rounded-lg border bg-muted/20">
-      <Skeleton className="h-full w-full" />
-    </div>
-  ),
-});
 
 export default function TrackingPage() {
   return (

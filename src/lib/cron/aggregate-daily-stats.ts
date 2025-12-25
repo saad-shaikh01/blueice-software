@@ -25,7 +25,7 @@ export async function aggregateDailyStats(date: Date = new Date()) {
       _sum: {
         totalAmount: true,
         cashCollected: true,
-        deliveryCharges: true,
+        deliveryCharge: true,
       },
       _count: {
         id: true,
@@ -73,9 +73,11 @@ export async function aggregateDailyStats(date: Date = new Date()) {
     // Count new customers added
     const newCustomers = await db.customerProfile.count({
       where: {
-        createdAt: {
-          gte: dayStart,
-          lte: dayEnd,
+        user: {
+          createdAt: {
+            gte: dayStart,
+            lte: dayEnd,
+          },
         },
       },
     });
@@ -149,29 +151,25 @@ export async function aggregateDailyStats(date: Date = new Date()) {
         totalRevenue: orderStats._sum.totalAmount || 0,
         cashCollected: orderStats._sum.cashCollected || 0,
         ordersCompleted: orderStats._count.id,
-        ordersCreated: totalOrdersCreated,
+        ordersPending: totalOrdersCreated,
         ordersCancelled: cancelledOrders,
         bottlesDelivered: bottleStats._sum.filledGiven || 0,
-        bottlesCollected: bottleStats._sum.emptyTaken || 0,
+        bottlesReturned: bottleStats._sum.emptyTaken || 0,
         newCustomers: newCustomers,
-        activeDrivers: activeDrivers.length,
-        totalDistanceTraveled: totalDistance,
-        averageOrderValue: avgOrderValue,
-        deliveryChargesCollected: orderStats._sum.deliveryCharges || 0,
+        driversActive: activeDrivers.length,
+        totalDistance: totalDistance,
       },
       update: {
         totalRevenue: orderStats._sum.totalAmount || 0,
         cashCollected: orderStats._sum.cashCollected || 0,
         ordersCompleted: orderStats._count.id,
-        ordersCreated: totalOrdersCreated,
+        ordersPending: totalOrdersCreated,
         ordersCancelled: cancelledOrders,
         bottlesDelivered: bottleStats._sum.filledGiven || 0,
-        bottlesCollected: bottleStats._sum.emptyTaken || 0,
+        bottlesReturned: bottleStats._sum.emptyTaken || 0,
         newCustomers: newCustomers,
-        activeDrivers: activeDrivers.length,
-        totalDistanceTraveled: totalDistance,
-        averageOrderValue: avgOrderValue,
-        deliveryChargesCollected: orderStats._sum.deliveryCharges || 0,
+        driversActive: activeDrivers.length,
+        totalDistance: totalDistance,
       },
     });
 
@@ -179,8 +177,8 @@ export async function aggregateDailyStats(date: Date = new Date()) {
       date: dayStart.toISOString().split('T')[0],
       revenue: Number(stats.totalRevenue),
       orders: stats.ordersCompleted,
-      drivers: stats.activeDrivers,
-      distance: Math.round(stats.totalDistanceTraveled),
+      drivers: stats.driversActive,
+      distance: Math.round(stats.totalDistance || 0),
     });
 
     // Also update driver performance metrics for each active driver
@@ -215,7 +213,7 @@ async function aggregateDriverPerformanceMetrics(
       },
     },
     include: {
-      items: true,
+      orderItems: true,
     },
   });
 
@@ -238,11 +236,11 @@ async function aggregateDriverPerformanceMetrics(
     const cashCollected = completedOrders.reduce((sum, o) => sum + Number(o.cashCollected), 0);
 
     const bottlesDelivered = completedOrders.reduce((sum, o) => {
-      return sum + o.items.reduce((itemSum, item) => itemSum + item.filledGiven, 0);
+      return sum + o.orderItems.reduce((itemSum, item) => itemSum + item.filledGiven, 0);
     }, 0);
 
     const bottlesCollected = completedOrders.reduce((sum, o) => {
-      return sum + o.items.reduce((itemSum, item) => itemSum + item.emptyTaken, 0);
+      return sum + o.orderItems.reduce((itemSum, item) => itemSum + item.emptyTaken, 0);
     }, 0);
 
     const distanceTraveled = driverDistances.get(driverId) || 0;
@@ -310,24 +308,24 @@ async function aggregateDriverPerformanceMetrics(
         date: dayStart,
         ordersCompleted: completedOrders.length,
         ordersAssigned: totalOrders,
-        totalRevenue,
+        totalBilled: totalRevenue,
         cashCollected,
-        bottlesDelivered,
-        bottlesCollected,
-        distanceTraveled,
-        hoursActive,
+        bottlesGiven: bottlesDelivered,
+        bottlesTaken: bottlesCollected,
+        totalDistance: distanceTraveled,
+        workingHours: hoursActive,
         completionRate,
         performanceScore,
       },
       update: {
         ordersCompleted: completedOrders.length,
         ordersAssigned: totalOrders,
-        totalRevenue,
+        totalBilled: totalRevenue,
         cashCollected,
-        bottlesDelivered,
-        bottlesCollected,
-        distanceTraveled,
-        hoursActive,
+        bottlesGiven: bottlesDelivered,
+        bottlesTaken: bottlesCollected,
+        totalDistance: distanceTraveled,
+        workingHours: hoursActive,
         completionRate,
         performanceScore,
       },

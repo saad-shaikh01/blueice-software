@@ -9,7 +9,7 @@ export const useVerifyCashHandover = () => {
   return useMutation({
     mutationFn: async (data: {
       id: string;
-      status: CashHandoverStatus.VERIFIED | CashHandoverStatus.REJECTED | CashHandoverStatus.ADJUSTED;
+      status: 'VERIFIED' | 'REJECTED' | 'ADJUSTED';
       adminNotes?: string;
       adjustmentAmount?: number;
     }) => {
@@ -21,6 +21,7 @@ export const useVerifyCashHandover = () => {
 
       if (!response.ok) {
         const error = await response.json();
+        // @ts-expect-error - Hono client types inference
         throw new Error(error.error || 'Failed to verify cash handover');
       }
 

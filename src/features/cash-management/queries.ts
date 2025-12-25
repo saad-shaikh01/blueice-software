@@ -101,7 +101,7 @@ export async function getDriverDaySummary(driverId: string, date: Date) {
     expectedCash: expectedCash.toFixed(2),
     bottlesGiven: bottleData._sum.filledGiven || 0,
     bottlesTaken: bottleData._sum.emptyTaken || 0,
-    cashOrders: cashData.map((order) => ({
+    ordersPaidInCash: cashData.map((order) => ({
       id: order.id,
       readableId: order.readableId,
       customerName: order.customer.user.name,
@@ -301,7 +301,7 @@ export async function getCashHandover(id: string) {
 export async function verifyCashHandover(data: {
   id: string;
   verifiedBy: string;
-  status: CashHandoverStatus.VERIFIED | CashHandoverStatus.REJECTED | CashHandoverStatus.ADJUSTED;
+  status: 'VERIFIED' | 'REJECTED' | 'ADJUSTED';
   adminNotes?: string;
   adjustmentAmount?: number;
 }) {

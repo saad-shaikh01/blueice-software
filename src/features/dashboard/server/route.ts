@@ -86,8 +86,9 @@ const app = new Hono()
     async (ctx) => {
       const user = ctx.get('user');
 
+      const allowedRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
       // Only admins can access comprehensive dashboard
-      if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
+      if (!allowedRoles.includes(user.role)) {
         return ctx.json({ error: 'Unauthorized' }, 403);
       }
 

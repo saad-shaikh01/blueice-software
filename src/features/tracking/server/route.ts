@@ -57,8 +57,8 @@ const app = new Hono()
 
         // Broadcast location update via WebSocket (if available)
         // This will be implemented in the WebSocket server
-        if (ctx.env?.io) {
-          ctx.env.io.emit('driver-location-update', {
+        if ((ctx.env as any)?.io) {
+          (ctx.env as any).io.emit('driver-location-update', {
             driverId: driverProfile.id,
             ...locationData,
             timestamp: new Date(),
@@ -81,7 +81,8 @@ const app = new Hono()
     const user = ctx.get('user');
 
     // Only admins can view all driver locations
-    if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
+    const allowedRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
+    if (!allowedRoles.includes(user.role)) {
       return ctx.json({ error: 'Unauthorized' }, 403);
     }
 
@@ -127,8 +128,11 @@ const app = new Hono()
         if (!driverProfile || driverProfile.id !== driverId) {
           return ctx.json({ error: 'Unauthorized to view this data' }, 403);
         }
-      } else if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
-        return ctx.json({ error: 'Unauthorized' }, 403);
+      } else {
+        const allowedRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
+        if (!allowedRoles.includes(user.role)) {
+          return ctx.json({ error: 'Unauthorized' }, 403);
+        }
       }
 
       try {
@@ -171,16 +175,19 @@ const app = new Hono()
         if (!driverProfile || driverProfile.id !== driverId) {
           return ctx.json({ error: 'Unauthorized' }, 403);
         }
-      } else if (![UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(user.role)) {
-        return ctx.json({ error: 'Unauthorized' }, 403);
+      } else {
+        const allowedRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
+        if (!allowedRoles.includes(user.role)) {
+          return ctx.json({ error: 'Unauthorized' }, 403);
+        }
       }
 
       try {
         const driver = await toggleDriverDutyStatus(driverId, isOnDuty);
 
         // Broadcast duty status change
-        if (ctx.env?.io) {
-          ctx.env.io.emit('driver-duty-status-change', {
+        if ((ctx.env as any)?.io) {
+          (ctx.env as any).io.emit('driver-duty-status-change', {
             driverId,
             isOnDuty,
             driverName: driver.user.name,

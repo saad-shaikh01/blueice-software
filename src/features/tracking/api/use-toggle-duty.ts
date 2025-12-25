@@ -14,6 +14,7 @@ export const useToggleDuty = () => {
 
       if (!response.ok) {
         const error = await response.json();
+          // @ts-expect-error - Hono client types inference
         throw new Error(error.error || 'Failed to update duty status');
       }
 

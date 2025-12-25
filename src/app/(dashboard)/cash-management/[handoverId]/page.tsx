@@ -42,7 +42,7 @@ function CashHandoverDetailContent() {
   const handoverId = params.handoverId as string;
 
   const [verificationStatus, setVerificationStatus] = useState<
-    CashHandoverStatus.VERIFIED | CashHandoverStatus.REJECTED | CashHandoverStatus.ADJUSTED
+    'VERIFIED' | 'REJECTED' | 'ADJUSTED'
   >(CashHandoverStatus.VERIFIED);
   const [adminNotes, setAdminNotes] = useState('');
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
@@ -110,7 +110,7 @@ function CashHandoverDetailContent() {
 
   const discrepancy = parseFloat(handover.discrepancy.toString());
   const hasDiscrepancy = Math.abs(discrepancy) > 0.01;
-  const isPending = handover.status === CashHandoverStatus.PENDING;
+  const isPendingHandover = handover.status === CashHandoverStatus.PENDING;
 
   const getStatusBadge = (status: CashHandoverStatus) => {
     switch (status) {
@@ -378,9 +378,9 @@ function CashHandoverDetailContent() {
                 onValueChange={(value) =>
                   setVerificationStatus(
                     value as
-                      | CashHandoverStatus.VERIFIED
-                      | CashHandoverStatus.REJECTED
-                      | CashHandoverStatus.ADJUSTED
+                      | 'VERIFIED'
+                      | 'REJECTED'
+                      | 'ADJUSTED'
                   )
                 }
               >
@@ -439,7 +439,7 @@ function CashHandoverDetailContent() {
                 className="flex-1"
                 variant={
                   verificationStatus === CashHandoverStatus.VERIFIED
-                    ? 'default'
+                    ? 'primary'
                     : verificationStatus === CashHandoverStatus.REJECTED
                       ? 'destructive'
                       : 'outline'

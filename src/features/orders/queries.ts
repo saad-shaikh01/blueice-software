@@ -182,7 +182,7 @@ export async function generateOrders(data: { date: string; routeId?: string }) {
 
   // 5. Validate stock availability
   const insufficientStock: string[] = [];
-  for (const [productId, needed] of stockNeeded.entries()) {
+   for (const [productId, needed] of Array.from(stockNeeded.entries())) {
     const product = productMap.get(productId);
     if (!product || product.stockFilled < needed) {
       insufficientStock.push(productId);

@@ -158,21 +158,21 @@ function DriverDetailContent() {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             <Button
-              variant={dateRange === 'today' ? 'default' : 'outline'}
+              variant={dateRange === 'today' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setDateRange('today')}
             >
               Today
             </Button>
             <Button
-              variant={dateRange === 'week' ? 'default' : 'outline'}
+              variant={dateRange === 'week' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setDateRange('week')}
             >
               This Week
             </Button>
             <Button
-              variant={dateRange === 'month' ? 'default' : 'outline'}
+              variant={dateRange === 'month' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setDateRange('month')}
             >
