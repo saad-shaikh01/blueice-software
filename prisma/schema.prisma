@@ -292,6 +292,7 @@ model OrderItem {
   // Bottle Exchange Logic (The Core of this Business)
   filledGiven Int      @default(0) // Driver ne kitni di
   emptyTaken  Int      @default(0) // Driver ne kitni wapis li
+  damagedReturned Int  @default(0) // Broken bottles returned
   
   order       Order    @relation(fields: [orderId], references: [id])
   product     Product  @relation(fields: [productId], references: [id])
@@ -443,6 +444,7 @@ model DailyStats {
   // Bottle Metrics
   bottlesDelivered  Int      @default(0)
   bottlesReturned   Int      @default(0)
+  bottlesDamaged    Int      @default(0)
   bottleNetChange   Int      @default(0) // delivered - returned
 
   // Customer Metrics

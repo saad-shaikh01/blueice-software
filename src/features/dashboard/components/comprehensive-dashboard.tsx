@@ -20,6 +20,7 @@ import {
   BarChart3,
   Activity,
   Minus,
+  CheckCircle,
 } from 'lucide-react';
 import {
   BarChart,
@@ -387,7 +388,7 @@ export function ComprehensiveDashboard() {
           <CardDescription>Cash collection and handover status</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Cash Collected</span>
@@ -411,6 +412,19 @@ export function ComprehensiveDashboard() {
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 PKR {data?.cashManagement.pendingHandovers.amount.toLocaleString()} pending
+              </p>
+            </div>
+
+            <div className="p-4 border rounded-lg border-green-200 bg-green-50/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Verified Cash</span>
+                <CheckCircle className="h-4 w-4 text-green-700" />
+              </div>
+              <div className="text-2xl font-bold text-green-700">
+                PKR {data?.cashManagement.verifiedCash?.toLocaleString() ?? '0'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Safely received
               </p>
             </div>
 
@@ -478,7 +492,7 @@ export function ComprehensiveDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 border rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Filled Given</div>
                   <div className="text-2xl font-bold text-green-600">
@@ -489,6 +503,12 @@ export function ComprehensiveDashboard() {
                   <div className="text-sm text-muted-foreground mb-1">Empty Taken</div>
                   <div className="text-2xl font-bold text-blue-600">
                     {data?.bottleStats.emptyTaken}
+                  </div>
+                </div>
+                <div className="text-center p-4 border rounded-lg border-red-200 bg-red-50/50">
+                  <div className="text-sm text-muted-foreground mb-1">Damaged</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {data?.bottleStats.damagedReturned}
                   </div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
