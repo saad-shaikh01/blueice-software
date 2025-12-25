@@ -4,6 +4,8 @@ import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard, Ma
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useCurrent } from '@/features/auth/api/use-current';
+import { UserRole } from '@prisma/client';
 
 const routes = [
   {
@@ -11,51 +13,64 @@ const routes = [
     href: '',
     icon: LayoutDashboard,
     activeIcon: LayoutDashboard,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR],
   },
   {
     label: 'Customers',
     href: 'customers',
     icon: Users,
     activeIcon: Users,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR],
   },
   {
     label: 'Orders',
     href: 'orders',
     icon: ShoppingCart,
     activeIcon: ShoppingCart,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR],
   },
   {
     label: 'Products',
     href: 'products',
     icon: Package,
     activeIcon: Package,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR],
   },
   {
     label: 'Drivers',
     href: 'drivers',
     icon: Truck,
     activeIcon: Truck,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
   },
   {
     label: 'Routes',
     href: 'routes',
     icon: Map,
     activeIcon: Map,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
   },
   {
     label: 'Live Tracking',
     href: 'tracking',
     icon: MapPin,
     activeIcon: MapPin,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
   },
 ];
 
 export const Navigation = () => {
   const pathname = usePathname();
+  const { data: user } = useCurrent();
+
+  if (!user) return null;
 
   return (
     <ul className="flex flex-col">
       {routes.map((route) => {
+        const allowedRoles: UserRole[] = route.roles;
+        if (!allowedRoles.includes(user.role)) return null;
+
         const fullHref = `/${route.href}`;
         const isActive = pathname === fullHref;
         const Icon = isActive ? route.activeIcon : route.icon;

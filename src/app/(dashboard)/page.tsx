@@ -3,6 +3,7 @@ import { UserRole } from '@prisma/client';
 
 import { getCurrent } from '@/features/auth/queries';
 import { ComprehensiveDashboard } from '@/features/dashboard/components/comprehensive-dashboard';
+import { InventoryDashboard } from '@/features/dashboard/components/inventory-dashboard';
 
 const HomePage = async () => {
   const user = await getCurrent();
@@ -11,6 +12,10 @@ const HomePage = async () => {
 
   if (user.role === UserRole.DRIVER) {
     redirect('/deliveries');
+  }
+
+  if (user.role === UserRole.INVENTORY_MGR) {
+    return <InventoryDashboard />;
   }
 
   return <ComprehensiveDashboard />;
