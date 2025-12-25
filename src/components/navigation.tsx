@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard, MapPin } from 'lucide-react';
+import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard, MapPin, Receipt } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -34,6 +34,13 @@ const routes = [
     href: 'products',
     icon: Package,
     activeIcon: Package,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR],
+  },
+  {
+    label: 'Expenses',
+    href: 'expenses',
+    icon: Receipt,
+    activeIcon: Receipt,
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR],
   },
   {

@@ -54,6 +54,28 @@ enum CashHandoverStatus {
   ADJUSTED        // Admin accepted with adjustments
 }
 
+enum ExpenseCategory {
+  FUEL
+  VEHICLE_MAINTENANCE
+  PLANT_OPERATIONS
+  SALARY
+  MEALS
+  SUPPLIES
+  OTHER
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ExpensePaymentMethod {
+  CASH_ON_HAND
+  COMPANY_CASH
+  BANK_TRANSFER
+}
+
 // --------------------------------------------------------
 // 2. AUTHENTICATION & USERS (Decoupled Logic)
 // --------------------------------------------------------
@@ -90,6 +112,10 @@ model User {
   
   // Audit Logs (Who did what?)
   actionsPerformed AuditLog[]  @relation("Actor")
+
+  // Expenses
+  expensesSpent    Expense[]   @relation("ExpenseSpender")
+  expensesApproved Expense[]   @relation("ExpenseApprover")
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -291,6 +317,7 @@ model DriverProfile {
   locationHistory     DriverLocationHistory[]
   performanceMetrics  DriverPerformanceMetrics[]
   cashHandovers       CashHandover[]
+  expenses            Expense[]
 }
 
 // --------------------------------------------------------
@@ -472,4 +499,41 @@ model DriverPerformanceMetrics {
   @@unique([driverId, date])
   @@index([date])
   @@index([performanceScore])
+}
+
+// --------------------------------------------------------
+// 8. EXPENSE MANAGEMENT (Phase 2)
+// --------------------------------------------------------
+
+model Expense {
+  id          String   @id @default(uuid())
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime @default(now())
+  category    ExpenseCategory
+  description String?
+  receiptUrl  String?
+
+  // Who spent the money?
+  spentByUserId String
+  spentByUser   User   @relation("ExpenseSpender", fields: [spentByUserId], references: [id])
+
+  // Approval Workflow
+  status        ExpenseStatus @default(APPROVED) // Admin created = Approved. Driver created = Pending.
+  approvedById  String?
+  approvedBy    User?         @relation("ExpenseApprover", fields: [approvedById], references: [id])
+
+  // Context
+  driverId      String?       // If related to a driver's route/vehicle
+  driver        DriverProfile? @relation(fields: [driverId], references: [id])
+
+  // Financial Source
+  paymentMethod ExpensePaymentMethod @default(CASH_ON_HAND)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([spentByUserId])
+  @@index([driverId])
 }

@@ -13,6 +13,7 @@ import { DriverStats } from '@/features/driver-view/components/driver-stats';
 import { LoadSheet } from '@/features/driver-view/components/load-sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DriverLocationTracker } from '@/features/tracking/components/driver-location-tracker';
+import { ExpenseForm } from '@/features/expenses/components/expense-form';
 
 function DeliveriesContent() {
   const { data: driver, isLoading: isLoadingDriver } = useCurrentDriver();
@@ -60,6 +61,9 @@ function DeliveriesContent() {
     <div className="space-y-6">
       <DriverStats />
       <DriverLocationTracker />
+      <div className="flex gap-2">
+        <ExpenseForm />
+      </div>
       <LoadSheet orders={pendingOrders} />
 
       <Tabs defaultValue="pending">

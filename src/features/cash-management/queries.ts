@@ -92,12 +92,28 @@ export async function getDriverDaySummary(driverId: string, date: Date) {
   const totalOrders = ordersData.reduce((acc, curr) => acc + curr._count.id, 0);
   const completedOrders = ordersData.find((o) => o.status === OrderStatus.COMPLETED)?._count.id || 0;
   const cashOrders = cashData.length;
-  const expectedCash = cashData.reduce((acc, order) => acc + parseFloat(order.cashCollected.toString()), 0);
+
+  // Calculate expenses paid from cash on hand for this driver today
+  const expenses = await db.expense.aggregate({
+    where: {
+      driverId,
+      date: { gte: startOfDay, lte: endOfDay },
+      paymentMethod: 'CASH_ON_HAND',
+      status: { not: 'REJECTED' }
+    },
+    _sum: { amount: true }
+  });
+
+  const expensesAmount = parseFloat(expenses._sum.amount?.toString() || '0');
+  const grossCash = cashData.reduce((acc, order) => acc + parseFloat(order.cashCollected.toString()), 0);
+  const expectedCash = grossCash - expensesAmount;
 
   return {
     totalOrders,
     completedOrders,
     cashOrders,
+    grossCash: grossCash.toFixed(2),
+    expensesAmount: expensesAmount.toFixed(2),
     expectedCash: expectedCash.toFixed(2),
     bottlesGiven: bottleData._sum.filledGiven || 0,
     bottlesTaken: bottleData._sum.emptyTaken || 0,
