@@ -183,7 +183,7 @@ export async function getComprehensiveDashboardData(params?: {
       FROM "Order"
       WHERE "scheduledDate" >= ${subDays(endDate, 30)}
         AND "scheduledDate" <= ${endDate}
-        AND status = ${OrderStatus.COMPLETED}
+        AND status = ${OrderStatus.COMPLETED}::"OrderStatus"
       GROUP BY DATE("scheduledDate")
       ORDER BY date ASC
     `,
@@ -240,7 +240,7 @@ export async function getComprehensiveDashboardData(params?: {
       JOIN "Route" r ON c."routeId" = r.id
       WHERE o."scheduledDate" >= ${startDate}
         AND o."scheduledDate" <= ${endDate}
-        AND o.status = ${OrderStatus.COMPLETED}
+        AND o.status = ${OrderStatus.COMPLETED}::"OrderStatus"
       GROUP BY r.name
       ORDER BY revenue DESC
     `,
