@@ -1,31 +1,214 @@
 import { db } from '@/lib/db';
 import { OrderStatus, PaymentMethod } from '@prisma/client';
-import { subDays, startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+import { subDays, startOfDay, endOfDay, format } from 'date-fns';
 
 export async function getComprehensiveDashboardData(params?: {
   startDate?: Date;
   endDate?: Date;
 }) {
   const { startDate = startOfDay(new Date()), endDate = endOfDay(new Date()) } = params || {};
+  const today = startOfDay(new Date());
 
-  // Previous period for comparison
-  const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const prevStartDate = subDays(startDate, daysDiff);
-  const prevEndDate = subDays(endDate, daysDiff);
+  // Determine Historical vs Live Periods
+  const isHistoricalOnly = endDate < today;
+  const isLiveOnly = startDate >= today;
+  const isHybrid = !isHistoricalOnly && !isLiveOnly;
+
+  // Split dates for hybrid approach
+  const historicalEnd = isHybrid ? subDays(today, 1) : endDate;
+  const liveStart = isHybrid ? today : startDate;
+
+  // 1. Fetch Historical Stats (from DailyStats)
+  let historicalRevenue = 0;
+  let historicalOrders = 0;
+  let historicalTrends: { date: Date; revenue: number; orders: number }[] = [];
+  let historicalOrderBreakdown: Record<string, number> = {};
+
+  if (!isLiveOnly) {
+    const dailyStats = await db.dailyStats.findMany({
+      where: {
+        date: {
+          gte: startDate,
+          lte: historicalEnd,
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    for (const stat of dailyStats) {
+      const revenue = Number(stat.totalRevenue);
+      historicalRevenue += revenue;
+      historicalOrders += stat.ordersCompleted; // Use ordersCompleted as primary metric for history
+
+      historicalTrends.push({
+        date: stat.date,
+        revenue,
+        orders: stat.ordersCompleted,
+      });
+
+      // Aggregate status breakdown from DailyStats columns
+      historicalOrderBreakdown[OrderStatus.COMPLETED] = (historicalOrderBreakdown[OrderStatus.COMPLETED] || 0) + stat.ordersCompleted;
+      historicalOrderBreakdown[OrderStatus.CANCELLED] = (historicalOrderBreakdown[OrderStatus.CANCELLED] || 0) + stat.ordersCancelled;
+      historicalOrderBreakdown[OrderStatus.PENDING] = (historicalOrderBreakdown[OrderStatus.PENDING] || 0) + stat.ordersPending;
+      historicalOrderBreakdown[OrderStatus.RESCHEDULED] = (historicalOrderBreakdown[OrderStatus.RESCHEDULED] || 0) + stat.ordersRescheduled;
+    }
+  }
+
+  // 2. Fetch Live Stats (from Order table) - Only if needed
+  let liveRevenue = 0;
+  let liveOrders = 0;
+  let liveTrends: { date: Date; revenue: number; orders: number }[] = [];
+  let liveOrderBreakdown: Record<string, number> = {};
+
+  if (!isHistoricalOnly) {
+    // Live Revenue
+    const revenueAgg = await db.order.aggregate({
+      where: {
+        scheduledDate: { gte: liveStart, lte: endDate },
+        status: OrderStatus.COMPLETED,
+      },
+      _sum: { totalAmount: true },
+    });
+    liveRevenue = Number(revenueAgg._sum.totalAmount || 0);
+
+    // Live Order Count (Completed)
+    const ordersAgg = await db.order.count({
+      where: {
+        scheduledDate: { gte: liveStart, lte: endDate },
+        status: OrderStatus.COMPLETED,
+      },
+    });
+    liveOrders = ordersAgg;
+
+    // Live Revenue Trend (Group by Date)
+    // Even for a single day (today), we want it in the trend array
+    // If range is multiple live days (e.g. future?), this query handles it.
+    const liveTrendRaw = await db.$queryRaw`
+      SELECT
+        DATE("scheduledDate") as date,
+        SUM("totalAmount") as revenue,
+        COUNT(*) as orders
+      FROM "Order"
+      WHERE "scheduledDate" >= ${liveStart}
+        AND "scheduledDate" <= ${endDate}
+        AND status = ${OrderStatus.COMPLETED}::"OrderStatus"
+      GROUP BY DATE("scheduledDate")
+      ORDER BY date ASC
+    `;
+
+    liveTrends = (liveTrendRaw as any[]).map((t) => ({
+      date: new Date(t.date),
+      revenue: Number(t.revenue || 0),
+      orders: Number(t.orders || 0),
+    }));
+
+    // Live Order Status Breakdown
+    const statusGroups = await db.order.groupBy({
+      by: ['status'],
+      where: {
+        scheduledDate: { gte: liveStart, lte: endDate },
+      },
+      _count: { id: true },
+    });
+
+    for (const group of statusGroups) {
+      liveOrderBreakdown[group.status] = group._count.id;
+    }
+  }
+
+  // 3. Combine Data
+  const totalRevenue = historicalRevenue + liveRevenue;
+  const totalOrders = historicalOrders + liveOrders; // Note: This is "Completed Orders" + "Completed Orders".
+  // Wait, the KPI usually shows "Total Orders" (all statuses) or just Completed?
+  // Previous implementation: db.order.count({ where: { scheduledDate... } }) -> All statuses.
+  // DailyStats.ordersCompleted is only completed.
+  // DailyStats also has ordersPending, ordersCancelled.
+  // Let's perform a better sum for "Total Orders" KPI if we want it to match "All Statuses".
+  let historicalTotalOrdersAllStatus = 0;
+  if (!isLiveOnly) {
+     // Re-fetch or re-calculate if we want ALL statuses
+     // DailyStats has: ordersCompleted + ordersCancelled + ordersPending + ordersRescheduled
+     // Let's approximate Total Volume = Sum of all these.
+     // Reuse the loop above?
+     // Let's refine step 1 loop.
+  }
+
+  // Re-run historical loop with better accumulation
+  historicalRevenue = 0;
+  historicalOrders = 0; // Completed only
+  let historicalTotalVolume = 0; // All statuses
+  historicalTrends = [];
+  historicalOrderBreakdown = {};
+
+  if (!isLiveOnly) {
+    const dailyStats = await db.dailyStats.findMany({
+      where: {
+        date: {
+          gte: startDate,
+          lte: historicalEnd,
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    for (const stat of dailyStats) {
+      const revenue = Number(stat.totalRevenue);
+      historicalRevenue += revenue;
+      historicalOrders += stat.ordersCompleted;
+      historicalTotalVolume += (stat.ordersCompleted + stat.ordersCancelled + stat.ordersPending + stat.ordersRescheduled);
+
+      historicalTrends.push({
+        date: stat.date,
+        revenue,
+        orders: stat.ordersCompleted,
+      });
+
+      historicalOrderBreakdown[OrderStatus.COMPLETED] = (historicalOrderBreakdown[OrderStatus.COMPLETED] || 0) + stat.ordersCompleted;
+      historicalOrderBreakdown[OrderStatus.CANCELLED] = (historicalOrderBreakdown[OrderStatus.CANCELLED] || 0) + stat.ordersCancelled;
+      historicalOrderBreakdown[OrderStatus.PENDING] = (historicalOrderBreakdown[OrderStatus.PENDING] || 0) + stat.ordersPending;
+      historicalOrderBreakdown[OrderStatus.RESCHEDULED] = (historicalOrderBreakdown[OrderStatus.RESCHEDULED] || 0) + stat.ordersRescheduled;
+    }
+  }
+
+  // Re-run Live fetch for Total Volume
+  let liveTotalVolume = 0;
+  if (!isHistoricalOnly) {
+     liveTotalVolume = await db.order.count({
+        where: { scheduledDate: { gte: liveStart, lte: endDate } }
+     });
+  }
+
+  const finalTotalRevenue = historicalRevenue + liveRevenue;
+  const finalTotalOrders = historicalTotalVolume + liveTotalVolume;
+
+  // Previous period for comparison (Keep this as raw for now to ensure accuracy, or optimize later)
+  const prevDaysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  const prevStartDate = subDays(startDate, prevDaysDiff);
+  const prevEndDate = subDays(endDate, prevDaysDiff);
 
   const [
     // Overview KPIs
-    totalRevenue,
-    totalOrders,
     totalCustomers,
     totalDrivers,
 
-    // Previous period for comparison
+    // Previous period revenue
     prevRevenue,
     prevOrders,
 
-    // Order breakdown
-    ordersByStatus,
+    // Order breakdown (Detailed - keeping raw for payment method etc as DailyStats doesn't have it)
+    // Note: We aggregated status breakdown above, but we need it for the specific chart which expects { status, count, amount }.
+    // DailyStats doesn't have Amount per Status, only Total Amount.
+    // So for "Orders by Status" list (with amounts), we might still need raw queries OR accept that history won't have amounts per status?
+    // The Dashboard UI shows: Status Name | Order Count | Total Revenue.
+    // If we want high performance, we drop the "Amount per Status" for history and just show counts?
+    // Or we stick to Raw Query for the "Order Stats" section (Pie Chart) because it's usually over the selected period?
+    // The prompt asked to "Fetch Historical Data (Trends, Past Revenue, Order Counts)".
+    // It didn't explicitly forbid raw queries for detailed breakdowns.
+    // Let's optimize the TRENDS and KPIs. The "Pie Chart" query is relatively light compared to trends over 30 days.
+    // But wait, if selected period is 30 days, grouping by status is same cost as trends.
+    // Let's stick to the plan: Hybrid for Trends/Revenue. Keep others raw for correctness/detail.
+
+    ordersByStatus, // We will use this for the Pie Chart to ensure we have Amounts.
     ordersByPaymentMethod,
 
     // Cash management
@@ -38,12 +221,6 @@ export async function getComprehensiveDashboardData(params?: {
     // Bottle inventory
     bottleStats,
     productInventory,
-
-    // Revenue trends (last 30 days)
-    revenueTrend,
-
-    // Order trends (last 30 days)
-    orderTrend,
 
     // Customer analytics
     newCustomers,
@@ -58,22 +235,6 @@ export async function getComprehensiveDashboardData(params?: {
     lowStockProducts,
     highCreditCustomers,
   ] = await Promise.all([
-    // Total Revenue (current period)
-    db.order.aggregate({
-      where: {
-        scheduledDate: { gte: startDate, lte: endDate },
-        status: OrderStatus.COMPLETED,
-      },
-      _sum: { totalAmount: true, cashCollected: true },
-    }),
-
-    // Total Orders (current period)
-    db.order.count({
-      where: {
-        scheduledDate: { gte: startDate, lte: endDate },
-      },
-    }),
-
     // Total Active Customers
     db.customerProfile.count({
       where: { user: { isActive: true } },
@@ -100,7 +261,7 @@ export async function getComprehensiveDashboardData(params?: {
       },
     }),
 
-    // Orders by status
+    // Orders by status (Raw query to get amounts, efficient enough with index)
     db.order.groupBy({
       by: ['status'],
       where: {
@@ -173,33 +334,6 @@ export async function getComprehensiveDashboardData(params?: {
       },
       orderBy: { name: 'asc' },
     }),
-
-    // Revenue trend (last 30 days)
-    db.$queryRaw`
-      SELECT
-        DATE("scheduledDate") as date,
-        SUM("totalAmount") as revenue,
-        COUNT(*) as orders
-      FROM "Order"
-      WHERE "scheduledDate" >= ${subDays(endDate, 30)}
-        AND "scheduledDate" <= ${endDate}
-        AND status = ${OrderStatus.COMPLETED}::"OrderStatus"
-      GROUP BY DATE("scheduledDate")
-      ORDER BY date ASC
-    `,
-
-    // Order trend by status (last 30 days)
-    db.$queryRaw`
-      SELECT
-        DATE("scheduledDate") as date,
-        status,
-        COUNT(*) as count
-      FROM "Order"
-      WHERE "scheduledDate" >= ${subDays(endDate, 30)}
-        AND "scheduledDate" <= ${endDate}
-      GROUP BY DATE("scheduledDate"), status
-      ORDER BY date ASC
-    `,
 
     // New customers (current period)
     db.customerProfile.count({
@@ -296,6 +430,63 @@ export async function getComprehensiveDashboardData(params?: {
     }),
   ]);
 
+  // Combine Trends
+  const combinedRevenueTrend = [...historicalTrends, ...liveTrends].sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  // Combine Order Trends (Breakdown by status for Stacked Bar Chart)
+  // We need to merge historicalOrderBreakdown (which was simple aggregate) into daily breakdown?
+  // Wait, step 1 aggregated ONLY TOTALS into breakdown. It didn't keep per-day status breakdown.
+  // To populate "Order Status Trend (Last 30 Days)" chart, we need PER DAY status.
+  // The DailyStats table has columns for this!
+  // Let's refetch Historical Trends properly with status columns.
+
+  const combinedOrderTrends: any[] = [];
+
+  if (!isLiveOnly) {
+    const dailyStats = await db.dailyStats.findMany({
+      where: {
+        date: { gte: startDate, lte: historicalEnd },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    dailyStats.forEach(stat => {
+      combinedOrderTrends.push({
+        date: format(stat.date, 'MMM dd'),
+        [OrderStatus.COMPLETED]: stat.ordersCompleted,
+        [OrderStatus.PENDING]: stat.ordersPending,
+        [OrderStatus.CANCELLED]: stat.ordersCancelled,
+        [OrderStatus.RESCHEDULED]: stat.ordersRescheduled,
+      });
+    });
+  }
+
+  // Fetch Live Order Status Trend (Group by Date and Status)
+  if (!isHistoricalOnly) {
+    const liveOrderTrendRaw = await db.$queryRaw`
+      SELECT
+        DATE("scheduledDate") as date,
+        status,
+        COUNT(*) as count
+      FROM "Order"
+      WHERE "scheduledDate" >= ${liveStart}
+        AND "scheduledDate" <= ${endDate}
+      GROUP BY DATE("scheduledDate"), status
+      ORDER BY date ASC
+    `;
+
+    // Merge live trends into combined array
+    (liveOrderTrendRaw as any[]).forEach((curr) => {
+        const dateStr = format(new Date(curr.date), 'MMM dd');
+        let existing = combinedOrderTrends.find(i => i.date === dateStr);
+        if (!existing) {
+            existing = { date: dateStr };
+            combinedOrderTrends.push(existing);
+        }
+        existing[curr.status] = Number(curr.count || 0);
+    });
+  }
+
   // Get driver details for performance
   const driverIds = driverPerformance.map((d) => d.driverId).filter(Boolean) as string[];
   const drivers = await db.driverProfile.findMany({
@@ -317,21 +508,21 @@ export async function getComprehensiveDashboardData(params?: {
   });
 
   // Calculate percentages and comparisons
-  const currentRevenue = parseFloat(totalRevenue._sum.totalAmount?.toString() || '0');
-  const previousRevenue = parseFloat(prevRevenue._sum.totalAmount?.toString() || '0');
-  const revenueChange = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
-  const ordersChange = prevOrders > 0 ? ((totalOrders - prevOrders) / prevOrders) * 100 : 0;
+  const currentRevenueValue = finalTotalRevenue;
+  const previousRevenueValue = parseFloat(prevRevenue._sum.totalAmount?.toString() || '0');
+  const revenueChange = previousRevenueValue > 0 ? ((currentRevenueValue - previousRevenueValue) / previousRevenueValue) * 100 : 0;
+  const ordersChange = prevOrders > 0 ? ((finalTotalOrders - prevOrders) / prevOrders) * 100 : 0;
 
   return {
     overview: {
-      totalRevenue: currentRevenue,
+      totalRevenue: currentRevenueValue,
       revenueChange,
-      totalOrders,
+      totalOrders: finalTotalOrders,
       ordersChange,
       totalCustomers,
       totalDrivers,
       newCustomers,
-      avgOrderValue: totalOrders > 0 ? currentRevenue / totalOrders : 0,
+      avgOrderValue: finalTotalOrders > 0 ? currentRevenueValue / finalTotalOrders : 0,
     },
     orderStats: {
       byStatus: ordersByStatus.map((s) => ({
@@ -383,23 +574,12 @@ export async function getComprehensiveDashboardData(params?: {
       totalValue: p.stockFilled * parseFloat(p.basePrice.toString()),
     })),
     trends: {
-      revenue: (revenueTrend as any[]).map((t) => ({
+      revenue: combinedRevenueTrend.map((t) => ({
         date: format(new Date(t.date), 'MMM dd'),
-        revenue: parseFloat(t.revenue?.toString() || '0'),
-        orders: Number(t.orders || 0),
+        revenue: t.revenue,
+        orders: t.orders,
       })),
-      orders: (orderTrend as any[]).reduce((acc: any[], curr) => {
-        const existing = acc.find((item) => item.date === format(new Date(curr.date), 'MMM dd'));
-        if (existing) {
-          existing[curr.status] = Number(curr.count || 0);
-        } else {
-          acc.push({
-            date: format(new Date(curr.date), 'MMM dd'),
-            [curr.status]: Number(curr.count || 0),
-          });
-        }
-        return acc;
-      }, []),
+      orders: combinedOrderTrends,
     },
     customerAnalytics: {
       byType: customersByType.map((c) => ({
@@ -436,5 +616,10 @@ export async function getComprehensiveDashboardData(params?: {
         utilizationPercent: Math.abs(parseFloat(c.cashBalance.toString())) / parseFloat(c.creditLimit.toString()) * 100,
       })),
     },
+    routePerformance: (routePerformance as any[]).map((r) => ({
+      name: r.routeName,
+      count: Number(r.count),
+      revenue: parseFloat(r.revenue?.toString() || '0'),
+    })),
   };
 }
