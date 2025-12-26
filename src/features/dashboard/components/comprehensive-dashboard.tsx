@@ -75,7 +75,7 @@ export function ComprehensiveDashboard() {
   };
 
   const { startDate, endDate } = getDateRange();
-  const { data, isLoading } = useComprehensiveDashboard({ startDate, endDate });
+  const { data, isLoading, isError } = useComprehensiveDashboard({ startDate, endDate });
 
   const getTrendIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
@@ -103,6 +103,17 @@ export function ComprehensiveDashboard() {
             <Skeleton key={i} className="h-96" />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex flex-col gap-6 items-center justify-center h-96">
+        <AlertCircle className="h-12 w-12 text-red-500" />
+        <h2 className="text-xl font-semibold">Failed to load dashboard data</h2>
+        <p className="text-muted-foreground">Please check your connection and try again.</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     );
   }
