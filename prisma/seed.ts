@@ -1,7 +1,16 @@
-import { PrismaClient, UserRole, CustomerType, OrderStatus } from '@prisma/client';
+import { PrismaClient, UserRole, CustomerType, OrderStatus, PaymentMethod } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
+
+// Configuration
+const CONFIG = {
+  CUSTOMERS_COUNT: 1000,
+  PAST_DAYS: 60,
+  FUTURE_DAYS: 7,
+  ORDERS_PER_DAY_AVG: 50,
+};
 
 async function hashPassword(password: string) {
   return await bcrypt.hash(password, 10);
@@ -10,27 +19,29 @@ async function hashPassword(password: string) {
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // 1. Cleanup (Optional - be careful in prod, but safe for testing)
-  // await prisma.auditLog.deleteMany();
-  // await prisma.orderItem.deleteMany();
-  // await prisma.order.deleteMany();
-  // await prisma.customerBottleWallet.deleteMany();
-  // await prisma.ledger.deleteMany();
-  // await prisma.customerProductPrice.deleteMany();
-  // await prisma.customerProfile.deleteMany();
-  // await prisma.driverProfile.deleteMany();
-  // await prisma.route.deleteMany();
-  // await prisma.product.deleteMany();
-  // await prisma.user.deleteMany();
-  // console.log('🧹 Cleaned up database');
+  // 1. Cleanup
+  console.log('🧹 Cleaning database...');
+  await prisma.auditLog.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.dailyStats.deleteMany();
+  await prisma.driverPerformanceMetrics.deleteMany();
+  await prisma.cashHandover.deleteMany();
+  await prisma.customerBottleWallet.deleteMany();
+  await prisma.ledger.deleteMany();
+  await prisma.customerProductPrice.deleteMany();
+  await prisma.customerProfile.deleteMany();
+  await prisma.driverProfile.deleteMany();
+  await prisma.routeAssignment.deleteMany();
+  await prisma.route.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.user.deleteMany();
 
-  // 2. Create Users (Admin, Manager, Drivers)
+  // 2. Create Static Users (Admin, Manager, Drivers)
   const password = await hashPassword('password123');
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@blueice.com' },
-    update: {},
-    create: {
+  await prisma.user.create({
+    data: {
       name: 'Super Admin',
       email: 'admin@blueice.com',
       phoneNumber: '03000000000',
@@ -39,10 +50,8 @@ async function main() {
     },
   });
 
-  const manager = await prisma.user.upsert({
-    where: { email: 'manager@blueice.com' },
-    update: {},
-    create: {
+  await prisma.user.create({
+    data: {
       name: 'Manager One',
       email: 'manager@blueice.com',
       phoneNumber: '03000000001',
@@ -51,246 +60,224 @@ async function main() {
     },
   });
 
-  // Drivers
-  const driver1 = await prisma.user.upsert({
-    where: { email: 'ali@blueice.com' },
-    update: {},
-    create: {
-      name: 'Ali Driver',
-      email: 'ali@blueice.com',
-      phoneNumber: '03000000002',
-      password,
-      role: UserRole.DRIVER,
-      driverProfile: {
-        create: {
-          vehicleNo: 'KHI-1234',
-          licenseNo: 'LIC-5678',
+  // Create 10 Drivers
+  const drivers = [];
+  for (let i = 0; i < 10; i++) {
+    const driver = await prisma.user.create({
+      data: {
+        name: faker.person.fullName(),
+        email: `driver${i}@blueice.com`,
+        phoneNumber: `030000000${(i + 2).toString().padStart(2, '0')}`,
+        password,
+        role: UserRole.DRIVER,
+        driverProfile: {
+          create: {
+            vehicleNo: faker.vehicle.vrm(),
+            licenseNo: faker.string.alphanumeric(8).toUpperCase(),
+            isOnDuty: true,
+          },
         },
       },
-    },
-    include: {
-      driverProfile: true,
-    },
-  });
-
-  const driver2 = await prisma.user.upsert({
-    where: { email: 'bilal@blueice.com' },
-    update: {},
-    create: {
-      name: 'Bilal Driver',
-      email: 'bilal@blueice.com',
-      phoneNumber: '03000000003',
-      password,
-      role: UserRole.DRIVER,
-      driverProfile: {
-        create: {
-          vehicleNo: 'LEA-9090',
-          licenseNo: 'LIC-1122',
-        },
-      },
-    },
-    include: {
-      driverProfile: true,
-    },
-  });
-
-  console.log('👥 Users created');
+      include: { driverProfile: true },
+    });
+    drivers.push(driver);
+  }
+  console.log(`✅ Created Admin, Manager, and ${drivers.length} Drivers`);
 
   // 3. Create Products
-  const products = [
-    { name: '19L Mineral Water', sku: 'MW-19L', basePrice: 200, isReturnable: true, stockFilled: 500, stockEmpty: 100 },
-    { name: '12L Mineral Water', sku: 'MW-12L', basePrice: 150, isReturnable: true, stockFilled: 200, stockEmpty: 50 },
-    { name: '6L Mineral Water', sku: 'MW-6L', basePrice: 100, isReturnable: true, stockFilled: 200, stockEmpty: 20 },
-    { name: '1.5L Carton (12 pcs)', sku: 'MW-1.5L-CTN', basePrice: 600, isReturnable: false, stockFilled: 100, stockEmpty: 0 },
-    { name: '500ml Carton (24 pcs)', sku: 'MW-500ML-CTN', basePrice: 700, isReturnable: false, stockFilled: 100, stockEmpty: 0 },
-    { name: 'Water Dispenser', sku: 'DISP-STD', basePrice: 15000, isReturnable: false, stockFilled: 10, stockEmpty: 0 },
+  const productsData = [
+    { name: '19L Mineral Water', sku: 'MW-19L', basePrice: 200, isReturnable: true, stockFilled: 5000, stockEmpty: 1000 },
+    { name: '12L Mineral Water', sku: 'MW-12L', basePrice: 150, isReturnable: true, stockFilled: 2000, stockEmpty: 500 },
+    { name: '6L Mineral Water', sku: 'MW-6L', basePrice: 100, isReturnable: true, stockFilled: 2000, stockEmpty: 200 },
+    { name: '1.5L Carton (12 pcs)', sku: 'MW-1.5L-CTN', basePrice: 600, isReturnable: false, stockFilled: 1000, stockEmpty: 0 },
   ];
 
-  const dbProducts = [];
-  for (const p of products) {
-    const product = await prisma.product.upsert({
-      where: { sku: p.sku },
-      update: {},
-      create: p,
-    });
-    dbProducts.push(product);
+  const products = [];
+  for (const p of productsData) {
+    products.push(await prisma.product.create({ data: p }));
   }
-  console.log('💧 Products created');
+  const mainProduct = products[0]; // 19L
+  console.log('✅ Created Products');
 
   // 4. Create Routes
-  const routesData = [
-    { name: 'Morning - DHA Phase 6', description: 'Early morning deliveries' },
-    { name: 'Afternoon - Clifton', description: 'Office deliveries' },
-    { name: 'Evening - Gulshan', description: 'Residential deliveries' },
-  ];
-
-  const dbRoutes = [];
-  for (const r of routesData) {
-    const route = await prisma.route.create({
-      data: r,
-    });
-    dbRoutes.push(route);
-  }
-  console.log('🚚 Routes created');
-
-  // 5. Create Customers
-  const customerTypes = [CustomerType.RESIDENTIAL, CustomerType.COMMERCIAL, CustomerType.CORPORATE];
-  const areas = ['DHA', 'Clifton', 'Gulshan', 'North Nazimabad', 'PECHS'];
-
-  const dbCustomers = [];
-  for (let i = 1; i <= 20; i++) {
-    const routeIndex = i % dbRoutes.length;
-    const typeIndex = i % customerTypes.length;
-    const areaIndex = i % areas.length;
-
-    const customerUser = await prisma.user.create({
+  const areaNames = ['DHA Phase 6', 'Clifton Block 2', 'Gulshan-e-Iqbal', 'North Nazimabad', 'PECHS Block 6', 'Bahria Town'];
+  const routes = [];
+  for (const name of areaNames) {
+    routes.push(await prisma.route.create({
       data: {
-        name: `Customer ${i}`,
-        phoneNumber: `030011100${i.toString().padStart(2, '0')}`,
-        email: `customer${i}@example.com`,
+        name,
+        description: `Deliveries for ${name}`,
+        defaultDriverId: drivers[Math.floor(Math.random() * drivers.length)].driverProfile?.id,
+      },
+    }));
+  }
+  console.log('✅ Created Routes');
+
+  // 5. Create Customers (Batching for speed if possible, but nested writes require loops)
+  console.log(`⏳ Creating ${CONFIG.CUSTOMERS_COUNT} Customers...`);
+  const customers = [];
+
+  // We'll do chunks to avoid memory issues if count is huge, but 1000 is fine.
+  for (let i = 0; i < CONFIG.CUSTOMERS_COUNT; i++) {
+    const route = routes[Math.floor(Math.random() * routes.length)];
+    const type = faker.helpers.arrayElement(Object.values(CustomerType));
+
+    // Generate valid PK phoneNumber
+    const phone = faker.string.numeric(11);
+
+    const customer = await prisma.user.create({
+      data: {
+        name: faker.person.fullName(),
+        phoneNumber: `03${phone.substring(2)}`, // Ensure roughly PK format
+        email: faker.internet.email(),
         password,
         role: UserRole.CUSTOMER,
         customerProfile: {
           create: {
-            type: customerTypes[typeIndex],
-            area: areas[areaIndex],
-            address: `House ${i}, Street ${i}, ${areas[areaIndex]}`,
-            routeId: dbRoutes[routeIndex].id,
-            sequenceOrder: i,
-            deliveryDays: [1, 4], // Mon, Thu
+            type,
+            area: route.name,
+            address: faker.location.streetAddress(),
+            routeId: route.id,
             creditLimit: 5000,
-            cashBalance: 0,
+            cashBalance: faker.number.int({ min: -2000, max: 1000 }), // Negative means they owe us (credit used)
           },
         },
       },
       include: { customerProfile: true },
     });
 
-    if (customerUser.customerProfile) {
-        dbCustomers.push(customerUser.customerProfile);
-    }
+    if (customer.customerProfile) customers.push(customer.customerProfile);
+
+    if (i % 100 === 0) process.stdout.write('.');
   }
-  console.log('🏠 Customers created');
+  console.log('\n✅ Customers created');
 
-  // 6. Create Orders (Past & Future)
+  // 6. Generate Orders (Past, Present, Future)
+  console.log(`⏳ Generating Orders (Past ${CONFIG.PAST_DAYS} days + Future)...`);
+
   const today = new Date();
+  const allOrders = [];
 
-  // Create some past completed orders (last 10 days)
-  for (let i = 0; i < 30; i++) {
-    const customer = dbCustomers[i % dbCustomers.length];
-    const driver = i % 2 === 0 ? driver1 : driver2;
-    const daysAgo = Math.floor(Math.random() * 10) + 1;
+  // 6a. Historical Orders (Past 60 days)
+  for (let d = CONFIG.PAST_DAYS; d >= 0; d--) {
     const date = new Date(today);
-    date.setDate(date.getDate() - daysAgo);
+    date.setDate(date.getDate() - d);
 
-    const product = dbProducts[0]; // 19L Water
-    const qty = Math.floor(Math.random() * 5) + 1;
-    const total = Number(product.basePrice) * qty;
+    // Daily Stats Accumulators
+    let dailyRevenue = 0;
+    let dailyCash = 0;
+    let ordersCompleted = 0;
+    let bottlesDelivered = 0;
+    let bottlesReturned = 0;
+    let bottlesDamaged = 0;
 
-    // Simulate completion logic manually here for seed
-    const order = await prisma.order.create({
-      data: {
+    const ordersCount = faker.number.int({ min: 30, max: 70 }); // Random volume per day
+
+    for (let i = 0; i < ordersCount; i++) {
+      const customer = faker.helpers.arrayElement(customers);
+      const driver = faker.helpers.arrayElement(drivers);
+      const product = mainProduct;
+      const quantity = faker.number.int({ min: 1, max: 5 });
+      const totalAmount = Number(product.basePrice) * quantity;
+
+      // Determine Status based on date
+      let status = OrderStatus.COMPLETED;
+      if (d === 0) {
+        // Today: Mix of Pending/Completed
+        status = faker.helpers.arrayElement([OrderStatus.COMPLETED, OrderStatus.PENDING, OrderStatus.IN_PROGRESS, OrderStatus.SCHEDULED]);
+      }
+
+      // Some cancellations
+      if (Math.random() > 0.95) status = OrderStatus.CANCELLED;
+
+      const orderData: any = {
         customerId: customer.id,
         driverId: driver.driverProfile?.id,
         scheduledDate: date,
-        status: OrderStatus.COMPLETED,
-        totalAmount: total,
-        deliveredAt: date,
+        status,
+        totalAmount,
+        paymentMethod: PaymentMethod.CASH,
         orderItems: {
           create: {
             productId: product.id,
-            quantity: qty,
+            quantity,
             priceAtTime: product.basePrice,
-            filledGiven: qty,
-            emptyTaken: qty,
+            filledGiven: status === OrderStatus.COMPLETED ? quantity : 0,
+            emptyTaken: status === OrderStatus.COMPLETED ? quantity : 0, // Usually 1:1
+            damagedReturned: status === OrderStatus.COMPLETED && Math.random() > 0.95 ? 1 : 0, // 5% chance of damage
           }
         }
-      }
-    });
+      };
 
-    // Create Ledger & Wallet update for this past order
-    await prisma.ledger.create({
-      data: {
-        customerId: customer.id,
-        amount: -total,
-        description: `Order #${order.readableId} Completed (Seed)`,
-        balanceAfter: Number(customer.cashBalance) - total,
-        referenceId: order.id,
-      }
-    });
+      if (status === OrderStatus.COMPLETED) {
+        orderData.deliveredAt = date;
+        orderData.cashCollected = totalAmount; // Full payment
 
-    // Update customer balance (in memory accumulation would be better but simple decrement works if sequential)
-    await prisma.customerProfile.update({
-      where: { id: customer.id },
-      data: { cashBalance: { decrement: total } }
-    });
-
-    // Bottle wallet
-    await prisma.customerBottleWallet.upsert({
-      where: {
-        customerId_productId: {
-          customerId: customer.id,
-          productId: product.id
-        }
-      },
-      update: {}, // Assuming net 0 change (filledGiven = emptyTaken)
-      create: {
-        customerId: customer.id,
-        productId: product.id,
-        balance: 0
-      }
-    });
-  }
-
-  // Create Today's Pending Orders
-  for (let i = 0; i < 5; i++) {
-    const customer = dbCustomers[i];
-    // Assign driver to some
-    const driver = i < 3 ? driver1 : null;
-
-    await prisma.order.create({
-      data: {
-        customerId: customer.id,
-        driverId: driver?.driverProfile?.id,
-        scheduledDate: today,
-        status: driver ? OrderStatus.PENDING : OrderStatus.SCHEDULED,
-        totalAmount: 400, // 2 bottles approx
-        orderItems: {
-          create: {
-            productId: dbProducts[0].id,
-            quantity: 2,
-            priceAtTime: dbProducts[0].basePrice,
-          }
+        // Update stats
+        dailyRevenue += totalAmount;
+        dailyCash += totalAmount;
+        ordersCompleted++;
+        bottlesDelivered += quantity;
+        bottlesReturned += quantity;
+        if (orderData.orderItems.create.damagedReturned > 0) {
+            bottlesDamaged += orderData.orderItems.create.damagedReturned;
         }
       }
-    });
-  }
 
-  // Create Future Scheduled Orders
-  for (let i = 5; i < 10; i++) {
-    const customer = dbCustomers[i];
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+      await prisma.order.create({ data: orderData });
+    }
 
-    await prisma.order.create({
-      data: {
-        customerId: customer.id,
-        scheduledDate: tomorrow,
-        status: OrderStatus.SCHEDULED,
-        totalAmount: 600, // 3 bottles
-        orderItems: {
-          create: {
-            productId: dbProducts[0].id,
-            quantity: 3,
-            priceAtTime: dbProducts[0].basePrice,
-          }
+    // Generate DailyStats for this day (only if past)
+    if (d > 0) {
+      await prisma.dailyStats.create({
+        data: {
+          date: date,
+          totalRevenue: dailyRevenue,
+          cashCollected: dailyCash,
+          ordersCompleted,
+          ordersPending: 0,
+          ordersCancelled: Math.floor(ordersCount * 0.05),
+          bottlesDelivered,
+          bottlesReturned,
+          bottlesDamaged, // New field
+          bottleNetChange: bottlesDelivered - bottlesReturned,
+          driversActive: drivers.length,
+          newCustomers: Math.floor(Math.random() * 5),
         }
-      }
-    });
+      });
+    }
+
+    if (d % 10 === 0) process.stdout.write('.');
   }
 
-  console.log('📦 Orders created');
-  console.log('✅ Seeding completed!');
+  // 6b. Future Orders
+  console.log('\n⏳ Generating Future Orders...');
+  for (let d = 1; d <= CONFIG.FUTURE_DAYS; d++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() + d);
+
+    for (let i = 0; i < 30; i++) {
+        const customer = faker.helpers.arrayElement(customers);
+        await prisma.order.create({
+            data: {
+                customerId: customer.id,
+                scheduledDate: date,
+                status: OrderStatus.SCHEDULED,
+                totalAmount: Number(mainProduct.basePrice) * 2,
+                orderItems: {
+                    create: {
+                        productId: mainProduct.id,
+                        quantity: 2,
+                        priceAtTime: mainProduct.basePrice
+                    }
+                }
+            }
+        });
+    }
+  }
+
+  console.log('\n✅ Orders & Stats created');
+  console.log('✅ Seeding Complete!');
 }
 
 main()
