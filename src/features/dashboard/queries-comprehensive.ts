@@ -162,7 +162,8 @@ export async function getComprehensiveDashboardData(params?: {
     verifiedHandovers, // New: Verified Cash
 
     // Driver performance
-    driverPerformance,
+    liveDriverPerformance,
+    historicalDriverMetrics,
 
     // Bottle inventory
     bottleStats,
@@ -256,17 +257,30 @@ export async function getComprehensiveDashboardData(params?: {
         _count: { id: true }
     }),
 
-    // Driver performance (TODO: Optimize using DriverPerformanceMetrics table for historical data)
+    // Driver performance (Live Data)
     db.order.groupBy({
       by: ['driverId'],
       where: {
-        scheduledDate: { gte: startDate, lte: endDate },
+        scheduledDate: { gte: liveStart, lte: endDate },
         status: OrderStatus.COMPLETED,
         driverId: { not: null },
       },
       _count: { id: true },
       _sum: { cashCollected: true, totalAmount: true },
     }),
+
+    // Driver performance (Historical Data)
+    !isLiveOnly ? db.driverPerformanceMetrics.groupBy({
+      by: ['driverId'],
+      where: {
+        date: { gte: startDate, lte: historicalEnd },
+      },
+      _sum: {
+        ordersCompleted: true,
+        cashCollected: true,
+        totalBilled: true,
+      },
+    }) : Promise.resolve([]),
 
     // Bottle statistics
     db.orderItem.aggregate({
@@ -436,8 +450,48 @@ export async function getComprehensiveDashboardData(params?: {
     });
   }
 
+  // Merge Driver Performance
+  const driverPerformanceMap = new Map<string, {
+    driverId: string;
+    completedOrders: number;
+    cashCollected: number;
+    revenue: number;
+  }>();
+
+  // Add Live Data
+  liveDriverPerformance.forEach((d) => {
+    if (d.driverId) {
+      driverPerformanceMap.set(d.driverId, {
+        driverId: d.driverId,
+        completedOrders: d._count.id,
+        cashCollected: parseFloat(d._sum.cashCollected?.toString() || '0'),
+        revenue: parseFloat(d._sum.totalAmount?.toString() || '0'),
+      });
+    }
+  });
+
+  // Add Historical Data
+  if (Array.isArray(historicalDriverMetrics)) {
+    historicalDriverMetrics.forEach((d) => {
+      const existing = driverPerformanceMap.get(d.driverId) || {
+        driverId: d.driverId,
+        completedOrders: 0,
+        cashCollected: 0,
+        revenue: 0,
+      };
+
+      existing.completedOrders += d._sum.ordersCompleted || 0;
+      existing.cashCollected += parseFloat(d._sum.cashCollected?.toString() || '0');
+      existing.revenue += parseFloat(d._sum.totalBilled?.toString() || '0');
+
+      driverPerformanceMap.set(d.driverId, existing);
+    });
+  }
+
+  const mergedDriverPerformance = Array.from(driverPerformanceMap.values());
+
   // Get driver details for performance
-  const driverIds = driverPerformance.map((d) => d.driverId).filter(Boolean) as string[];
+  const driverIds = mergedDriverPerformance.map((d) => d.driverId).filter(Boolean) as string[];
   const drivers = await db.driverProfile.findMany({
     where: { id: { in: driverIds } },
     select: {
@@ -498,15 +552,15 @@ export async function getComprehensiveDashboardData(params?: {
       // New Field
       verifiedCash: parseFloat(verifiedHandovers._sum.actualCash?.toString() || '0'),
     },
-    driverPerformance: driverPerformance
+    driverPerformance: mergedDriverPerformance
       .map((d) => {
         const driver = drivers.find((dr) => dr.id === d.driverId);
         return {
           driverId: d.driverId || '',
           driverName: driver?.user.name || 'Unknown',
-          completedOrders: d._count.id,
-          cashCollected: parseFloat(d._sum.cashCollected?.toString() || '0'),
-          revenue: parseFloat(d._sum.totalAmount?.toString() || '0'),
+          completedOrders: d.completedOrders,
+          cashCollected: d.cashCollected,
+          revenue: d.revenue,
         };
       })
       .sort((a, b) => b.revenue - a.revenue)

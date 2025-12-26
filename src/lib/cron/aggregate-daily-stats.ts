@@ -32,12 +32,15 @@ export async function aggregateDailyStats(date: Date = new Date()) {
       },
     });
 
-    // Count total orders (including non-completed)
-    const totalOrdersCreated = await db.order.count({
+    // Count pending orders (SCHEDULED, PENDING, IN_PROGRESS)
+    const pendingOrders = await db.order.count({
       where: {
-        createdAt: {
+        scheduledDate: {
           gte: dayStart,
           lte: dayEnd,
+        },
+        status: {
+          in: [OrderStatus.SCHEDULED, OrderStatus.PENDING, OrderStatus.IN_PROGRESS],
         },
       },
     });
@@ -50,6 +53,17 @@ export async function aggregateDailyStats(date: Date = new Date()) {
           lte: dayEnd,
         },
         status: OrderStatus.CANCELLED,
+      },
+    });
+
+    // Count rescheduled orders
+    const rescheduledOrders = await db.order.count({
+      where: {
+        scheduledDate: {
+          gte: dayStart,
+          lte: dayEnd,
+        },
+        status: OrderStatus.RESCHEDULED,
       },
     });
 
@@ -151,8 +165,9 @@ export async function aggregateDailyStats(date: Date = new Date()) {
         totalRevenue: orderStats._sum.totalAmount || 0,
         cashCollected: orderStats._sum.cashCollected || 0,
         ordersCompleted: orderStats._count.id,
-        ordersPending: totalOrdersCreated,
+        ordersPending: pendingOrders,
         ordersCancelled: cancelledOrders,
+        ordersRescheduled: rescheduledOrders,
         bottlesDelivered: bottleStats._sum.filledGiven || 0,
         bottlesReturned: bottleStats._sum.emptyTaken || 0,
         newCustomers: newCustomers,
@@ -163,8 +178,9 @@ export async function aggregateDailyStats(date: Date = new Date()) {
         totalRevenue: orderStats._sum.totalAmount || 0,
         cashCollected: orderStats._sum.cashCollected || 0,
         ordersCompleted: orderStats._count.id,
-        ordersPending: totalOrdersCreated,
+        ordersPending: pendingOrders,
         ordersCancelled: cancelledOrders,
+        ordersRescheduled: rescheduledOrders,
         bottlesDelivered: bottleStats._sum.filledGiven || 0,
         bottlesReturned: bottleStats._sum.emptyTaken || 0,
         newCustomers: newCustomers,
