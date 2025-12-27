@@ -10,6 +10,6 @@ export async function loginAs(page: Page, identifier: string, password: string =
   await page.getByPlaceholder('Password').fill(password);
   await page.getByRole('button', { name: 'Login' }).click();
 
-  // Wait for redirect
-  await page.waitForURL(/dashboard|deliveries/);
+  // Wait for redirect to root (dashboard), /dashboard, or /deliveries
+  await page.waitForURL(/\/($|dashboard|deliveries)/);
 }
