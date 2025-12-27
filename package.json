@@ -6,6 +6,8 @@
     "dev": "next dev -p 3004",
     "build": "next build",
     "start": "next start",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
     "lint": "next lint && eslint .",
     "lint:fix": "next lint --fix && eslint . --fix",
     "format": "prettier --check . --config .prettierrc.mjs",
