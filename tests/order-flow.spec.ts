@@ -17,7 +17,8 @@ test.describe('Order Lifecycle', () => {
 
     // Create Order
     await adminPage.goto('/orders');
-    await adminPage.getByRole('button', { name: 'Create Order' }).click();
+    // Button is a Link
+    await adminPage.getByRole('link', { name: 'Create Order' }).click();
 
     // Select Customer (Pick the first one)
     // Using label 'Customer' which is tied to the Select

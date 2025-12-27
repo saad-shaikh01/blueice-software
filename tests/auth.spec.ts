@@ -23,7 +23,8 @@ test.describe('Authentication', () => {
 
     // Verify redirect to deliveries
     await expect(page).toHaveURL(/\/deliveries/);
-    await expect(page.getByText('Today\'s Deliveries')).toBeVisible();
+    // Driver dashboard has stats like "Cash Collected" or "Pending"
+    await expect(page.getByText('Cash Collected')).toBeVisible();
   });
 
   test('Invalid credentials show error', async ({ page }) => {
@@ -34,6 +35,7 @@ test.describe('Authentication', () => {
     await page.getByRole('button', { name: 'Login' }).click();
 
     // Verify error message
-    await expect(page.getByText('Invalid email or password')).toBeVisible();
+    // Backend returns "Invalid credentials" which is shown in toast
+    await expect(page.getByText('Invalid credentials')).toBeVisible();
   });
 });

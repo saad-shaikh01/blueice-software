@@ -8,7 +8,8 @@ test.describe('Customer Management', () => {
 
   test('Create a new customer', async ({ page }) => {
     await page.goto('/customers');
-    await page.getByRole('button', { name: 'Add Customer' }).click();
+    // Button is a Link
+    await page.getByRole('link', { name: 'Add Customer' }).click();
 
     // Step 1: Basic Info
     const name = `Test Customer ${Date.now()}`;
