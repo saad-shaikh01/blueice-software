@@ -20,14 +20,21 @@ test.describe('Order Lifecycle', () => {
     await adminPage.getByRole('button', { name: 'Create Order' }).click();
 
     // Select Customer (Pick the first one)
-    await adminPage.getByRole('combobox', { name: 'Select Customer' }).click();
+    // Using label 'Customer' which is tied to the Select
+    await adminPage.getByLabel('Customer').click();
     await adminPage.getByRole('option').first().click();
 
     // Add Product
     await adminPage.getByRole('button', { name: 'Add Item' }).click();
-    await adminPage.getByRole('combobox', { name: 'Select Product' }).click();
+
+    // Select Product in the first row of table
+    // The SelectTrigger has placeholder "Select Product" but no attached label in the cell
+    const itemRow = adminPage.locator('table tbody tr').first();
+    await itemRow.getByRole('combobox').click();
     await adminPage.getByRole('option').first().click(); // 19L Water
-    await adminPage.getByLabel('Quantity').fill('2');
+
+    // Quantity in the same row
+    await itemRow.locator('input[type="number"]').first().fill('2');
 
     // Save
     await adminPage.getByRole('button', { name: 'Create Order' }).click();
