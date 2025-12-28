@@ -181,10 +181,11 @@ async function main() {
       const totalAmount = Number(product.basePrice) * quantity;
 
       // Determine Status based on date
-      let status = OrderStatus.COMPLETED;
+      let status: OrderStatus = OrderStatus.COMPLETED;
       if (d === 0) {
         // Today: Mix of Pending/Completed
-        status = faker.helpers.arrayElement([OrderStatus.COMPLETED, OrderStatus.PENDING, OrderStatus.IN_PROGRESS, OrderStatus.SCHEDULED]);
+        const randomStatus = faker.helpers.arrayElement([OrderStatus.COMPLETED, OrderStatus.PENDING, OrderStatus.IN_PROGRESS, OrderStatus.SCHEDULED]);
+        status = randomStatus;
       }
 
       // Some cancellations

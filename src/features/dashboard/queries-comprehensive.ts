@@ -158,6 +158,7 @@ export async function getComprehensiveDashboardData(params?: {
 
     // Cash management
     cashStats,
+    cashOrdersCount,
     pendingHandovers,
     verifiedHandovers, // New: Verified Cash
 
@@ -234,10 +235,17 @@ export async function getComprehensiveDashboardData(params?: {
       where: {
         scheduledDate: { gte: startDate, lte: endDate },
         status: OrderStatus.COMPLETED,
-        paymentMethod: PaymentMethod.CASH,
       },
       _sum: { cashCollected: true },
-      _count: { id: true },
+    }),
+
+    // Count of orders where cash was collected
+    db.order.count({
+      where: {
+        scheduledDate: { gte: startDate, lte: endDate },
+        status: OrderStatus.COMPLETED,
+        cashCollected: { gt: 0 },
+      },
     }),
 
     // Pending cash handovers (Current Status - Independent of date range usually, but here we query ALL pending)
@@ -542,7 +550,7 @@ export async function getComprehensiveDashboardData(params?: {
     },
     cashManagement: {
       totalCashCollected: parseFloat(cashStats._sum.cashCollected?.toString() || '0'),
-      cashOrders: cashStats._count.id,
+      cashOrders: cashOrdersCount,
       pendingHandovers: Array.isArray(pendingHandovers) && pendingHandovers[0]
         ? {
           count: Number(pendingHandovers[0].count || 0),
