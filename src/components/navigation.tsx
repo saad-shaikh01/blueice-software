@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard, MapPin, Receipt } from 'lucide-react';
+import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard, MapPin, Receipt, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -42,6 +42,13 @@ const routes = [
     icon: Receipt,
     activeIcon: Receipt,
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR],
+  },
+  {
+    label: 'Cash Management',
+    href: 'cash-management',
+    icon: DollarSign,
+    activeIcon: DollarSign,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
   },
   {
     label: 'Drivers',
