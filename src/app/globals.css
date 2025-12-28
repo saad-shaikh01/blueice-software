@@ -10,105 +10,83 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  .glass {
+    @apply bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl;
+  }
+
+  .glass-card {
+    @apply bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-lg rounded-xl;
+  }
+
+  .glass-hover {
+    @apply hover:bg-white/60 dark:hover:bg-slate-900/60 transition-all duration-300;
+  }
 }
 
 @layer base {
   :root {
-    /* Water Supply Palette - Light Mode */
-    /* Background: Very soft blue-white (Alice Blue/Ice) */
+    /* Glassmorphism Palette - Light Mode */
+    /* Background: Soft gradient base */
     --background: 210 40% 98%;
-    /* Foreground: Deep Navy for high contrast text */
     --foreground: 222 47% 11%;
 
-    /* Card: White with slight transparency for glass effect */
+    /* Glass Effect Base */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
-
-    /* Popover: Similar to card */
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary: Deep Ocean Blue (Trustworthy, Professional) */
+    /* Vibrant Accents */
     --primary: 200 90% 40%;
     --primary-foreground: 210 40% 98%;
-
-    /* Secondary: Soft Teal/Cyan (Water accents) */
     --secondary: 180 70% 90%;
     --secondary-foreground: 180 100% 25%;
-
-    /* Muted: Soft Blue-Gray for backgrounds/dividers */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 16% 47%;
-
-    /* Accent: Teal for hover states/highlights */
     --accent: 180 70% 90%;
     --accent-foreground: 180 100% 25%;
-
-    /* Destructive: Standard Red */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    /* Border: Subtle Blue-Gray */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 200 90% 40%; /* Matches Primary */
+    --ring: 200 90% 40%;
+    --radius: 1rem; /* More rounded for modern look */
 
-    --radius: 0.75rem; /* Slightly softer radius */
-
-    /* Chart Colors - Water Spectrum */
-    --chart-1: 200 90% 40%; /* Primary Blue */
-    --chart-2: 180 70% 40%; /* Teal */
-    --chart-3: 220 70% 50%; /* Deep Blue */
-    --chart-4: 190 80% 60%; /* Cyan */
-    --chart-5: 210 60% 70%; /* Soft Blue */
+    /* Chart Colors - Vivid Glass */
+    --chart-1: 190 90% 50%;
+    --chart-2: 170 80% 50%;
+    --chart-3: 210 80% 60%;
+    --chart-4: 280 70% 60%;
+    --chart-5: 340 70% 60%;
   }
 
   .dark {
-    /* Water Supply Palette - Dark Mode */
-    /* Background: Deep Navy/Abyss */
+    /* Glassmorphism Palette - Dark Mode */
     --background: 222 47% 11%;
-    /* Foreground: Ice White */
     --foreground: 210 40% 98%;
-
-    /* Card: Deep Blue-Gray with transparency */
     --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
-
-    /* Popover: Deep Blue-Gray */
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-
-    /* Primary: Brighter Ocean Blue for dark mode visibility */
     --primary: 199 89% 48%;
     --primary-foreground: 222 47% 11%;
-
-    /* Secondary: Darker Teal for subtle contrast */
     --secondary: 180 70% 20%;
     --secondary-foreground: 210 40% 98%;
-
-    /* Muted: Deep Navy Gray */
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
-
-    /* Accent: Dark Teal */
     --accent: 180 70% 20%;
     --accent-foreground: 210 40% 98%;
-
-    /* Destructive: Red */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
-    /* Border: Dark Navy Blue */
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 199 89% 48%; /* Matches Primary */
-
-    /* Chart Colors - Dark Mode Spectrum */
-    --chart-1: 199 89% 48%;
-    --chart-2: 170 60% 50%;
-    --chart-3: 210 70% 60%;
-    --chart-4: 180 80% 65%;
-    --chart-5: 200 60% 75%;
+    --ring: 199 89% 48%;
+    --chart-1: 190 80% 60%;
+    --chart-2: 170 70% 60%;
+    --chart-3: 210 70% 70%;
+    --chart-4: 280 60% 70%;
+    --chart-5: 340 60% 70%;
   }
 }
 
@@ -117,197 +95,23 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100 via-background to-background dark:from-slate-900 dark:via-background dark:to-background bg-fixed;
   }
 }
 
-.hide-scrollbar {
-  /* Internet Explorer */
-  -ms-overflow-style: none;
-
-  /* Firefox */
-  scrollbar-width: none;
-}
-
-/* Chromium-based browsers */
-.hide-scrollbar::--webkit-scrollbar {
-  display: none;
-}
-
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   height: 5px;
+  width: 5px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply rounded-sm bg-neutral-300 shadow-sm;
+  @apply rounded-full bg-slate-300 dark:bg-slate-700;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-400;
-}
-.ql-toolbar.ql-snow, .ql-container.ql-snow {
-  border: none !important;
-}
-
-.ql-mention {
-  background-color: #e1f5fe;
-  color: #0277bd;
-  padding: 2px 4px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-
-
-
-
-.BtnGroup {
-  margin-bottom: 0.5em;
-}
-
-.description {
-  font-style: italic;
-}
-
-/* Basic editor styles */
-.ProseMirror > * + * {
-  margin-top: 0.75em;
-}
-
-/* Placeholder (at the top) */
-.ProseMirror p.is-editor-empty:first-child::before {
-  color: #adb5bd;
-  content: attr(data-placeholder);
-  float: left;
-  height: 0;
-  pointer-events: none;
-}
-
-.ProseMirror {
-  /* min-height: 500px; */
-  border: 0;
-  outline: none;
-}
-
-.ProseMirror ul,
-.ProseMirror ol {
-  padding-left: 1.2em;
-}
-.ProseMirror code {
-  background-color: rgba(#616161, 0.1);
-  color: #616161;
-}
-
-.ProseMirror pre {
-  background: #0d0d0d;
-  color: #fff;
-  font-family: "JetBrainsMono", monospace;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-}
-.ProseMirror pre code {
-  color: inherit;
-  padding: 0;
-  background: none;
-  font-size: 0.8rem;
-}
-
-.ProseMirror img {
-  max-width: 100%;
-  height: auto;
-}
-
-.ProseMirror blockquote {
-  padding-left: 1rem;
-  border-left: 2px solid rgba(13, 13, 13, 0.1);
-}
-
-.ProseMirror hr {
-  border: none;
-  border-top: 2px solid rgba(13, 13, 13, 0.1);
-  margin: 2rem 0;
-}
-
-/* Give a remote user a caret */
-.collaboration-cursor__caret {
-  border-left: 1px solid #0d0d0d;
-  border-right: 1px solid #0d0d0d;
-  margin-left: -1px;
-  margin-right: -1px;
-  pointer-events: none;
-  position: relative;
-  word-break: normal;
-}
-
-/* Render the username above the caret */
-.collaboration-cursor__label {
-  border-radius: 3px 3px 3px 0;
-  color: #0d0d0d;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 600;
-  left: -1px;
-  line-height: normal;
-  padding: 0.1rem 0.3rem;
-  position: absolute;
-  top: -1.4em;
-  user-select: none;
-  white-space: nowrap;
-}
-
-/* Basic editor styles */
-.tiptap :first-child {
-  margin-top: 0;
-}
-
-.mention {
-  background-color: rgba(128, 0, 128, 0.1);
-  border-radius: 0.4rem;
-  box-decoration-break: clone;
-  color: #800080;
-  padding: 0.1rem 0.3rem;
-}
-
-.tiptap .mention::after {
-  content: "\200B"; /* Zero-width space */
-}
-
-.tiptap :first-child {
-  margin-top: 0;
-}
-
-/* Heading styles */
-.tiptap h1,
-.tiptap h2,
-.tiptap h3,
-.tiptap h4,
-.tiptap h5,
-.tiptap h6 {
-  line-height: 1.1;
-  margin-top: 2.5rem;
-  text-wrap: pretty;
-}
-
-.tiptap h1,
-.tiptap h2 {
-  margin-top: 3.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.tiptap h1 {
-  font-size: 1.4rem;
-}
-
-.tiptap h2 {
-  font-size: 1.2rem;
-}
-
-.tiptap h3 {
-  font-size: 1.1rem;
-}
-
-.tiptap h4,
-.tiptap h5,
-.tiptap h6 {
-  font-size: 1rem;
-}
+/* Editor Styles */
+.tiptap :first-child { margin-top: 0; }
+.tiptap h1, .tiptap h2, .tiptap h3 { margin-top: 2rem; }
+.tiptap ul, .tiptap ol { padding-left: 1.2em; }
