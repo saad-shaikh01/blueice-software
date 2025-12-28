@@ -96,20 +96,20 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
           <div className="flex gap-2">
             <Button
               variant="outline"
-              size="sm"
-              className="flex-1"
+              size="lg"
+              className="flex-1 h-14"
               onClick={() => router.push(`/orders/${orderId}/invoice`)}
             >
-              <FileText className="mr-2 h-4 w-4" />
+              <FileText className="mr-2 h-5 w-5" />
               Invoice
             </Button>
             <Button
               variant="outline"
-              size="sm"
-              className="flex-1"
+              size="lg"
+              className="flex-1 h-14"
               onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.customer.address)}`, '_blank')}
             >
-              <MapPin className="mr-2 h-4 w-4" />
+              <MapPin className="mr-2 h-5 w-5" />
               Map
             </Button>
           </div>
@@ -132,13 +132,14 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                 name="cashCollected"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Actual Cash Collected</FormLabel>
+                    <FormLabel className="text-base">Actual Cash Collected</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
                         {...field}
                         onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                        className="h-14 text-lg"
                       />
                     </FormControl>
                     <FormMessage />
@@ -199,7 +200,13 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  {...field}
+                                  onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  className="h-12 text-center text-lg font-semibold"
+                                />
                               </FormControl>
                             </FormItem>
                           )}
@@ -212,7 +219,13 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  {...field}
+                                  onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  className="h-12 text-center text-lg font-semibold"
+                                />
                               </FormControl>
                             </FormItem>
                           )}
@@ -225,8 +238,8 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
             </CardContent>
           </Card>
 
-          <Button type="submit" size="lg" className="w-full" disabled={isPending || order.status === 'COMPLETED'}>
-            {isPending ? <Loader2 className="animate-spin mr-2" /> : <Check className="mr-2" />}
+          <Button type="submit" size="lg" className="w-full h-16 text-lg font-semibold" disabled={isPending || order.status === 'COMPLETED'}>
+            {isPending ? <Loader2 className="animate-spin mr-2 h-5 w-5" /> : <Check className="mr-2 h-5 w-5" />}
             {order.status === 'COMPLETED' ? 'Already Completed' : 'Confirm Delivery'}
           </Button>
         </form>

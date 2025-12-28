@@ -64,3 +64,24 @@ export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
 export type BulkAssignInput = z.infer<typeof bulkAssignSchema>;
 export type GenerateOrdersInput = z.infer<typeof generateOrdersSchema>;
+
+export const unableToDeliverSchema = z.object({
+  reason: z.enum([
+    'CUSTOMER_NOT_HOME',
+    'HOUSE_LOCKED',
+    'CUSTOMER_REFUSED',
+    'WRONG_ADDRESS',
+    'PAYMENT_ISSUE',
+    'SECURITY_ISSUE',
+    'CUSTOMER_NOT_REACHABLE',
+    'WEATHER_CONDITION',
+    'VEHICLE_BREAKDOWN',
+    'OTHER',
+  ]),
+  notes: z.string().min(5, 'Please provide details'),
+  action: z.enum(['CANCEL', 'RESCHEDULE']),
+  rescheduleDate: z.coerce.date().optional(),
+  proofPhotoUrl: z.string().url().optional(),
+});
+
+export type UnableToDeliverInput = z.infer<typeof unableToDeliverSchema>;

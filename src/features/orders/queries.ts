@@ -44,6 +44,25 @@ export async function getOrders(params: {
         customer: {
           include: {
             user: { select: { name: true, phoneNumber: true } },
+            route: { select: { name: true } },
+          },
+          select: {
+            id: true,
+            user: true,
+            route: true,
+            address: true,
+            area: true,
+            landmark: true,
+            floorNumber: true,
+            hasLift: true,
+            geoLat: true,
+            geoLng: true,
+            sequenceOrder: true,
+            cashBalance: true,
+            creditLimit: true,
+            deliveryInstructions: true,
+            preferredDeliveryTime: true,
+            specialNotes: true,
           },
         },
         driver: {
@@ -53,13 +72,16 @@ export async function getOrders(params: {
         },
         orderItems: {
           include: {
-            product: { select: { name: true, sku: true } },
+            product: { select: { name: true, sku: true, isReturnable: true } },
           },
         },
       },
-      orderBy: {
-        scheduledDate: 'desc',
-      },
+      orderBy: driverId && driverId !== 'unassigned'
+        ? [
+            { customer: { sequenceOrder: 'asc' } }, // Sort by route sequence for drivers
+            { scheduledDate: 'asc' },
+          ]
+        : { scheduledDate: 'desc' },
     }),
     db.order.count({ where }),
   ]);
@@ -82,6 +104,25 @@ export async function getOrder(id: string) {
       customer: {
         include: {
           user: true,
+          route: true,
+        },
+        select: {
+          id: true,
+          user: true,
+          route: true,
+          address: true,
+          area: true,
+          landmark: true,
+          floorNumber: true,
+          hasLift: true,
+          geoLat: true,
+          geoLng: true,
+          sequenceOrder: true,
+          cashBalance: true,
+          creditLimit: true,
+          deliveryInstructions: true,
+          preferredDeliveryTime: true,
+          specialNotes: true,
         },
       },
       driver: {
@@ -96,6 +137,96 @@ export async function getOrder(id: string) {
       },
     },
   });
+}
+
+export async function getOrderForInvoice(id: string) {
+  const order = await db.order.findUnique({
+    where: { id },
+    include: {
+      customer: {
+        include: {
+          user: true,
+          route: true,
+        },
+      },
+      driver: {
+        include: {
+          user: true,
+        },
+      },
+      orderItems: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    return null;
+  }
+
+  // Fetch last 4 completed deliveries for mini statement (excluding current order)
+  const lastDeliveries = await db.order.findMany({
+    where: {
+      customerId: order.customerId,
+      status: 'COMPLETED',
+      id: { not: id }, // Exclude current order
+    },
+    take: 4,
+    orderBy: {
+      deliveredAt: 'desc',
+    },
+    select: {
+      id: true,
+      readableId: true,
+      deliveredAt: true,
+      totalAmount: true,
+      orderItems: {
+        select: {
+          quantity: true,
+          product: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Calculate previous balance (before this order)
+  // If order is completed, we need to look at ledger before this order
+  // Otherwise, current cashBalance is the balance before this order
+  const customer = order.customer;
+  let previousBalance = customer.cashBalance;
+
+  if (order.status === 'COMPLETED') {
+    // Find the ledger entry for this order's sale
+    const orderLedger = await db.ledger.findFirst({
+      where: {
+        customerId: order.customerId,
+        referenceId: order.id,
+        description: { contains: 'Sale' },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    if (orderLedger) {
+      // Previous balance = balanceAfter + orderAmount - payment
+      previousBalance = orderLedger.balanceAfter
+        .add(order.totalAmount)
+        .sub(order.cashCollected);
+    }
+  }
+
+  return {
+    order,
+    lastDeliveries,
+    previousBalance,
+  };
 }
 
 export async function generateOrders(data: { date: string; routeId?: string }) {
@@ -589,5 +720,91 @@ export async function bulkAssignOrders(data: { orderIds: string[]; driverId: str
       driverId: data.driverId,
       status: OrderStatus.PENDING,
     },
+  });
+}
+
+
+export async function markOrderUnableToDeliver(data: {
+  orderId: string;
+  driverId: string;
+  reason: string;
+  notes: string;
+  action: 'CANCEL' | 'RESCHEDULE';
+  rescheduleDate?: Date;
+  proofPhotoUrl?: string;
+}) {
+  const { orderId, driverId, reason, notes, action, rescheduleDate, proofPhotoUrl } = data;
+
+  return await db.$transaction(async (tx) => {
+    // Get the order
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: {
+        orderItems: true,
+        customer: {
+          include: {
+            user: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Verify the driver owns this order
+    if (order.driverId !== driverId) {
+      throw new Error('You are not assigned to this order');
+    }
+
+    // Prevent marking already completed orders
+    if (order.status === OrderStatus.COMPLETED) {
+      throw new Error('Cannot mark completed order as unable to deliver');
+    }
+
+    // Determine new status
+    const newStatus = action === 'CANCEL' ? OrderStatus.CANCELLED : OrderStatus.RESCHEDULED;
+
+    // Update the order
+    const updatedOrder = await tx.order.update({
+      where: { id: orderId },
+      data: {
+        status: newStatus,
+        cancellationReason: reason as any, // Cast to enum
+        cancelledBy: driverId,
+        cancelledAt: new Date(),
+        driverNotes: notes,
+        proofPhotoUrl,
+        rescheduledToDate: action === 'RESCHEDULE' ? rescheduleDate : null,
+        originalScheduledDate: action === 'RESCHEDULE' ? order.scheduledDate : null,
+      },
+    });
+
+    // Create audit log
+    await tx.auditLog.create({
+      data: {
+        actorId: driverId,
+        action: action === 'CANCEL' ? 'ORDER_CANCELLED' : 'ORDER_RESCHEDULED',
+        details: {
+          orderId,
+          reason,
+          notes,
+          customerName: order.customer.user.name,
+          orderReadableId: order.readableId,
+          originalDate: order.scheduledDate,
+          newDate: rescheduleDate,
+        },
+      },
+    });
+
+    // TODO: Send notification to admin/customer
+    // await sendNotification({
+    //   to: 'admin',
+    //   type: action === 'CANCEL' ? 'ORDER_CANCELLED_BY_DRIVER' : 'ORDER_RESCHEDULED_BY_DRIVER',
+    //   data: { orderId, customerName: order.customer.user.name, reason, notes }
+    // });
+
+    return updatedOrder;
   });
 }

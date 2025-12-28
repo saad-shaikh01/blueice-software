@@ -115,3 +115,112 @@ body {
 .tiptap :first-child { margin-top: 0; }
 .tiptap h1, .tiptap h2, .tiptap h3 { margin-top: 2rem; }
 .tiptap ul, .tiptap ol { padding-left: 1.2em; }
+
+/* Print Styles */
+@media print {
+  /* General Print Settings */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body {
+    background: white !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* A4 Page Setup */
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  /* Thermal Receipt Page Setup (for thermal format) */
+  @page :has(.w-\[80mm\]) {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  /* Hide non-printable elements */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Remove shadows, borders, and rounded corners that don't print well */
+  .print\:border-none {
+    border: none !important;
+  }
+
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  /* Ensure backgrounds and colors print */
+  .bg-blue-600,
+  .bg-blue-50,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-amber-50,
+  [class*="bg-"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent page breaks inside important sections */
+  table,
+  .rounded-lg,
+  .border {
+    page-break-inside: avoid;
+  }
+
+  tr,
+  th,
+  td {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure table borders print */
+  table {
+    border-collapse: collapse;
+  }
+
+  table th,
+  table td {
+    border: 1px solid #ddd;
+  }
+
+  /* Force black text for better contrast */
+  .text-gray-900,
+  .text-black {
+    color: #000 !important;
+  }
+
+  /* Prevent orphans and widows */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Keep headings with their content */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid;
+  }
+
+  /* Thermal Receipt Specific */
+  .font-mono {
+    font-family: "Courier New", Courier, monospace !important;
+  }
+}

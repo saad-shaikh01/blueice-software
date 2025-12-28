@@ -36,8 +36,22 @@ enum OrderStatus {
   PENDING         // Driver assigned
   IN_PROGRESS     // Driver on the way
   COMPLETED       // Delivered & Cash Collected
-  CANCELLED       // Customer refused
+  CANCELLED       // Customer refused / Driver unable to deliver
   RESCHEDULED     // Moved to next day
+}
+
+enum CancellationReason {
+  CUSTOMER_NOT_HOME          // Customer ghar pe nahi hai
+  HOUSE_LOCKED               // Ghar band hai
+  CUSTOMER_REFUSED           // Customer ne mana kar diya
+  WRONG_ADDRESS              // Galat address
+  CUSTOMER_REQUESTED         // Customer ne khud cancel karwaya
+  PAYMENT_ISSUE              // Payment problem
+  WEATHER_CONDITION          // Barish ya weather issue
+  VEHICLE_BREAKDOWN          // Gaadi kharab ho gayi
+  SECURITY_ISSUE             // Security ne entry nahi di
+  CUSTOMER_NOT_REACHABLE     // Phone nahi utha raha
+  OTHER                      // Koi aur waja
 }
 
 enum PaymentMethod {
@@ -152,6 +166,11 @@ model CustomerProfile {
   // --- Business Logic ---
   type            CustomerType @default(RESIDENTIAL)
   deliveryDays    Int[]        // [1, 4] = Mon, Thu. (Scalable: can add Sunday [0] later)
+
+  // --- Delivery Instructions (Driver-facing) ---
+  deliveryInstructions  String?      // e.g., "Call before arriving", "Leave at gate", "Ring bell twice"
+  preferredDeliveryTime String?      // e.g., "Morning 8-10 AM", "After 5 PM only"
+  specialNotes          String?      // e.g., "Beware of dog", "Park on street, gate locked"
 
   // --- Financials (The Wallet) ---
   // Note: We don't store "Bottle Balance" here because products vary.
@@ -273,12 +292,23 @@ model Order {
   cashCollected  Decimal     @default(0) @db.Decimal(10, 2)
   paymentMethod  PaymentMethod @default(CASH)
 
+  // Cancellation/Reschedule Tracking
+  cancellationReason    CancellationReason? // Why was it cancelled/rescheduled
+  cancelledBy           String?             // User ID who cancelled (driver/admin/customer)
+  cancelledAt           DateTime?           // When was it cancelled
+  driverNotes           String?             // Driver's explanation/notes
+  proofPhotoUrl         String?             // Photo evidence (locked house, etc.)
+  rescheduledToDate     DateTime?   @db.Date // If rescheduled, new date
+  originalScheduledDate DateTime?   @db.Date // Track original date for rescheduled orders
+
   orderItems     OrderItem[]
-  
+
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   @@index([scheduledDate, status])
+  @@index([driverId, scheduledDate])
+  @@index([customerId, status])
 }
 
 model OrderItem {

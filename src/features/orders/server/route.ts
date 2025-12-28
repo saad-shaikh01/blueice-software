@@ -3,14 +3,16 @@ import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
 
 import { sessionMiddleware } from '@/lib/session-middleware';
-import { bulkAssignSchema, createOrderSchema, generateOrdersSchema, getOrdersQuerySchema, updateOrderSchema } from '@/features/orders/schema';
+import { bulkAssignSchema, createOrderSchema, generateOrdersSchema, getOrdersQuerySchema, unableToDeliverSchema, updateOrderSchema } from '@/features/orders/schema';
 import {
   bulkAssignOrders,
   createOrder,
   deleteOrder,
   generateOrders,
   getOrder,
+  getOrderForInvoice,
   getOrders,
+  markOrderUnableToDeliver,
   updateOrder,
 } from '@/features/orders/queries';
 
@@ -34,6 +36,18 @@ const app = new Hono()
       return ctx.json({ data: order });
     } catch (error) {
       return ctx.json({ error: 'Failed to fetch order' }, 500);
+    }
+  })
+  .get('/:id/invoice', sessionMiddleware, async (ctx) => {
+    const { id } = ctx.req.param();
+
+    try {
+      const invoiceData = await getOrderForInvoice(id);
+      if (!invoiceData) return ctx.json({ error: 'Order not found' }, 404);
+      return ctx.json({ data: invoiceData });
+    } catch (error) {
+      console.error('Invoice fetch error:', error);
+      return ctx.json({ error: 'Failed to fetch invoice data' }, 500);
     }
   })
   .post('/', sessionMiddleware, zValidator('json', createOrderSchema), async (ctx) => {
@@ -104,6 +118,39 @@ const app = new Hono()
     } catch (error) {
       console.error(error);
       return ctx.json({ error: 'Failed to update order' }, 500);
+    }
+  })
+  .post('/:id/unable-to-deliver', sessionMiddleware, zValidator('json', unableToDeliverSchema), async (ctx) => {
+    const user = ctx.get('user');
+    const { id } = ctx.req.param();
+
+    // Only drivers can mark orders as unable to deliver
+    if (user.role !== UserRole.DRIVER) {
+      return ctx.json({ error: 'Only drivers can mark orders as unable to deliver' }, 403);
+    }
+
+    const data = ctx.req.valid('json');
+
+    try {
+      const result = await markOrderUnableToDeliver({
+        orderId: id,
+        driverId: user.id,
+        reason: data.reason,
+        notes: data.notes,
+        action: data.action,
+        rescheduleDate: data.rescheduleDate,
+        proofPhotoUrl: data.proofPhotoUrl,
+      });
+
+      return ctx.json({ data: result });
+    } catch (error) {
+      console.error('Unable to deliver error:', error);
+
+      if (error instanceof Error) {
+        return ctx.json({ error: error.message }, 400);
+      }
+
+      return ctx.json({ error: 'Failed to mark order as unable to deliver' }, 500);
     }
   })
   .delete('/:id', sessionMiddleware, async (ctx) => {
