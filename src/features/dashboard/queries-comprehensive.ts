@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { OrderStatus, PaymentMethod, CashHandoverStatus } from '@prisma/client';
+import { OrderStatus, PaymentMethod, CashHandoverStatus, ExpenseStatus } from '@prisma/client';
 import { subDays, startOfDay, endOfDay, format, differenceInDays } from 'date-fns';
 
 export async function getComprehensiveDashboardData(params?: {
@@ -177,6 +177,10 @@ export async function getComprehensiveDashboardData(params?: {
 
     // Route performance
     routePerformance,
+
+    // Profitability & Assets
+    totalExpenses,
+    totalReceivables,
 
     // Exceptions and alerts
     failedOrders,
@@ -357,6 +361,24 @@ export async function getComprehensiveDashboardData(params?: {
       ORDER BY revenue DESC
     `,
 
+    // Total Expenses (Not REJECTED)
+    db.expense.aggregate({
+      where: {
+        date: { gte: startDate, lte: endDate },
+        status: { not: ExpenseStatus.REJECTED },
+      },
+      _sum: { amount: true },
+    }),
+
+    // Total Market Receivables (Sum of negative balances)
+    // Note: We sum absolute value of negative balances
+    db.customerProfile.aggregate({
+      where: {
+        cashBalance: { lt: 0 },
+      },
+      _sum: { cashBalance: true },
+    }),
+
     // Failed/Cancelled orders
     db.order.findMany({
       where: {
@@ -535,6 +557,13 @@ export async function getComprehensiveDashboardData(params?: {
       newCustomers,
       // Fixed: AOV uses Completed Orders, not Total Volume
       avgOrderValue: totalCompletedOrders > 0 ? currentRevenueValue / totalCompletedOrders : 0,
+
+      // New Profitability Metrics
+      totalExpenses: parseFloat(totalExpenses._sum.amount?.toString() || '0'),
+      netProfit: currentRevenueValue - parseFloat(totalExpenses._sum.amount?.toString() || '0'),
+
+      // Asset Metrics
+      totalReceivables: Math.abs(parseFloat(totalReceivables._sum.cashBalance?.toString() || '0')),
     },
     orderStats: {
       byStatus: ordersByStatus.map((s) => ({
