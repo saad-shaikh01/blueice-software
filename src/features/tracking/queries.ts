@@ -195,7 +195,7 @@ export async function getDriverRouteHistory(driverId: string, date: Date) {
  */
 export async function toggleDriverDutyStatus(driverId: string, isOnDuty: boolean) {
   return await db.driverProfile.update({
-    where: { id: driverId },
+    where: { userId: driverId },
     data: { isOnDuty },
     select: {
       id: true,

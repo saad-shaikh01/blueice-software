@@ -72,7 +72,7 @@ const app = new Hono()
   .post('/generate', sessionMiddleware, zValidator('json', generateOrdersSchema), async (ctx) => {
     const user = ctx.get('user');
 
-    if (!([UserRole.SUPER_ADMIN, UserRole.ADMIN] as UserRole[]).includes(user.role)) {
+    if (!([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.INVENTORY_MGR] as UserRole[]).includes(user.role)) {
       return ctx.json({ error: 'Unauthorized' }, 403);
     }
 

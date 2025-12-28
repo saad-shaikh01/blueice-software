@@ -73,7 +73,7 @@ export const RouteForm = ({ routeId, onCancel }: RouteFormProps) => {
   if (isEdit && !route) return <PageError message="Route not found" />;
 
   return (
-    <Card className="mx-auto max-w-2xl">
+    <Card className="mx-auto ">
       <CardHeader>
         <CardTitle>{isEdit ? 'Edit Route' : 'Create New Route'}</CardTitle>
       </CardHeader>

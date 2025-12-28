@@ -1,0 +1,121 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - region "Notifications alt+T"
+  - generic:
+    - generic:
+      - generic:
+        - complementary:
+          - link:
+            - /url: /
+            - img
+            - paragraph: MADCOM DIGITAL
+          - list:
+            - listitem:
+              - link:
+                - /url: /
+                - img
+                - text: Dashboard
+            - listitem:
+              - link:
+                - /url: /customers
+                - img
+                - text: Customers
+            - listitem:
+              - link:
+                - /url: /orders
+                - img
+                - text: Orders
+            - listitem:
+              - link:
+                - /url: /products
+                - img
+                - text: Products
+            - listitem:
+              - link:
+                - /url: /expenses
+                - img
+                - text: Expenses
+            - listitem:
+              - link:
+                - /url: /drivers
+                - img
+                - text: Drivers
+            - listitem:
+              - link:
+                - /url: /routes
+                - img
+                - text: Routes
+            - listitem:
+              - link:
+                - /url: /tracking
+                - img
+                - text: Live Tracking
+      - generic:
+        - generic:
+          - navigation:
+            - generic:
+              - heading [level=1]: Home
+              - paragraph: Monitor all of your projects and tasks here.
+            - generic:
+              - button:
+                - img
+                - generic: Toggle theme
+              - button:
+                - generic:
+                  - generic: S
+          - main:
+            - generic:
+              - generic:
+                - generic:
+                  - heading [level=1]: Expenses
+                  - paragraph: Manage and track company expenses
+                - button [expanded]:
+                  - img
+                  - text: Add Expense
+              - generic:
+                - generic:
+                  - table:
+                    - rowgroup:
+                      - row:
+                        - columnheader: Date
+                        - columnheader: Category
+                        - columnheader: Description
+                        - columnheader: Amount
+                        - columnheader: Status
+                        - columnheader: Spent By
+                    - rowgroup:
+                      - row:
+                        - cell: No expenses found
+  - alert
+  - dialog "Add New Expense" [ref=e2]:
+    - heading "Add New Expense" [level=2] [ref=e4]
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - text: Amount
+        - spinbutton "Amount" [ref=e7]: "5000"
+      - generic [ref=e8]:
+        - text: Date
+        - textbox "Date" [ref=e9]: 2025-12-28
+        - paragraph [ref=e10]: Expected string, received date
+      - generic [ref=e11]:
+        - text: Category
+        - combobox "Category" [ref=e12] [cursor=pointer]:
+          - generic: FUEL
+          - img [ref=e13]
+        - combobox [ref=e15]
+      - generic [ref=e16]:
+        - text: Payment Method
+        - combobox "Payment Method" [ref=e17] [cursor=pointer]:
+          - generic: CASH_ON_HAND
+          - img [ref=e18]
+        - combobox [ref=e20]
+      - generic [ref=e21]:
+        - text: Description
+        - textbox "Description" [ref=e22]: Fuel refill 1766910271725
+      - button "Save Expense" [active] [ref=e23] [cursor=pointer]
+    - button "Close" [ref=e24] [cursor=pointer]:
+      - img [ref=e25]
+      - generic [ref=e27]: Close
+```

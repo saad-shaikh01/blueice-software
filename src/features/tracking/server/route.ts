@@ -169,11 +169,13 @@ const app = new Hono()
         const { db } = await import('@/lib/db');
         const driverProfile = await db.driverProfile.findUnique({
           where: { userId: user.id },
-          select: { id: true },
+          select: { id: true, userId: true },
         });
 
-        if (!driverProfile || driverProfile.id !== driverId) {
-          return ctx.json({ error: 'Unauthorized' }, 403);
+        console.log('Driver Profile:', driverProfile?.userId, 'Driver ID:', driverId);
+
+        if (!driverProfile || driverProfile.userId !== driverId) {
+          return ctx.json({ error: 'Unauthorized profile' }, 403);
         }
       } else {
         const allowedRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
