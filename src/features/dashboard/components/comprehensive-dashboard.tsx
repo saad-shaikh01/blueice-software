@@ -250,6 +250,68 @@ export function ComprehensiveDashboard() {
         </Card>
       </div>
 
+      {/* Profitability & Asset Metrics */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Net Profit Card */}
+        <Card className="border-emerald-200 bg-emerald-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-emerald-900">Net Profit</CardTitle>
+            <TrendingUp className="h-4 w-4 text-emerald-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-700">
+              PKR {(data?.overview.netProfit || 0).toLocaleString()}
+            </div>
+            <div className="flex justify-between items-center mt-2 text-xs">
+              <span className="text-emerald-800 font-medium">
+                Revenue: PKR {(data?.overview.totalRevenue || 0).toLocaleString()}
+              </span>
+              <span className="text-red-600 font-medium">
+                Exp: PKR {(data?.overview.totalExpenses || 0).toLocaleString()}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Market Receivables Card */}
+        <Card className="border-orange-200 bg-orange-50/50 cursor-pointer hover:bg-orange-100/50 transition-colors" onClick={() => window.location.href = '/customers?filter=debt'}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-orange-900">Market Receivables</CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-700">
+              PKR {(data?.overview.totalReceivables || 0).toLocaleString()}
+            </div>
+            <p className="text-xs text-orange-800 mt-1">
+              Total Outstanding (Udhaar) in Market
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-1">Click to view details</p>
+          </CardContent>
+        </Card>
+
+        {/* Bottles with Customers Card */}
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-900">Bottles with Customers</CardTitle>
+            <Package className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-700">
+              {(data?.bottleStats.netDifference || 0).toLocaleString()}
+            </div>
+            <div className="flex justify-between items-center mt-2 text-xs">
+              <span className="text-green-700">
+                Sent: {(data?.bottleStats.filledGiven || 0).toLocaleString()}
+              </span>
+              <span className="text-blue-700">
+                Ret: {(data?.bottleStats.emptyTaken || 0).toLocaleString()}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Revenue & Order Trends */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
