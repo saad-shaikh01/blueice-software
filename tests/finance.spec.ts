@@ -28,6 +28,13 @@ test.describe('Finance & Expenses', () => {
     await page.getByRole('button', { name: 'Save Expense' }).click();
 
     // Verify Success Toast or Dialog Close
+    // If dialog is still open, check for error message
+    if (await page.getByRole('dialog').isVisible()) {
+        const errorToast = page.getByText('Error'); // Generic check
+        if (await errorToast.isVisible()) {
+            console.error('Test failed with Toast Error');
+        }
+    }
     await expect(page.getByRole('dialog')).toBeHidden();
 
     // Verify in Table

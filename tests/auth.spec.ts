@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Authentication', () => {
   test('Admin login with valid credentials', async ({ page }) => {
     await page.goto('/sign-in');
+    await page.waitForLoadState('networkidle'); // Ensure page is fully loaded
 
     await page.getByPlaceholder('Email or Phone Number').fill('admin@blueice.com');
     await page.getByPlaceholder('Password').fill('password123');

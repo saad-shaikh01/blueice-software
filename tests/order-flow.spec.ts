@@ -48,9 +48,10 @@ test.describe('Order Lifecycle', () => {
     const orderIdText = await orderRow.locator('td').first().textContent(); // e.g., "Order #1005"
 
     // Assign Driver
-    await orderRow.getByRole('button', { name: 'Edit' }).click(); // Or context menu
-    // Actually, usually there's an "Assign" action or we do it in Edit page.
-    // Let's assume Edit Page.
+    // Click the Actions dropdown menu (three dots)
+    await orderRow.getByRole('button', { name: 'Open menu' }).click();
+    // Click Edit Order
+    await adminPage.getByRole('menuitem', { name: 'Edit Order' }).click();
     await adminPage.getByLabel('Assign Driver').click();
     await adminPage.getByRole('option', { name: 'driver0' }).click(); // driver0 from seed
     await adminPage.getByRole('button', { name: 'Save Changes' }).click();
