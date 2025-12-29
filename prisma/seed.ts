@@ -136,6 +136,7 @@ async function main() {
         role: UserRole.CUSTOMER,
         customerProfile: {
           create: {
+            manualCode: `MC-${Math.floor(Math.random() * 10000)}`,
             type,
             area: route.name,
             address: faker.location.streetAddress(),

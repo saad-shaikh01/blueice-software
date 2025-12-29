@@ -3,8 +3,8 @@
 import { Building2, MapPin, Navigation, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-
-import { EnhancedLocationMapPicker } from '@/components/enhanced-location-map-picker';
+import dynamic from 'next/dynamic';
+// import { EnhancedLocationMapPicker } from '@/components/enhanced-location-map-picker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -17,6 +17,18 @@ import type { CreateCustomerInput } from '@/features/customers/schema';
 import { useGetRoutes } from '@/features/routes/api/use-get-routes';
 import { useDebounce } from '@/hooks/use-debounce';
 import { geocodeAddress } from '@/lib/geocoding';
+
+const EnhancedLocationMapPicker = dynamic(
+  () => import('@/components/enhanced-location-map-picker').then((mod) => mod.EnhancedLocationMapPicker),
+  {
+    ssr: false, // Server Side Rendering band kar di
+    loading: () => (
+      <div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-lg flex items-center justify-center text-gray-400">
+        Loading Map...
+      </div>
+    )
+  }
+);
 
 interface Route {
   id: string;
