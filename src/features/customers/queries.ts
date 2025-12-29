@@ -379,7 +379,7 @@ export async function updateCustomerProfile(
       data: {
         ...profileData,
         ...(creditLimit && { creditLimit: new Prisma.Decimal(creditLimit) }),
-      },
+      } as Prisma.CustomerProfileUncheckedUpdateInput,
       include: {
         user: {
           select: {
