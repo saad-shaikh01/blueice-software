@@ -3,7 +3,7 @@ import { ExpenseCategory, ExpensePaymentMethod, ExpenseStatus } from '@prisma/cl
 
 export const createExpenseSchema = z.object({
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
-  date: z.string().transform((val) => new Date(val)),
+  date: z.coerce.date(),
   category: z.nativeEnum(ExpenseCategory),
   description: z.string().optional(),
   receiptUrl: z.string().optional(),
@@ -13,7 +13,7 @@ export const createExpenseSchema = z.object({
 
 export const updateExpenseSchema = z.object({
   amount: z.coerce.number().min(0.01).optional(),
-  date: z.string().transform((val) => new Date(val)).optional(),
+  date: z.coerce.date().optional(),
   category: z.nativeEnum(ExpenseCategory).optional(),
   description: z.string().optional(),
   receiptUrl: z.string().optional(),
