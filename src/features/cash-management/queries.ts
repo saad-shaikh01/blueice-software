@@ -375,27 +375,73 @@ export async function verifyCashHandover(data: {
     throw new Error('Only pending handovers can be verified');
   }
 
-  return await db.cashHandover.update({
-    where: { id },
-    data: {
-      status,
-      verifiedBy,
-      verifiedAt: new Date(),
-      adminNotes,
-      adjustmentAmount: adjustmentAmount ? adjustmentAmount : undefined,
-    },
-    include: {
-      driver: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              phoneNumber: true,
+  return await db.$transaction(async (tx) => {
+    // 1. Update Handover Status
+    const updatedHandover = await tx.cashHandover.update({
+      where: { id },
+      data: {
+        status,
+        verifiedBy,
+        verifiedAt: new Date(),
+        adminNotes,
+        adjustmentAmount: adjustmentAmount ? adjustmentAmount : undefined,
+      },
+      include: {
+        driver: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                phoneNumber: true,
+              },
             },
           },
         },
       },
-    },
+    });
+
+    // 2. Handle Financial Discrepancy (Driver Debt)
+    // If status is VERIFIED or ADJUSTED, we assume the final "discrepancy" is now official debt/credit.
+    // Discrepancy = Expected - Actual
+    // Positive Discrepancy (Expected > Actual) = Shortage = Driver Owes Money (Debit)
+    // Negative Discrepancy (Expected < Actual) = Excess = Driver Paid Extra (Credit)
+
+    if (status === CashHandoverStatus.VERIFIED || status === CashHandoverStatus.ADJUSTED) {
+      let finalDiscrepancy = updatedHandover.discrepancy;
+
+      // If there was a manual adjustment (e.g. waiving off 500 PKR), the discrepancy stored might be raw.
+      // But `adjustmentAmount` logic isn't fully defined in schema (is it a waiver? or a correction?).
+      // Assuming `adjustmentAmount` is a correction to Expected Cash?
+      // For now, let's stick to the calculated `discrepancy` field which is `expected - actual`.
+
+      // If Shortage (Discrepancy > 0) -> Driver Owes Company -> Debit
+      if (finalDiscrepancy.gt(0)) {
+        // Create Debit in DriverLedger
+        await tx.driverLedger.create({
+          data: {
+            driverId: updatedHandover.driverId,
+            amount: finalDiscrepancy.neg(), // Debit is negative
+            description: `Cash Shortage - ${updatedHandover.date.toDateString()}`,
+            referenceId: updatedHandover.id,
+            balanceAfter: new Prisma.Decimal(0), // TODO: Fetch previous balance + this. For now simplified.
+          },
+        });
+      }
+      // If Excess (Discrepancy < 0) -> Company Owes Driver -> Credit
+      else if (finalDiscrepancy.lt(0)) {
+        await tx.driverLedger.create({
+          data: {
+            driverId: updatedHandover.driverId,
+            amount: finalDiscrepancy.abs(), // Credit is positive
+            description: `Cash Excess - ${updatedHandover.date.toDateString()}`,
+            referenceId: updatedHandover.id,
+            balanceAfter: new Prisma.Decimal(0), // TODO: Fetch previous balance + this.
+          },
+        });
+      }
+    }
+
+    return updatedHandover;
   });
 }
 

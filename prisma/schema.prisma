@@ -227,6 +227,7 @@ model Product {
   isReturnable Boolean @default(true) // Pani ki bottle wapis aati hai, Dispenser nahi
   stockFilled  Int     @default(0)    // Plant Warehouse
   stockEmpty   Int     @default(0)    // Plant Warehouse
+  stockDamaged Int     @default(0)    // Broken/Lost Bottles (Audit Trail)
   
   createdAt   DateTime @default(now())
   
@@ -349,6 +350,7 @@ model DriverProfile {
   performanceMetrics  DriverPerformanceMetrics[]
   cashHandovers       CashHandover[]
   expenses            Expense[]
+  ledgers             DriverLedger[]
 }
 
 // --------------------------------------------------------
@@ -366,6 +368,22 @@ model Ledger {
   
   referenceId    String?       // Order ID or Payment ID
   createdAt      DateTime      @default(now())
+}
+
+model DriverLedger {
+  id              String        @id @default(uuid())
+  driverId        String
+  driver          DriverProfile @relation(fields: [driverId], references: [id])
+
+  amount          Decimal       @db.Decimal(10, 2) // +ve for Credit (Company owes Driver), -ve for Debit (Driver owes Company)
+  balanceAfter    Decimal       @db.Decimal(10, 2) // Running Balance
+
+  description     String        // "Cash Shortage - 26 Oct", "Salary Payment"
+  referenceId     String?       // CashHandover ID or Expense ID
+
+  createdAt       DateTime      @default(now())
+
+  @@index([driverId])
 }
 
 model AuditLog {

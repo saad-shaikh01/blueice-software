@@ -40,6 +40,7 @@ export const updateOrderSchema = z.object({
         price: z.coerce.number().min(0).optional(),
         filledGiven: z.coerce.number().int().min(0).optional(),
         emptyTaken: z.coerce.number().int().min(0).optional(),
+        damagedReturned: z.coerce.number().int().min(0).optional(),
       }),
     )
     .optional(),

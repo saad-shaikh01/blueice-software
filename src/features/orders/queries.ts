@@ -495,6 +495,7 @@ export async function updateOrder(
       price?: number;
       filledGiven?: number;
       emptyTaken?: number;
+      damagedReturned?: number;
     }[];
   }>,
 ) {
@@ -506,6 +507,17 @@ export async function updateOrder(
     if (!existingOrder) throw new Error('Order not found');
 
     // Update basic fields
+    // Safety Check: Prevent Reverting COMPLETED orders
+    if (
+      existingOrder.status === OrderStatus.COMPLETED &&
+      orderData.status &&
+      orderData.status !== OrderStatus.COMPLETED
+    ) {
+      throw new Error(
+        `Cannot revert a COMPLETED order #${existingOrder.readableId} to ${orderData.status}. This would corrupt financial ledgers. Please cancel and recreate if necessary, or ask an Admin to void the transaction.`,
+      );
+    }
+
     if (Object.keys(orderData).length > 0) {
       await tx.order.update({
         where: { id },
@@ -555,6 +567,7 @@ export async function updateOrder(
           priceAtTime: price,
           filledGiven: item.filledGiven || 0,
           emptyTaken: item.emptyTaken || 0,
+          damagedReturned: item.damagedReturned || 0,
         };
       });
 
@@ -672,6 +685,13 @@ export async function updateOrder(
         }
 
         // 3. Update Inventory with validation
+        // Handle Damaged Bottles: Damaged bottles are REMOVED from the customer ecosystem but DO NOT enter 'stockEmpty' (good stock).
+        // They are tracked in 'stockDamaged' (Audit Trail) and removed from 'stockFilled' (if we consider them as lost assets, but wait.
+        // 'stockFilled' is what we have in warehouse. 'stockEmpty' is empty bottles in warehouse.
+        // If a customer returns a DAMAGED bottle, they are returning an asset.
+        // The driver TAKES it. So it leaves CustomerWallet.
+        // But it enters Warehouse as 'stockDamaged', NOT 'stockEmpty'.
+
         const product = await tx.product.findUnique({
           where: { id: item.productId },
           select: { stockFilled: true, stockEmpty: true },
@@ -691,7 +711,8 @@ export async function updateOrder(
           where: { id: item.productId },
           data: {
             stockFilled: { decrement: item.filledGiven },
-            stockEmpty: { increment: item.emptyTaken },
+            stockEmpty: { increment: item.emptyTaken }, // Good empties
+            stockDamaged: { increment: item.damagedReturned }, // Broken/Lost (Requires Schema Update applied)
           },
         });
       }

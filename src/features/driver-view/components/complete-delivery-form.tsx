@@ -68,6 +68,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
             quantity: item.quantity,
             filledGiven: item.filledGiven,
             emptyTaken: item.emptyTaken,
+            damagedReturned: item.damagedReturned,
           })),
         },
       },
@@ -183,6 +184,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                     <TableHead>Item</TableHead>
                     <TableHead className="w-[80px]">Filled</TableHead>
                     <TableHead className="w-[80px]">Empty</TableHead>
+                    <TableHead className="w-[80px] text-red-500">Damaged</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -224,6 +226,25 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                                   {...field}
                                   onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                   className="h-12 text-center text-lg font-semibold"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.damagedReturned`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  className="h-12 border-red-200 text-center text-lg font-semibold text-red-600 focus-visible:ring-red-500"
                                 />
                               </FormControl>
                             </FormItem>
