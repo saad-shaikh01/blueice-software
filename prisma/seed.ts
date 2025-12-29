@@ -136,7 +136,7 @@ async function main() {
         role: UserRole.CUSTOMER,
         customerProfile: {
           create: {
-            manualCode: `MC-${Math.floor(Math.random() * 10000)}`,
+            manualCode: `CUST-${(i + 1).toString().padStart(4, '0')}`,
             type,
             area: route.name,
             address: faker.location.streetAddress(),
@@ -259,31 +259,31 @@ async function main() {
     if (d % 10 === 0) process.stdout.write('.');
   }
 
-  // 6b. Future Orders
-  console.log('\n⏳ Generating Future Orders...');
-  for (let d = 1; d <= CONFIG.FUTURE_DAYS; d++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() + d);
+  // // 6b. Future Orders
+  // console.log('\n⏳ Generating Future Orders...');
+  // for (let d = 1; d <= CONFIG.FUTURE_DAYS; d++) {
+  //   const date = new Date(today);
+  //   date.setDate(date.getDate() + d);
 
-    for (let i = 0; i < 30; i++) {
-      const customer = faker.helpers.arrayElement(customers);
-      await prisma.order.create({
-        data: {
-          customerId: customer.id,
-          scheduledDate: date,
-          status: OrderStatus.SCHEDULED,
-          totalAmount: Number(mainProduct.basePrice) * 2,
-          orderItems: {
-            create: {
-              productId: mainProduct.id,
-              quantity: 2,
-              priceAtTime: mainProduct.basePrice,
-            },
-          },
-        },
-      });
-    }
-  }
+  //   for (let i = 0; i < 30; i++) {
+  //     const customer = faker.helpers.arrayElement(customers);
+  //     await prisma.order.create({
+  //       data: {
+  //         customerId: customer.id,
+  //         scheduledDate: date,
+  //         status: OrderStatus.SCHEDULED,
+  //         totalAmount: Number(mainProduct.basePrice) * 2,
+  //         orderItems: {
+  //           create: {
+  //             productId: mainProduct.id,
+  //             quantity: 2,
+  //             priceAtTime: mainProduct.basePrice,
+  //           },
+  //         },
+  //       },
+  //     });
+  //   }
+  // }
 
   console.log('\n✅ Orders & Stats created');
   console.log('✅ Seeding Complete!');
