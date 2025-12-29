@@ -160,7 +160,7 @@ export function ComprehensiveDashboard() {
             {['today', 'week', 'month'].map((range) => (
               <Button
                 key={range}
-                variant={dateRange === range ? 'default' : 'ghost'}
+                variant={dateRange === range ? 'primary' : 'ghost'}
                 size="sm"
                 onClick={() => setDateRange(range as any)}
                 className={`capitalize ${dateRange === range ? 'bg-primary/80 backdrop-blur-sm' : 'hover:bg-white/20'}`}
@@ -534,15 +534,14 @@ export function ComprehensiveDashboard() {
               {(data?.driverPerformance || []).slice(0, 5).map((driver, index) => (
                 <div key={driver.driverId} className="flex items-center gap-4 rounded-lg p-2 transition-colors hover:bg-white/10">
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold shadow-md ${
-                      index === 0
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold shadow-md ${index === 0
                         ? 'bg-yellow-400 text-yellow-900'
                         : index === 1
                           ? 'bg-gray-300 text-gray-900'
                           : index === 2
                             ? 'bg-amber-600 text-white'
                             : 'bg-secondary text-secondary-foreground'
-                    }`}
+                      }`}
                   >
                     {index + 1}
                   </div>

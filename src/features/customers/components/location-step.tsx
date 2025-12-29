@@ -1,9 +1,11 @@
 'use client';
 
-import { Building2, MapPin } from 'lucide-react';
+import { Building2, MapPin, Navigation, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { LocationMapPicker } from '@/components/location-map-picker';
+import { EnhancedLocationMapPicker } from '@/components/enhanced-location-map-picker';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -13,6 +15,8 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import type { CreateCustomerInput } from '@/features/customers/schema';
 import { useGetRoutes } from '@/features/routes/api/use-get-routes';
+import { useDebounce } from '@/hooks/use-debounce';
+import { geocodeAddress } from '@/lib/geocoding';
 
 interface Route {
   id: string;
@@ -24,12 +28,90 @@ export const LocationStep = () => {
   const { data: routesData } = useGetRoutes();
   const routes = (routesData?.routes as Route[]) || [];
 
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  // Watch form fields
   const geoLat = form.watch('geoLat');
   const geoLng = form.watch('geoLng');
+  const area = form.watch('area');
+  const address = form.watch('address');
+
+  // Debounce address changes to avoid too many API calls
+  const debouncedArea = useDebounce(area, 800);
+  const debouncedAddress = useDebounce(address, 800);
+
+  // Auto-geocode when address changes
+  useEffect(() => {
+    const performGeocoding = async () => {
+      // Only geocode if we have at least area or address
+      const searchQuery = debouncedAddress || debouncedArea;
+
+      if (!searchQuery || searchQuery.trim().length < 3) {
+        return;
+      }
+
+      setIsGeocoding(true);
+
+      try {
+        const result = await geocodeAddress(searchQuery);
+
+        if (result) {
+          // Update coordinates
+          form.setValue('geoLat', result.lat, { shouldValidate: true });
+          form.setValue('geoLng', result.lon, { shouldValidate: true });
+
+          // Optionally update area if it was empty
+          if (!area && result.address?.suburb) {
+            form.setValue('area', result.address.suburb);
+          }
+        }
+      } catch (error) {
+        console.error('Geocoding failed:', error);
+      } finally {
+        setIsGeocoding(false);
+      }
+    };
+
+    performGeocoding();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedArea, debouncedAddress]);
 
   const handleLocationSelect = (lat: number, lng: number) => {
-    form.setValue('geoLat', lat);
-    form.setValue('geoLng', lng);
+    form.setValue('geoLat', lat, { shouldValidate: true });
+    form.setValue('geoLng', lng, { shouldValidate: true });
+  };
+
+  const handleAddressReverse = (reversedAddress: string, reversedArea: string) => {
+    // Only update if fields are empty to avoid overwriting user input
+    if (!address && reversedAddress) {
+      form.setValue('address', reversedAddress);
+    }
+    if (!area && reversedArea) {
+      form.setValue('area', reversedArea);
+    }
+  };
+
+  const handleManualGeocode = async () => {
+    const searchQuery = address || area;
+
+    if (!searchQuery) {
+      return;
+    }
+
+    setIsGeocoding(true);
+
+    try {
+      const result = await geocodeAddress(searchQuery);
+
+      if (result) {
+        form.setValue('geoLat', result.lat, { shouldValidate: true });
+        form.setValue('geoLng', result.lon, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error('Geocoding failed:', error);
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   return (
@@ -64,9 +146,31 @@ export const LocationStep = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Full Address *</FormLabel>
-                <FormControl>
-                  <Input placeholder="House 123, Street 5, Gulshan-e-Iqbal" {...field} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input placeholder="House 123, Street 5, Gulshan-e-Iqbal" {...field} className="flex-1" />
+                  </FormControl>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleManualGeocode}
+                    disabled={isGeocoding || (!address && !area)}
+                    title="Find this location on map"
+                  >
+                    {isGeocoding ? <Sparkles className="size-4 animate-pulse" /> : <Navigation className="size-4" />}
+                  </Button>
+                </div>
+                <FormDescription>
+                  {isGeocoding ? (
+                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                      <Sparkles className="size-3 animate-pulse" />
+                      Finding location on map...
+                    </span>
+                  ) : (
+                    'Type address and map will auto-update'
+                  )}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -185,8 +289,16 @@ export const LocationStep = () => {
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Interactive Map</Label>
-            <p className="text-xs text-muted-foreground">Click on the map to select customer location</p>
-            <LocationMapPicker lat={geoLat ?? undefined} lng={geoLng ?? undefined} onLocationSelect={handleLocationSelect} height="350px" />
+            <EnhancedLocationMapPicker
+              lat={geoLat ?? undefined}
+              lng={geoLng ?? undefined}
+              onLocationSelect={handleLocationSelect}
+              onAddressReverse={handleAddressReverse}
+              height="400px"
+              enableSearch={true}
+              enableDragging={true}
+              enableReverseGeocoding={true}
+            />
           </div>
         </CardContent>
       </Card>

@@ -56,8 +56,8 @@ export function OfflineIndicator() {
       // Trigger service worker sync
       if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-deliveries');
-        await registration.sync.register('sync-location');
+        await (registration as any).sync.register('sync-deliveries');
+        await (registration as any).sync.register('sync-location');
       }
 
       // Wait a bit for sync to complete

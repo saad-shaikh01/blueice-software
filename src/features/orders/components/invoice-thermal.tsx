@@ -8,27 +8,27 @@ interface InvoiceThermalProps {
     order: {
       id: string;
       readableId: number;
-      scheduledDate: Date;
-      deliveredAt: Date | null;
+      scheduledDate: Date | string;
+      deliveredAt: Date | string | null;
       status: string;
-      totalAmount: Decimal;
-      discount: Decimal;
-      deliveryCharge: Decimal;
-      cashCollected: Decimal;
+      totalAmount: string | number;
+      discount: string | number;
+      deliveryCharge: string | number;
+      cashCollected: string | number;
       paymentMethod: string;
       customer: {
         user: {
           name: string;
-          phone: string | null;
+          phoneNumber: string | null;
         };
         address: string;
         area: string;
-        cashBalance: Decimal;
+        cashBalance: string | number;
       };
       orderItems: Array<{
         id: string;
         quantity: number;
-        priceAtTime: Decimal;
+        priceAtTime: string | number;
         filledGiven: number;
         emptyTaken: number;
         product: {
@@ -39,10 +39,10 @@ interface InvoiceThermalProps {
     lastDeliveries: Array<{
       id: string;
       readableId: number;
-      deliveredAt: Date | null;
-      totalAmount: Decimal;
+      deliveredAt: Date | string | null;
+      totalAmount: string | number;
     }>;
-    previousBalance: Decimal;
+    previousBalance: string | number;
   };
 }
 
@@ -85,7 +85,7 @@ export const InvoiceThermal = ({ data }: InvoiceThermalProps) => {
       {/* Customer Info */}
       <div className="mt-2 border-b border-dashed border-gray-600 pb-2">
         <div className="font-bold">{order.customer.user.name}</div>
-        {order.customer.user.phone && <div className="text-[9px]">Ph: {order.customer.user.phone}</div>}
+        {order.customer.user.phoneNumber && <div className="text-[9px]">Ph: {order.customer.user.phoneNumber}</div>}
         <div className="text-[9px]">{order.customer.area}</div>
       </div>
 

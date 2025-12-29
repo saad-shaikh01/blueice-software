@@ -66,6 +66,18 @@ export async function getLiveDriverLocations() {
         },
       },
       vehicleNo: true,
+      // Get most recent location history for movement/battery data
+      locationHistory: {
+        take: 1,
+        orderBy: {
+          timestamp: 'desc',
+        },
+        select: {
+          isMoving: true,
+          batteryLevel: true,
+          speed: true,
+        },
+      },
       // Get current active order if any
       orders: {
         where: {
@@ -99,18 +111,24 @@ export async function getLiveDriverLocations() {
     },
   });
 
-  return drivers.map((driver) => ({
-    driverId: driver.id,
-    name: driver.user.name,
-    phoneNumber: driver.user.phoneNumber,
-    imageUrl: driver.user.imageUrl,
-    vehicleNo: driver.vehicleNo,
-    latitude: driver.currentLat!,
-    longitude: driver.currentLng!,
-    lastUpdate: driver.lastLocationUpdate,
-    isOnDuty: driver.isOnDuty,
-    currentOrder: driver.orders[0] || null,
-  }));
+  return drivers.map((driver) => {
+    const latestLocation = driver.locationHistory[0];
+    return {
+      driverId: driver.id,
+      name: driver.user.name,
+      phoneNumber: driver.user.phoneNumber,
+      imageUrl: driver.user.imageUrl,
+      vehicleNo: driver.vehicleNo,
+      latitude: driver.currentLat!,
+      longitude: driver.currentLng!,
+      lastUpdate: driver.lastLocationUpdate,
+      isOnDuty: driver.isOnDuty,
+      isMoving: latestLocation?.isMoving ?? false,
+      batteryLevel: latestLocation?.batteryLevel ?? null,
+      speed: latestLocation?.speed ?? null,
+      currentOrder: driver.orders[0] || null,
+    };
+  });
 }
 
 /**

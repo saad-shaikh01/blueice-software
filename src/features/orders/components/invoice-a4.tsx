@@ -9,18 +9,18 @@ interface InvoiceA4Props {
     order: {
       id: string;
       readableId: number;
-      scheduledDate: Date;
-      deliveredAt: Date | null;
+      scheduledDate: Date | string;
+      deliveredAt: Date | string | null;
       status: string;
-      totalAmount: Decimal;
-      discount: Decimal;
-      deliveryCharge: Decimal;
-      cashCollected: Decimal;
+      totalAmount: string | number;
+      discount: string | number;
+      deliveryCharge: string | number;
+      cashCollected: string | number;
       paymentMethod: string;
       customer: {
         user: {
           name: string;
-          phone: string | null;
+          phoneNumber: string | null;
           email: string | null;
         };
         address: string;
@@ -28,13 +28,13 @@ interface InvoiceA4Props {
         landmark: string | null;
         floorNumber: number;
         hasLift: boolean;
-        cashBalance: Decimal;
-        creditLimit: Decimal;
+        cashBalance: string | number;
+        creditLimit: string | number;
       };
       orderItems: Array<{
         id: string;
         quantity: number;
-        priceAtTime: Decimal;
+        priceAtTime: string | number;
         filledGiven: number;
         emptyTaken: number;
         product: {
@@ -46,8 +46,8 @@ interface InvoiceA4Props {
     lastDeliveries: Array<{
       id: string;
       readableId: number;
-      deliveredAt: Date | null;
-      totalAmount: Decimal;
+      deliveredAt: Date | string | null;
+      totalAmount: string | number;
       orderItems: Array<{
         quantity: number;
         product: {
@@ -55,7 +55,7 @@ interface InvoiceA4Props {
         };
       }>;
     }>;
-    previousBalance: Decimal;
+    previousBalance: string | number;
   };
 }
 
@@ -113,7 +113,7 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
           <h3 className="mb-2 text-sm font-semibold uppercase text-gray-500">Bill To</h3>
           <div className="rounded-lg bg-blue-50 p-4">
             <p className="font-semibold text-gray-900">{order.customer.user.name}</p>
-            {order.customer.user.phone && <p className="mt-1 text-sm text-gray-600">Phone: {order.customer.user.phone}</p>}
+            {order.customer.user.phoneNumber && <p className="mt-1 text-sm text-gray-600">Phone: {order.customer.user.phoneNumber}</p>}
             {order.customer.user.email && <p className="text-sm text-gray-600">Email: {order.customer.user.email}</p>}
             <p className="mt-2 text-sm text-gray-600">{order.customer.address}</p>
             <p className="text-sm text-gray-600">{order.customer.area}</p>

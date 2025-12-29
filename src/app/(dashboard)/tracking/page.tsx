@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LiveMap } from '@/features/tracking/components/live-map';
 
 export const metadata: Metadata = {
@@ -10,23 +9,23 @@ export const metadata: Metadata = {
 
 export default function TrackingPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex h-full flex-col gap-4">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Live Tracking</h1>
-        <p className="text-muted-foreground">Monitor driver locations and status in real-time</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Live Tracking</h1>
+          <p className="text-muted-foreground">Mission Control - Monitor all drivers in real-time</p>
+        </div>
+        <div className="rounded-lg border bg-card px-4 py-2 text-sm">
+          <span className="text-muted-foreground">Updates every</span>
+          <span className="ml-1 font-semibold">10 seconds</span>
+        </div>
       </div>
 
-      {/* Map Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Driver Locations</CardTitle>
-          <CardDescription>Live map showing all active drivers (updates every 10 seconds)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LiveMap height="calc(100vh - 280px)" />
-        </CardContent>
-      </Card>
+      {/* Map with Sidebar - Full height */}
+      <div className="flex-1 overflow-hidden rounded-lg border bg-card">
+        <LiveMap height="100%" showSidebar={true} />
+      </div>
     </div>
   );
 }

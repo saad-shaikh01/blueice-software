@@ -170,7 +170,7 @@ export async function queueDeliveryCompletion(orderId: string, completionData: a
   if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
     try {
       const registration = await navigator.serviceWorker.ready;
-      await registration.sync.register('sync-deliveries');
+      await (registration as any).sync.register('sync-deliveries');
       console.log('[IndexedDB] Background sync registered');
     } catch (error) {
       console.error('[IndexedDB] Failed to register background sync:', error);
@@ -248,7 +248,7 @@ export async function queueLocationUpdate(locationData: {
   if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
     try {
       const registration = await navigator.serviceWorker.ready;
-      await registration.sync.register('sync-location');
+      await (registration as any).sync.register('sync-location');
     } catch (error) {
       console.error('[IndexedDB] Failed to register location sync:', error);
     }
