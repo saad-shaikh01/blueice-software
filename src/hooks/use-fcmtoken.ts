@@ -1,11 +1,14 @@
-'use client'
-import { useEffect, useState } from 'react';
+'use client';
+
 import { getMessaging, getToken } from 'firebase/messaging';
-import firebaseApp from '../../firebase';
-// import { getCurrent } from '@/features/auth/queries';
-import { client } from '@/lib/hono';
+import { useEffect, useState } from 'react';
+
 // import { getCurrent } from '@/features/auth/queries';
 import { useCurrent } from '@/features/auth/api/use-current';
+// import { getCurrent } from '@/features/auth/queries';
+import { client } from '@/lib/hono';
+
+import firebaseApp from '../../firebase';
 
 const useFcmToken = () => {
   const [token, setToken] = useState('');
@@ -14,7 +17,6 @@ const useFcmToken = () => {
 
   useEffect(() => {
     const retrieveToken = async () => {
-
       if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
       if (!user) {
@@ -76,7 +78,6 @@ const useFcmToken = () => {
       //           const res = await client.api.auth.token['$post']({
       //             json: { token: currentToken },
       //           });
-
 
       //           // const user = await getCurrent(); // your /auth/current API
       //           if (res.ok) {

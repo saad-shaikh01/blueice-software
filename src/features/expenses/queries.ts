@@ -1,5 +1,6 @@
-import { db } from '@/lib/db';
 import { ExpenseCategory, ExpenseStatus, Prisma } from '@prisma/client';
+
+import { db } from '@/lib/db';
 
 interface GetExpensesParams {
   driverId?: string;

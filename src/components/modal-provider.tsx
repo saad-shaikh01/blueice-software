@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -12,9 +11,5 @@ export const ModalProvider = () => {
 
   if (!isMounted) return null;
 
-  return (
-    <>
-      {/* <CreateProductModal /> */}
-    </>
-  );
+  return <>{/* <CreateProductModal /> */}</>;
 };

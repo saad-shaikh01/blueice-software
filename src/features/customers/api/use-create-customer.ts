@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { client } from '@/lib/hono';
 import type { CreateCustomerInput } from '@/features/customers/schema';
+import { client } from '@/lib/hono';
 
 export const useCreateCustomer = () => {
   const queryClient = useQueryClient();

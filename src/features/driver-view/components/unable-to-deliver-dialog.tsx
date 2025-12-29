@@ -1,36 +1,22 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { AlertCircle, Calendar, Camera, Loader2, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { AlertCircle, XCircle, Calendar, Camera, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from '@/components/ui/form';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 
 // Cancellation reasons with Urdu/Roman labels
 const CANCELLATION_REASONS = [
@@ -47,18 +33,21 @@ const CANCELLATION_REASONS = [
 ] as const;
 
 const unableToDeliverSchema = z.object({
-  reason: z.enum([
-    'CUSTOMER_NOT_HOME',
-    'HOUSE_LOCKED',
-    'CUSTOMER_REFUSED',
-    'WRONG_ADDRESS',
-    'PAYMENT_ISSUE',
-    'SECURITY_ISSUE',
-    'CUSTOMER_NOT_REACHABLE',
-    'WEATHER_CONDITION',
-    'VEHICLE_BREAKDOWN',
-    'OTHER',
-  ], { required_error: 'Please select a reason' }),
+  reason: z.enum(
+    [
+      'CUSTOMER_NOT_HOME',
+      'HOUSE_LOCKED',
+      'CUSTOMER_REFUSED',
+      'WRONG_ADDRESS',
+      'PAYMENT_ISSUE',
+      'SECURITY_ISSUE',
+      'CUSTOMER_NOT_REACHABLE',
+      'WEATHER_CONDITION',
+      'VEHICLE_BREAKDOWN',
+      'OTHER',
+    ],
+    { required_error: 'Please select a reason' },
+  ),
   notes: z.string().min(5, 'Please provide details (at least 5 characters)'),
   action: z.enum(['CANCEL', 'RESCHEDULE'], { required_error: 'Choose cancel or reschedule' }),
   rescheduleDate: z.date().optional(),
@@ -75,14 +64,7 @@ interface UnableToDeliverDialogProps {
   onSubmit: (data: UnableToDeliverFormValues & { proofPhoto?: File }) => Promise<void>;
 }
 
-export function UnableToDeliverDialog({
-  orderId,
-  customerName,
-  scheduledDate,
-  open,
-  onOpenChange,
-  onSubmit,
-}: UnableToDeliverDialogProps) {
+export function UnableToDeliverDialog({ orderId, customerName, scheduledDate, open, onOpenChange, onSubmit }: UnableToDeliverDialogProps) {
   const [proofPhoto, setProofPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,11 +113,7 @@ export function UnableToDeliverDialog({
       setPhotoPreview(null);
       onOpenChange(false);
 
-      toast.success(
-        values.action === 'RESCHEDULE'
-          ? 'Order rescheduled successfully'
-          : 'Order cancelled successfully'
-      );
+      toast.success(values.action === 'RESCHEDULE' ? 'Order rescheduled successfully' : 'Order cancelled successfully');
     } catch (error) {
       toast.error('Failed to process request');
     } finally {
@@ -166,16 +144,9 @@ export function UnableToDeliverDialog({
                 <FormItem className="space-y-3">
                   <FormLabel className="text-base font-semibold">Why can't you deliver?</FormLabel>
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="space-y-2"
-                    >
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="space-y-2">
                       {CANCELLATION_REASONS.map((reason) => (
-                        <div
-                          key={reason.value}
-                          className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-accent"
-                        >
+                        <div key={reason.value} className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-accent">
                           <RadioGroupItem value={reason.value} id={reason.value} />
                           <Label htmlFor={reason.value} className="flex-1 cursor-pointer text-sm">
                             {reason.label}
@@ -204,9 +175,7 @@ export function UnableToDeliverDialog({
                       className="resize-none text-base"
                     />
                   </FormControl>
-                  <FormDescription className="text-xs">
-                    Please explain the situation in detail
-                  </FormDescription>
+                  <FormDescription className="text-xs">Please explain the situation in detail</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -216,20 +185,10 @@ export function UnableToDeliverDialog({
             <div className="space-y-2">
               <Label className="text-base font-semibold">Photo Proof (Optional)</Label>
               <div className="flex flex-col gap-3">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handlePhotoCapture}
-                  className="h-12 cursor-pointer"
-                />
+                <Input type="file" accept="image/*" capture="environment" onChange={handlePhotoCapture} className="h-12 cursor-pointer" />
                 {photoPreview && (
                   <div className="relative">
-                    <img
-                      src={photoPreview}
-                      alt="Proof"
-                      className="h-40 w-full rounded-lg border object-cover"
-                    />
+                    <img src={photoPreview} alt="Proof" className="h-40 w-full rounded-lg border object-cover" />
                     <Button
                       type="button"
                       variant="destructive"
@@ -244,9 +203,7 @@ export function UnableToDeliverDialog({
                     </Button>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  📸 Take a photo (locked house, wrong address, etc.)
-                </p>
+                <p className="text-xs text-muted-foreground">📸 Take a photo (locked house, wrong address, etc.)</p>
               </div>
             </div>
 
@@ -258,11 +215,7 @@ export function UnableToDeliverDialog({
                 <FormItem className="space-y-3">
                   <FormLabel className="text-base font-semibold">What do you want to do?</FormLabel>
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="grid grid-cols-2 gap-4"
-                    >
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4">
                       <div className="relative">
                         <RadioGroupItem value="RESCHEDULE" id="reschedule" className="peer sr-only" />
                         <Label
@@ -321,9 +274,7 @@ export function UnableToDeliverDialog({
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormDescription className="text-xs">
-                      کس دن دوبارہ deliver کریں؟
-                    </FormDescription>
+                    <FormDescription className="text-xs">کس دن دوبارہ deliver کریں؟</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -332,19 +283,13 @@ export function UnableToDeliverDialog({
 
             {/* Submit Buttons */}
             <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                 Cancel / منسوخ
               </Button>
               <Button
                 type="submit"
                 variant={selectedAction === 'CANCEL' ? 'destructive' : 'primary'}
-                className="flex-1 h-14 text-base font-semibold"
+                className="h-14 flex-1 text-base font-semibold"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

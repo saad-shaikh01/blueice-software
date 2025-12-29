@@ -1,8 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { client } from '@/lib/hono';
 import { ExpenseCategory, ExpenseStatus } from '@prisma/client';
+import { useQuery } from '@tanstack/react-query';
+
+import { client } from '@/lib/hono';
 
 export const useGetExpenses = () => {
   return useQuery({
@@ -32,6 +33,6 @@ export const useCreateExpense = () => {
         throw new Error('Failed to create expense');
       }
       return await response.json();
-    }
+    },
   };
 };

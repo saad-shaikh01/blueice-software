@@ -1,29 +1,26 @@
-"use client";
+'use client';
 
-import {
-  useEditor,
-  EditorContent,
-  JSONContent
-} from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import { Extension } from '@tiptap/core';
+import Image from '@tiptap/extension-image';
 // import Document from '@tiptap/extension-document'
 // import Heading from '@tiptap/extension-heading'
 // import Paragraph from '@tiptap/extension-paragraph'
 // import Text from '@tiptap/extension-text'
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
-import Image from "@tiptap/extension-image";
-import Mention from "@tiptap/extension-mention";
-import { Extension } from '@tiptap/core';
+import Link from '@tiptap/extension-link';
+import Mention from '@tiptap/extension-mention';
+import Placeholder from '@tiptap/extension-placeholder';
 import { PluginKey } from '@tiptap/pm/state';
-import { useRef, useState } from "react";
-import { Button } from "./ui/button";
-import { MdSend } from "react-icons/md";
-import { ImageIcon, Smile, XIcon } from "lucide-react";
-import { EmojiPopover } from "./emoji-popover";
-import { MenuBar } from "./menu-bar";
+import { EditorContent, JSONContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { ImageIcon, Smile, XIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { MdSend } from 'react-icons/md';
+
+import { EmojiPopover } from './emoji-popover';
+import { MenuBar } from './menu-bar';
 // import suggestion from './suggestion';
-import mentionSuggestionFactory, { mentionSuggestionPluginKey } from "./suggestion";
+import mentionSuggestionFactory, { mentionSuggestionPluginKey } from './suggestion';
+import { Button } from './ui/button';
 
 type User = {
   id: string;
@@ -37,7 +34,7 @@ type Props = {
   onCancel?: () => void;
   placeholder?: string;
   defaultValue?: JSONContent;
-  variant?: "create" | "update";
+  variant?: 'create' | 'update';
   disabled?: boolean;
 };
 
@@ -45,9 +42,9 @@ export const TiptapEditor = ({
   users,
   onSubmit,
   onCancel,
-  placeholder = "Write something...",
+  placeholder = 'Write something...',
   defaultValue,
-  variant = "create",
+  variant = 'create',
   disabled,
 }: Props) => {
   const [image, setImage] = useState<File | null>(null);
@@ -86,7 +83,6 @@ export const TiptapEditor = ({
   //   }
   // };
 
-
   const handleSubmit = (editorInstance: any) => {
     if (!editorInstance) {
       console.error('Editor is null or undefined');
@@ -112,7 +108,6 @@ export const TiptapEditor = ({
     }
   };
 
-
   const SubmitOnEnter = Extension.create({
     name: 'submitOnEnter',
     addKeyboardShortcuts() {
@@ -136,10 +131,9 @@ export const TiptapEditor = ({
     },
   });
 
-
   const handlePaste = (event: ClipboardEvent) => {
     const items = Array.from(event.clipboardData?.items || []);
-    const imageItem = items.find((item) => item.type.startsWith("image/"));
+    const imageItem = items.find((item) => item.type.startsWith('image/'));
 
     if (imageItem) {
       event.preventDefault();
@@ -170,57 +164,56 @@ export const TiptapEditor = ({
         isAllowedUri: (url, ctx) => {
           try {
             // construct URL
-            const parsedUrl = url.includes(':') ? new URL(url) : new URL(`${ctx.defaultProtocol}://${url}`)
+            const parsedUrl = url.includes(':') ? new URL(url) : new URL(`${ctx.defaultProtocol}://${url}`);
 
             // use default validation
             if (!ctx.defaultValidate(parsedUrl.href)) {
-              return false
+              return false;
             }
 
             // disallowed protocols
-            const disallowedProtocols = ['ftp', 'file', 'mailto']
-            const protocol = parsedUrl.protocol.replace(':', '')
+            const disallowedProtocols = ['ftp', 'file', 'mailto'];
+            const protocol = parsedUrl.protocol.replace(':', '');
 
             if (disallowedProtocols.includes(protocol)) {
-              return false
+              return false;
             }
 
             // only allow protocols specified in ctx.protocols
-            const allowedProtocols = ctx.protocols.map(p => (typeof p === 'string' ? p : p.scheme))
+            const allowedProtocols = ctx.protocols.map((p) => (typeof p === 'string' ? p : p.scheme));
 
             if (!allowedProtocols.includes(protocol)) {
-              return false
+              return false;
             }
 
             // disallowed domains
-            const disallowedDomains = ['example-phishing.com', 'malicious-site.net']
-            const domain = parsedUrl.hostname
+            const disallowedDomains = ['example-phishing.com', 'malicious-site.net'];
+            const domain = parsedUrl.hostname;
 
             if (disallowedDomains.includes(domain)) {
-              return false
+              return false;
             }
 
             // all checks have passed
-            return true
+            return true;
           } catch {
-            return false
+            return false;
           }
         },
-        shouldAutoLink: url => {
+        shouldAutoLink: (url) => {
           try {
             // construct URL
-            const parsedUrl = url.includes(':') ? new URL(url) : new URL(`https://${url}`)
+            const parsedUrl = url.includes(':') ? new URL(url) : new URL(`https://${url}`);
 
             // only auto-link if the domain is not in the disallowed list
-            const disallowedDomains = ['example-no-autolink.com', 'another-no-autolink.com']
-            const domain = parsedUrl.hostname
+            const disallowedDomains = ['example-no-autolink.com', 'another-no-autolink.com'];
+            const domain = parsedUrl.hostname;
             const isEmail = url.includes('@') && url.includes('.');
-            return !disallowedDomains.includes(domain) || isEmail
+            return !disallowedDomains.includes(domain) || isEmail;
           } catch {
-            return false
+            return false;
           }
         },
-
       }),
       Placeholder.configure({
         placeholder,
@@ -233,7 +226,7 @@ export const TiptapEditor = ({
       }),
       SubmitOnEnter,
     ],
-    content: defaultValue || "",
+    content: defaultValue || '',
     editable: !disabled,
     immediatelyRender: false,
     editorProps: {
@@ -242,7 +235,6 @@ export const TiptapEditor = ({
         return false;
       },
     },
-
   });
 
   const isEmpty = !editor?.getText().trim() && !image;
@@ -258,62 +250,37 @@ export const TiptapEditor = ({
   };
 
   return (
-    <div className="flex flex-col border border-border rounded-md overflow-hidden">
-      {variant === "create" && (
-        <MenuBar editor={editor} />
-      )}
+    <div className="flex flex-col overflow-hidden rounded-md border border-border">
+      {variant === 'create' && <MenuBar editor={editor} />}
       <EditorContent editor={editor} className="min-h-[100px] p-2" />
       {image && (
         <div className="p-2">
-          <div className="relative w-20 h-20">
-            <img
-              src={URL.createObjectURL(image)}
-              alt="preview"
-              className="rounded object-cover w-full h-full border border-border"
-            />
+          <div className="relative h-20 w-20">
+            <img src={URL.createObjectURL(image)} alt="preview" className="h-full w-full rounded border border-border object-cover" />
             <button
               onClick={() => setImage(null)}
-              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+              className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground"
             >
-              <XIcon className="w-3 h-3" />
+              <XIcon className="h-3 w-3" />
             </button>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-2 px-2 py-2 border-t border-border">
-        <Button
-          disabled={disabled}
-          size="icon"
-          variant="ghost"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <ImageIcon className="w-4 h-4" />
+      <div className="flex items-center gap-2 border-t border-border px-2 py-2">
+        <Button disabled={disabled} size="icon" variant="ghost" onClick={() => fileInputRef.current?.click()}>
+          <ImageIcon className="h-4 w-4" />
         </Button>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleImageUpload}
-          className="hidden"
-        />
+        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
         <EmojiPopover onEmojiSelect={handleEmojiSelect}>
-          <Button
-            disabled={disabled}
-            size="icon"
-            variant="ghost"
-          >
+          <Button disabled={disabled} size="icon" variant="ghost">
             <Smile className="size-4" />
           </Button>
         </EmojiPopover>
-        {variant === "update" && (
+        {variant === 'update' && (
           <>
             <div className="ml-auto flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onCancel}
-              >
+              <Button variant="outline" size="sm" onClick={onCancel}>
                 Cancel
               </Button>
               <Button
@@ -328,7 +295,7 @@ export const TiptapEditor = ({
           </>
         )}
 
-        {variant === "create" && (
+        {variant === 'create' && (
           <Button
             type="button"
             disabled={disabled || isEmpty}
@@ -336,15 +303,13 @@ export const TiptapEditor = ({
             size="icon"
             className="ml-auto bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            <MdSend className="w-4 h-4" />
+            <MdSend className="h-4 w-4" />
           </Button>
         )}
       </div>
     </div>
   );
 };
-
-
 
 // "use client";
 

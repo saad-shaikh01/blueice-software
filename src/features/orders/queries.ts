@@ -1,4 +1,5 @@
-import { Prisma, OrderStatus, PaymentMethod } from '@prisma/client';
+import { OrderStatus, PaymentMethod, Prisma } from '@prisma/client';
+
 import { db } from '@/lib/db';
 
 export async function getOrders(params: {
@@ -31,7 +32,7 @@ export async function getOrders(params: {
       driverId ? (driverId === 'unassigned' ? { driverId: null } : { driverId }) : {},
       routeId ? { customer: { routeId } } : {},
       date ? { scheduledDate: { equals: new Date(date) } } : {},
-      (from && to) ? { scheduledDate: { gte: new Date(from), lte: new Date(to) } } : {},
+      from && to ? { scheduledDate: { gte: new Date(from), lte: new Date(to) } } : {},
     ],
   };
 
@@ -42,14 +43,8 @@ export async function getOrders(params: {
       take: limit,
       include: {
         customer: {
-          include: {
-            user: { select: { name: true, phoneNumber: true } },
-            route: { select: { name: true } },
-          },
           select: {
             id: true,
-            user: true,
-            route: true,
             address: true,
             area: true,
             landmark: true,
@@ -63,29 +58,50 @@ export async function getOrders(params: {
             deliveryInstructions: true,
             preferredDeliveryTime: true,
             specialNotes: true,
+            user: {
+              select: {
+                name: true,
+                phoneNumber: true,
+              },
+            },
+            route: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
         driver: {
-          include: {
-            user: { select: { name: true } },
+          select: {
+            id: true,
+            user: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
         orderItems: {
           include: {
-            product: { select: { name: true, sku: true, isReturnable: true } },
+            product: {
+              select: {
+                name: true,
+                sku: true,
+                isReturnable: true,
+              },
+            },
           },
         },
       },
-      orderBy: driverId && driverId !== 'unassigned'
-        ? [
-            { customer: { sequenceOrder: 'asc' } }, // Sort by route sequence for drivers
-            { scheduledDate: 'asc' },
-          ]
-        : { scheduledDate: 'desc' },
+      orderBy:
+        driverId && driverId !== 'unassigned'
+          ? [{ customer: { sequenceOrder: 'asc' } }, { scheduledDate: 'asc' }]
+          : { scheduledDate: 'desc' },
     }),
     db.order.count({ where }),
   ]);
 
+  // console.log('Orders fetchedssssss:', orders.length)
   return {
     orders,
     pagination: {
@@ -216,9 +232,7 @@ export async function getOrderForInvoice(id: string) {
 
     if (orderLedger) {
       // Previous balance = balanceAfter + orderAmount - payment
-      previousBalance = orderLedger.balanceAfter
-        .add(order.totalAmount)
-        .sub(order.cashCollected);
+      previousBalance = orderLedger.balanceAfter.add(order.totalAmount).sub(order.cashCollected);
     }
   }
 
@@ -313,7 +327,7 @@ export async function generateOrders(data: { date: string; routeId?: string }) {
 
   // 5. Validate stock availability
   const insufficientStock: string[] = [];
-   for (const [productId, needed] of Array.from(stockNeeded.entries())) {
+  for (const [productId, needed] of Array.from(stockNeeded.entries())) {
     const product = productMap.get(productId);
     if (!product || product.stockFilled < needed) {
       insufficientStock.push(productId);
@@ -396,7 +410,7 @@ export async function generateOrders(data: { date: string; routeId?: string }) {
     {
       maxWait: 5000, // 5s
       timeout: 10000, // 10s
-    }
+    },
   );
 
   const message =
@@ -482,7 +496,7 @@ export async function updateOrder(
       filledGiven?: number;
       emptyTaken?: number;
     }[];
-  }>
+  }>,
 ) {
   const { items, ...orderData } = data;
 
@@ -549,7 +563,8 @@ export async function updateOrder(
       // Recalculate order total
       // We need existing delivery/discount if not provided in update
       // We can use orderData or fallback to existingOrder
-      const deliveryCharge = orderData.deliveryCharge !== undefined ? new Prisma.Decimal(orderData.deliveryCharge) : existingOrder.deliveryCharge;
+      const deliveryCharge =
+        orderData.deliveryCharge !== undefined ? new Prisma.Decimal(orderData.deliveryCharge) : existingOrder.deliveryCharge;
       const discount = orderData.discount !== undefined ? new Prisma.Decimal(orderData.discount) : existingOrder.discount;
 
       const finalTotal = totalAmount.add(deliveryCharge).sub(discount);
@@ -631,7 +646,7 @@ export async function updateOrder(
           // Prevent negative bottle wallet balance
           if (newBalance < 0) {
             throw new Error(
-              `Invalid bottle exchange: Customer currently holds ${wallet.balance} bottles but trying to return ${item.emptyTaken} bottles while receiving ${item.filledGiven}. This would result in negative balance.`
+              `Invalid bottle exchange: Customer currently holds ${wallet.balance} bottles but trying to return ${item.emptyTaken} bottles while receiving ${item.filledGiven}. This would result in negative balance.`,
             );
           }
 
@@ -643,7 +658,7 @@ export async function updateOrder(
           // New wallet - ensure first transaction is not negative
           if (netChange < 0) {
             throw new Error(
-              `Invalid bottle exchange: Cannot create negative bottle balance. Customer is returning ${item.emptyTaken} bottles but only receiving ${item.filledGiven}.`
+              `Invalid bottle exchange: Cannot create negative bottle balance. Customer is returning ${item.emptyTaken} bottles but only receiving ${item.filledGiven}.`,
             );
           }
 
@@ -668,7 +683,7 @@ export async function updateOrder(
 
         if (product.stockFilled < item.filledGiven) {
           throw new Error(
-            `Insufficient stock for product ${item.productId}. Available: ${product.stockFilled}, Required: ${item.filledGiven}`
+            `Insufficient stock for product ${item.productId}. Available: ${product.stockFilled}, Required: ${item.filledGiven}`,
           );
         }
 
@@ -702,7 +717,7 @@ export async function deleteOrder(id: string) {
 
   if (order.status === OrderStatus.COMPLETED) {
     throw new Error(
-      `Cannot delete completed order #${order.readableId}. Completed orders have ledger entries and inventory changes that cannot be automatically reversed.`
+      `Cannot delete completed order #${order.readableId}. Completed orders have ledger entries and inventory changes that cannot be automatically reversed.`,
     );
   }
 
@@ -722,7 +737,6 @@ export async function bulkAssignOrders(data: { orderIds: string[]; driverId: str
     },
   });
 }
-
 
 export async function markOrderUnableToDeliver(data: {
   orderId: string;

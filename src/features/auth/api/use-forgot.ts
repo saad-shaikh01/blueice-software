@@ -18,10 +18,7 @@ export const useForgot = () => {
       const responseBody = await response.json(); // Read once
 
       if (!response.ok) {
-        const message =
-          typeof responseBody === 'object' && 'error' in responseBody
-            ? responseBody.error
-            : 'Failed to Forgot!';
+        const message = typeof responseBody === 'object' && 'error' in responseBody ? responseBody.error : 'Failed to Forgot!';
         throw new Error(message); // Forward backend message
       }
 

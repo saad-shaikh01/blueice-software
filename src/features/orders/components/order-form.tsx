@@ -1,31 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { Loader2, Plus, Trash } from 'lucide-react';
 import { OrderStatus } from '@prisma/client';
+import { Loader2, Plus, Trash } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 
+import { PageError } from '@/components/page-error';
+import { PageLoader } from '@/components/page-loader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PageLoader } from '@/components/page-loader';
-import { PageError } from '@/components/page-error';
-
-import { createOrderSchema, type CreateOrderInput } from '../schema';
-import { useCreateOrder } from '../api/use-create-order';
-import { useUpdateOrder } from '../api/use-update-order';
-import { useGetOrder } from '../api/use-get-order';
 import { useGetCustomers } from '@/features/customers/api/use-get-customers';
-import { useGetProducts } from '@/features/products/api/use-get-products';
-import { useGetDrivers } from '@/features/drivers/api/use-get-drivers';
 import { Customer } from '@/features/customers/components/columns';
-import { Product } from '@/features/products/components/columns';
+import { useGetDrivers } from '@/features/drivers/api/use-get-drivers';
 import { Driver } from '@/features/drivers/components/columns';
+import { useGetProducts } from '@/features/products/api/use-get-products';
+import { Product } from '@/features/products/components/columns';
+
+import { useCreateOrder } from '../api/use-create-order';
+import { useGetOrder } from '../api/use-get-order';
+import { useUpdateOrder } from '../api/use-update-order';
+import { type CreateOrderInput, createOrderSchema } from '../schema';
 
 interface OrderFormProps {
   orderId?: string;
@@ -92,9 +92,12 @@ export const OrderForm = ({ orderId, onCancel }: OrderFormProps) => {
   const onSubmit = (data: CreateOrderInput) => {
     if (isEdit && orderId) {
       // @ts-ignore - Update logic might differ slightly, but for now we replace items
-      updateOrder({ param: { id: orderId }, json: data }, {
-        onSuccess: () => router.push('/orders'),
-      });
+      updateOrder(
+        { param: { id: orderId }, json: data },
+        {
+          onSuccess: () => router.push('/orders'),
+        },
+      );
     } else {
       createOrder(data, {
         onSuccess: () => router.push('/orders'),
@@ -261,12 +264,7 @@ export const OrderForm = ({ orderId, onCancel }: OrderFormProps) => {
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  {...field}
-                                  onChange={e => field.onChange(parseInt(e.target.value) || 1)}
-                                />
+                                <Input type="number" min="1" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -285,7 +283,7 @@ export const OrderForm = ({ orderId, onCancel }: OrderFormProps) => {
                                   min="0"
                                   placeholder="Auto"
                                   {...field}
-                                  onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                                   value={field.value ?? ''}
                                 />
                               </FormControl>
@@ -304,43 +302,37 @@ export const OrderForm = ({ orderId, onCancel }: OrderFormProps) => {
                 </TableBody>
               </Table>
               <div className="p-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append({ productId: '', quantity: 1 })}
-                  className="gap-2"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ productId: '', quantity: 1 })} className="gap-2">
                   <Plus className="size-4" /> Add Item
                 </Button>
                 {form.formState.errors.items && (
-                   <p className="text-sm font-medium text-destructive mt-2">{form.formState.errors.items.message}</p>
+                  <p className="mt-2 text-sm font-medium text-destructive">{form.formState.errors.items.message}</p>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <FormField
+              <FormField
                 control={form.control}
                 name="deliveryCharge"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Delivery Charge</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" min="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
                 name="discount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Discount</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" min="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

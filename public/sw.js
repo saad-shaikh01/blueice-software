@@ -2,11 +2,7 @@ const CACHE_NAME = 'blueice-driver-v1';
 const OFFLINE_URL = '/deliveries';
 
 // Essential assets to cache on install
-const PRECACHE_ASSETS = [
-  '/',
-  '/deliveries',
-  '/manifest.json',
-];
+const PRECACHE_ASSETS = ['/', '/deliveries', '/manifest.json'];
 
 // Install event - cache essential assets
 self.addEventListener('install', (event) => {
@@ -15,7 +11,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Precaching assets');
       return cache.addAll(PRECACHE_ASSETS);
-    })
+    }),
   );
   self.skipWaiting(); // Activate immediately
 });
@@ -31,9 +27,9 @@ self.addEventListener('activate', (event) => {
             console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
-        })
+        }),
       );
-    })
+    }),
   );
   self.clients.claim(); // Take control immediately
 });
@@ -72,15 +68,12 @@ self.addEventListener('fetch', (event) => {
               return cachedResponse;
             }
             // Return offline JSON response
-            return new Response(
-              JSON.stringify({ error: 'Offline', cached: false }),
-              {
-                status: 503,
-                headers: { 'Content-Type': 'application/json' },
-              }
-            );
+            return new Response(JSON.stringify({ error: 'Offline', cached: false }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            });
           });
-        })
+        }),
     );
     return;
   }
@@ -88,13 +81,12 @@ self.addEventListener('fetch', (event) => {
   // For navigation requests (pages)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .catch(() => {
-          // Serve from cache or offline page
-          return caches.match(request).then((cachedResponse) => {
-            return cachedResponse || caches.match(OFFLINE_URL);
-          });
-        })
+      fetch(request).catch(() => {
+        // Serve from cache or offline page
+        return caches.match(request).then((cachedResponse) => {
+          return cachedResponse || caches.match(OFFLINE_URL);
+        });
+      }),
     );
     return;
   }
@@ -118,7 +110,7 @@ self.addEventListener('fetch', (event) => {
 
         return response;
       });
-    })
+    }),
   );
 });
 
@@ -249,9 +241,7 @@ self.addEventListener('push', (event) => {
     data: data.url,
   };
 
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 // Notification click handler
@@ -272,6 +262,6 @@ self.addEventListener('notificationclick', (event) => {
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
-    })
+    }),
   );
 });

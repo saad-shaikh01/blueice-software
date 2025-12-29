@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -13,28 +12,18 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ChevronDown, Loader2 } from 'lucide-react';
-import { useCustomerFilters } from '../hooks/use-customer-filters';
-import { useDebounce } from '@/hooks/use-debounce';
-import { useGetRoutes } from '@/features/routes/api/use-get-routes';
+import * as React from 'react';
+
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useGetRoutes } from '@/features/routes/api/use-get-routes';
+import { useDebounce } from '@/hooks/use-debounce';
+
+import { useCustomerFilters } from '../hooks/use-customer-filters';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,17 +31,10 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
 }
 
-export function CustomerTable<TData, TValue>({
-  columns,
-  data,
-  isLoading,
-}: DataTableProps<TData, TValue>) {
+export function CustomerTable<TData, TValue>({ columns, data, isLoading }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   // Server-side search state
@@ -66,10 +48,9 @@ export function CustomerTable<TData, TValue>({
   React.useEffect(() => {
     // Only update if the value actually changed to avoid infinite loops or unnecessary updates
     if (debouncedSearch !== filters.search) {
-        setFilters({ search: debouncedSearch || null, page: 1 });
+      setFilters({ search: debouncedSearch || null, page: 1 });
     }
   }, [debouncedSearch, filters.search, setFilters]);
-
 
   const table = useReactTable({
     data,
@@ -98,7 +79,7 @@ export function CustomerTable<TData, TValue>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 gap-2">
+      <div className="flex items-center gap-2 py-4">
         <Input
           placeholder="Search customers..."
           value={searchValue}
@@ -107,9 +88,9 @@ export function CustomerTable<TData, TValue>({
         />
         <div className="w-[200px]">
           <Select
-             value={filters.routeId || "all"}
-             onValueChange={(val) => setFilters({ routeId: val === "all" ? null : val, page: 1 })}
-             disabled={isLoadingRoutes}
+            value={filters.routeId || 'all'}
+            onValueChange={(val) => setFilters({ routeId: val === 'all' ? null : val, page: 1 })}
+            disabled={isLoadingRoutes}
           >
             <SelectTrigger>
               <SelectValue placeholder="Filter by Route" />
@@ -140,9 +121,7 @@ export function CustomerTable<TData, TValue>({
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -159,12 +138,7 @@ export function CustomerTable<TData, TValue>({
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   );
                 })}
@@ -174,10 +148,7 @@ export function CustomerTable<TData, TValue>({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   <div className="flex items-center justify-center">
                     <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                     Loading...
@@ -186,26 +157,15 @@ export function CustomerTable<TData, TValue>({
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
@@ -215,27 +175,16 @@ export function CustomerTable<TData, TValue>({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="space-x-2">
           {/* Note: Next/Prev buttons currently do client-side pagination of the loaded data chunk.
               To implement true server-side pagination, we would update the URL 'page' param here.
            */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
+          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
+          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
             Next
           </Button>
         </div>

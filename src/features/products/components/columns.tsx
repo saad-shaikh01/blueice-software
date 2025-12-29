@@ -1,20 +1,15 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { useDeleteProduct } from '../api/use-delete-product';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/use-confirm';
+
+import { useDeleteProduct } from '../api/use-delete-product';
 
 export type Product = {
   id: string;
@@ -32,7 +27,7 @@ const ActionCell = ({ product }: { product: Product }) => {
   const [ConfirmDialog, confirm] = useConfirm(
     'Delete Product',
     'Are you sure you want to delete this product? This action cannot be undone.',
-    'destructive'
+    'destructive',
   );
 
   const handleDelete = async () => {
@@ -58,11 +53,7 @@ const ActionCell = ({ product }: { product: Product }) => {
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDelete}
-            disabled={isPending}
-            className="text-red-600 focus:text-red-600"
-          >
+          <DropdownMenuItem onClick={handleDelete} disabled={isPending} className="text-red-600 focus:text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
@@ -82,10 +73,7 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: 'name',
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
           Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -109,11 +97,7 @@ export const columns: ColumnDef<Product>[] = [
     header: 'Type',
     cell: ({ row }) => {
       const isReturnable = row.getValue('isReturnable') as boolean;
-      return (
-        <Badge variant={isReturnable ? 'default' : 'secondary'}>
-          {isReturnable ? 'Returnable' : 'One-time'}
-        </Badge>
-      );
+      return <Badge variant={isReturnable ? 'default' : 'secondary'}>{isReturnable ? 'Returnable' : 'One-time'}</Badge>;
     },
   },
   {

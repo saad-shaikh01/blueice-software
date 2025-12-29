@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { client } from '@/lib/hono';
+
 import { UpdateRouteInput } from '../schema';
 
 export const useUpdateRoute = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ param, json }: { param: { id: string }, json: UpdateRouteInput }) => {
+    mutationFn: async ({ param, json }: { param: { id: string }; json: UpdateRouteInput }) => {
       const response = await client.api.routes[':id'].$patch({
         param,
         json,

@@ -19,10 +19,7 @@ export const useLogin = () => {
       const responseBody = await response.json(); // Read once
 
       if (!response.ok) {
-        const message =
-          typeof responseBody === 'object' && 'error' in responseBody
-            ? responseBody.error
-            : 'Failed to Login!';
+        const message = typeof responseBody === 'object' && 'error' in responseBody ? responseBody.error : 'Failed to Login!';
         throw new Error(message); // Forward backend message
       }
 

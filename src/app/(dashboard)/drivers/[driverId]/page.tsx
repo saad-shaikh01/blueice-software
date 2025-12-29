@@ -1,15 +1,16 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek, subDays } from 'date-fns';
+import { ArrowLeft, Calendar, DollarSign, Mail, MapPin, Package, Phone, TrendingUp, Truck } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useGetDriverStats } from '@/features/drivers/api/use-get-driver-stats';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, DollarSign, Package, TrendingUp, Calendar, MapPin, Phone, Mail, Truck } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Suspense, useState } from 'react';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { format, startOfMonth, endOfMonth, subDays, startOfWeek, endOfWeek } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGetDriverStats } from '@/features/drivers/api/use-get-driver-stats';
 
 function DriverDetailContent() {
   const params = useParams();
@@ -71,7 +72,7 @@ function DriverDetailContent() {
 
   if (error || !stats) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
         <p className="text-lg font-medium text-destructive">Failed to load driver details</p>
         <Button className="mt-4" onClick={() => router.push('/drivers')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -97,9 +98,7 @@ function DriverDetailContent() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Badge variant={driver.user.isActive ? 'default' : 'secondary'}>
-            {driver.user.isActive ? 'Active' : 'Inactive'}
-          </Badge>
+          <Badge variant={driver.user.isActive ? 'default' : 'secondary'}>{driver.user.isActive ? 'Active' : 'Inactive'}</Badge>
           {driver.user.suspended && <Badge variant="destructive">Suspended</Badge>}
         </div>
       </div>
@@ -157,31 +156,19 @@ function DriverDetailContent() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant={dateRange === 'today' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setDateRange('today')}
-            >
+            <Button variant={dateRange === 'today' ? 'primary' : 'outline'} size="sm" onClick={() => setDateRange('today')}>
               Today
             </Button>
-            <Button
-              variant={dateRange === 'week' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setDateRange('week')}
-            >
+            <Button variant={dateRange === 'week' ? 'primary' : 'outline'} size="sm" onClick={() => setDateRange('week')}>
               This Week
             </Button>
-            <Button
-              variant={dateRange === 'month' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setDateRange('month')}
-            >
+            <Button variant={dateRange === 'month' ? 'primary' : 'outline'} size="sm" onClick={() => setDateRange('month')}>
               This Month
             </Button>
-            <div className="flex items-center gap-2 ml-4">
+            <div className="ml-4 flex items-center gap-2">
               <input
                 type="date"
-                className="px-3 py-1.5 text-sm border rounded-md"
+                className="rounded-md border px-3 py-1.5 text-sm"
                 value={customStart}
                 onChange={(e) => {
                   setCustomStart(e.target.value);
@@ -191,7 +178,7 @@ function DriverDetailContent() {
               <span className="text-sm text-muted-foreground">to</span>
               <input
                 type="date"
-                className="px-3 py-1.5 text-sm border rounded-md"
+                className="rounded-md border px-3 py-1.5 text-sm"
                 value={customEnd}
                 onChange={(e) => {
                   setCustomEnd(e.target.value);
@@ -211,7 +198,7 @@ function DriverDetailContent() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{today.deliveries}</div>
-            <p className="text-xs text-muted-foreground mt-1">Completed orders today</p>
+            <p className="mt-1 text-xs text-muted-foreground">Completed orders today</p>
           </CardContent>
         </Card>
         <Card className="border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20">
@@ -220,7 +207,7 @@ function DriverDetailContent() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600 dark:text-green-400">PKR {today.cashCollected}</div>
-            <p className="text-xs text-muted-foreground mt-1">Cash collected today</p>
+            <p className="mt-1 text-xs text-muted-foreground">Cash collected today</p>
           </CardContent>
         </Card>
       </div>
@@ -239,11 +226,8 @@ function DriverDetailContent() {
             </p>
             <div className="mt-2">
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary"
-                    style={{ width: `${summary.completionRate}%` }}
-                  />
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full bg-primary" style={{ width: `${summary.completionRate}%` }} />
                 </div>
                 <span className="text-xs font-medium">{summary.completionRate}%</span>
               </div>
@@ -258,9 +242,7 @@ function DriverDetailContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">PKR {financial.totalCashCollected}</div>
-            <p className="text-xs text-muted-foreground">
-              Avg: PKR {parseFloat(financial.averageCashPerDelivery).toFixed(0)} per delivery
-            </p>
+            <p className="text-xs text-muted-foreground">Avg: PKR {parseFloat(financial.averageCashPerDelivery).toFixed(0)} per delivery</p>
           </CardContent>
         </Card>
 
@@ -282,9 +264,7 @@ function DriverDetailContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{bottles.totalEmptyTaken}</div>
-            <p className="text-xs text-muted-foreground">
-              Exchange rate: {bottles.exchangeRate}%
-            </p>
+            <p className="text-xs text-muted-foreground">Exchange rate: {bottles.exchangeRate}%</p>
           </CardContent>
         </Card>
       </div>
@@ -322,11 +302,11 @@ function DriverDetailContent() {
         <CardContent>
           <div className="space-y-4">
             {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No completed orders in this period</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">No completed orders in this period</p>
             ) : (
               recentOrders.map((order) => (
-                <div key={order.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-2">
+                <div key={order.id} className="rounded-lg border p-4">
+                  <div className="mb-2 flex items-start justify-between">
                     <div>
                       <p className="font-medium">Order #{order.readableId}</p>
                       <p className="text-sm text-muted-foreground">{order.customerName}</p>
@@ -335,9 +315,7 @@ function DriverDetailContent() {
                     <div className="text-right">
                       <p className="font-medium">PKR {order.cashCollected}</p>
                       <p className="text-xs text-muted-foreground">
-                        {order.deliveredAt
-                          ? format(new Date(order.deliveredAt), 'MMM dd, yyyy HH:mm')
-                          : 'N/A'}
+                        {order.deliveredAt ? format(new Date(order.deliveredAt), 'MMM dd, yyyy HH:mm') : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -368,9 +346,9 @@ export default function DriverDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
             <p className="mt-4 text-muted-foreground">Loading driver details...</p>
           </div>
         </div>

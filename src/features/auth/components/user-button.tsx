@@ -1,13 +1,13 @@
 'use client';
 
 import { Loader2, LogOut, User } from 'lucide-react';
+import Link from 'next/link';
 
 import { DottedSeparator } from '@/components/dotted-separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCurrent } from '@/features/auth/api/use-current';
 import { useLogout } from '@/features/auth/api/use-logout';
-import Link from 'next/link';
 import { getImageUrl } from '@/lib/utils';
 
 export const UserButton = () => {
@@ -26,11 +26,7 @@ export const UserButton = () => {
 
   const { name, email, imageUrl } = user;
   const avatarUrl = imageUrl || '';
-  const avatarFallback = name
-    ? name.charAt(0).toUpperCase()
-    : email
-      ? email.charAt(0).toUpperCase()
-      : '?';
+  const avatarFallback = name ? name.charAt(0).toUpperCase() : email ? email.charAt(0).toUpperCase() : '?';
 
   return (
     <DropdownMenu modal={false}>
@@ -61,7 +57,10 @@ export const UserButton = () => {
         <DottedSeparator className="mb-1" />
 
         <DropdownMenuItem>
-          <Link className="flex h-10 cursor-pointer items-center justify-center font-medium text-amber-700 dark:text-amber-500 mx-auto" href={"/profile/settings"}>
+          <Link
+            className="mx-auto flex h-10 cursor-pointer items-center justify-center font-medium text-amber-700 dark:text-amber-500"
+            href={'/profile/settings'}
+          >
             <User className="mr-2 size-4" />
             Settings
           </Link>

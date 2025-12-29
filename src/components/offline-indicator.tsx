@@ -1,7 +1,8 @@
 'use client';
 
+import { AlertCircle, CheckCircle2, CloudOff, RefreshCw, WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { WifiOff, CloudOff, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,10 +24,7 @@ export function OfflineIndicator() {
   useEffect(() => {
     const updateStats = async () => {
       try {
-        const [count, storageStats] = await Promise.all([
-          getPendingDeliveriesCount(),
-          getStorageStats(),
-        ]);
+        const [count, storageStats] = await Promise.all([getPendingDeliveriesCount(), getStorageStats()]);
         setPendingCount(count);
         setStats(storageStats);
       } catch (error) {
@@ -98,16 +96,10 @@ export function OfflineIndicator() {
             {pendingCount > 0 && (
               <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2">
                 <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-semibold">
-                  {pendingCount} delivery(s) pending sync
-                </span>
+                <span className="text-sm font-semibold">{pendingCount} delivery(s) pending sync</span>
               </div>
             )}
-            {stats.pendingPhotos > 0 && (
-              <p className="text-xs text-muted-foreground">
-                + {stats.pendingPhotos} photo(s) waiting to upload
-              </p>
-            )}
+            {stats.pendingPhotos > 0 && <p className="text-xs text-muted-foreground">+ {stats.pendingPhotos} photo(s) waiting to upload</p>}
           </AlertDescription>
         </Alert>
       ) : pendingCount > 0 ? (
@@ -122,17 +114,10 @@ export function OfflineIndicator() {
           </AlertTitle>
           <AlertDescription className="mt-2 space-y-2">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              {isLoading
-                ? 'Uploading offline changes...'
-                : 'Changes from offline work are being synced'}
+              {isLoading ? 'Uploading offline changes...' : 'Changes from offline work are being synced'}
             </p>
             {!isLoading && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSync}
-                className="mt-2 h-8 border-blue-300 text-blue-700 hover:bg-blue-100"
-              >
+              <Button size="sm" variant="outline" onClick={handleSync} className="mt-2 h-8 border-blue-300 text-blue-700 hover:bg-blue-100">
                 <RefreshCw className="mr-2 h-3 w-3" />
                 Retry Sync
               </Button>

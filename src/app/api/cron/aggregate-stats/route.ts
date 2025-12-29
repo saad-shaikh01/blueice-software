@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { aggregateDailyStats, cleanupOldLocationHistory } from '@/lib/cron/aggregate-daily-stats';
 import { subDays } from 'date-fns';
+import { NextRequest, NextResponse } from 'next/server';
+
+import { aggregateDailyStats, cleanupOldLocationHistory } from '@/lib/cron/aggregate-daily-stats';
 
 /**
  * Cron endpoint for aggregating daily statistics

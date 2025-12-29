@@ -1,9 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreVertical } from 'lucide-react';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getAvatarColor, getImageUrl } from '@/lib/utils';
+
 import { UserActions } from './user-actiion';
 
 export const columns: ColumnDef<any>[] = [
@@ -29,7 +31,7 @@ export const columns: ColumnDef<any>[] = [
           </Avatar> */}
           <Avatar className="size-10 border border-neutral-300 transition hover:opacity-75">
             <AvatarImage src={getImageUrl(imageUrl)} alt={''} className="object-cover" />
-            <AvatarFallback className={cn(`flex items-center justify-center font-medium`, getAvatarColor(name))} >
+            <AvatarFallback className={cn(`flex items-center justify-center font-medium`, getAvatarColor(name))}>
               {name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -95,11 +97,7 @@ export const columns: ColumnDef<any>[] = [
     },
     cell: ({ row }) => {
       const isActive = row.original.suspended;
-      return (
-        <Badge variant={isActive ? 'destructive' : 'default'}>
-          {isActive ? 'Suspended' : 'Active'}
-        </Badge>
-      );
+      return <Badge variant={isActive ? 'destructive' : 'default'}>{isActive ? 'Suspended' : 'Active'}</Badge>;
     },
   },
   {

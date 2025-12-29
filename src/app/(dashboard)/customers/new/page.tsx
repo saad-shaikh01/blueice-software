@@ -1,4 +1,4 @@
-import { CreateCustomerForm } from "@/features/customers/components";
+import { CreateCustomerForm } from '@/features/customers/components';
 
 export default function NewCustomerPage() {
   return (

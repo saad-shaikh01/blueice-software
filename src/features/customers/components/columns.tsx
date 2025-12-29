@@ -1,9 +1,10 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash, Eye } from 'lucide-react';
+import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { useDeleteCustomer } from '@/features/customers/api/use-delete-customer';
 import { useConfirm } from '@/hooks/use-confirm';
 
@@ -46,7 +46,7 @@ const ActionCell = ({ customer }: { customer: Customer }) => {
   const [ConfirmDialog, confirm] = useConfirm(
     'Delete Customer',
     'Are you sure you want to delete this customer? This action cannot be undone.',
-    'destructive'
+    'destructive',
   );
 
   const handleDelete = async () => {
@@ -68,11 +68,7 @@ const ActionCell = ({ customer }: { customer: Customer }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => navigator.clipboard.writeText(customer.id)}
-          >
-            Copy customer ID
-          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigator.clipboard.writeText(customer.id)}>Copy customer ID</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push(`/customers/${customer.id}`)}>
             <Eye className="mr-2 h-4 w-4" />
@@ -82,11 +78,7 @@ const ActionCell = ({ customer }: { customer: Customer }) => {
             <Pencil className="mr-2 h-4 w-4" />
             Edit customer
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDelete}
-            disabled={isPending}
-            className="text-red-600 focus:text-red-600"
-          >
+          <DropdownMenuItem onClick={handleDelete} disabled={isPending} className="text-red-600 focus:text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete customer
           </DropdownMenuItem>
@@ -106,10 +98,7 @@ export const columns: ColumnDef<Customer>[] = [
     accessorKey: 'user.name',
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
           Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -128,32 +117,36 @@ export const columns: ColumnDef<Customer>[] = [
   {
     accessorKey: 'address',
     header: 'Address',
-    cell: ({ row }) => <div className="truncate max-w-[200px]" title={row.getValue('address')}>{row.getValue('address')}</div>,
+    cell: ({ row }) => (
+      <div className="max-w-[200px] truncate" title={row.getValue('address')}>
+        {row.getValue('address')}
+      </div>
+    ),
   },
   {
     accessorKey: 'type',
     header: 'Type',
     cell: ({ row }) => {
-       const type = row.getValue('type') as string;
-       return <Badge variant="secondary">{type}</Badge>
-    }
+      const type = row.getValue('type') as string;
+      return <Badge variant="secondary">{type}</Badge>;
+    },
   },
   {
-      accessorKey: 'route.name',
-      header: 'Route',
-      cell: ({ row }) => row.original.route?.name || '-',
+    accessorKey: 'route.name',
+    header: 'Route',
+    cell: ({ row }) => row.original.route?.name || '-',
   },
   {
     accessorKey: 'cashBalance',
     header: 'Balance',
-     cell: ({ row }) => {
+    cell: ({ row }) => {
       const balance = parseFloat(row.getValue('cashBalance'));
       const formatted = new Intl.NumberFormat('en-PK', {
         style: 'currency',
         currency: 'PKR',
       }).format(balance);
 
-      return <div className={balance < 0 ? 'text-red-500 font-medium' : 'text-green-600 font-medium'}>{formatted}</div>
+      return <div className={balance < 0 ? 'font-medium text-red-500' : 'font-medium text-green-600'}>{formatted}</div>;
     },
   },
   {

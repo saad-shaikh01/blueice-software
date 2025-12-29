@@ -1,20 +1,20 @@
 import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
+import { Hono } from 'hono';
 import { z } from 'zod';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
-import { createDriverSchema, getDriversQuerySchema, updateDriverSchema } from '@/features/drivers/schema';
+import { getDriverStats } from '@/features/driver-view/queries';
 import {
   createDriver,
   deleteDriver,
   getDriver,
   getDriverByUserId,
+  getDriverDetailStats,
   getDrivers,
   updateDriver,
-  getDriverDetailStats,
 } from '@/features/drivers/queries';
-import { getDriverStats } from '@/features/driver-view/queries';
+import { createDriverSchema, getDriversQuerySchema, updateDriverSchema } from '@/features/drivers/schema';
+import { sessionMiddleware } from '@/lib/session-middleware';
 
 const app = new Hono()
   .get('/me/stats', sessionMiddleware, async (ctx) => {
@@ -68,7 +68,7 @@ const app = new Hono()
       z.object({
         startDate: z.string().optional(),
         endDate: z.string().optional(),
-      })
+      }),
     ),
     async (ctx) => {
       const { id } = ctx.req.param();
@@ -84,7 +84,7 @@ const app = new Hono()
         console.error('[DRIVER_STATS_ERROR]:', error);
         return ctx.json({ error: 'Failed to fetch driver statistics' }, 500);
       }
-    }
+    },
   )
   .post('/', sessionMiddleware, zValidator('json', createDriverSchema), async (ctx) => {
     const user = ctx.get('user');
@@ -103,9 +103,9 @@ const app = new Hono()
       return ctx.json({ data: driver });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-         const target = (error.meta?.target as string[]) || [];
-         if (target.includes('phoneNumber')) return ctx.json({ error: 'Phone number already exists' }, 400);
-         if (target.includes('email')) return ctx.json({ error: 'Email already exists' }, 400);
+        const target = (error.meta?.target as string[]) || [];
+        if (target.includes('phoneNumber')) return ctx.json({ error: 'Phone number already exists' }, 400);
+        if (target.includes('email')) return ctx.json({ error: 'Email already exists' }, 400);
       }
       return ctx.json({ error: 'Failed to create driver' }, 500);
     }
@@ -124,10 +124,10 @@ const app = new Hono()
       const driver = await updateDriver(id, data);
       return ctx.json({ data: driver });
     } catch (error) {
-       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-         const target = (error.meta?.target as string[]) || [];
-         if (target.includes('phoneNumber')) return ctx.json({ error: 'Phone number already exists' }, 400);
-         if (target.includes('email')) return ctx.json({ error: 'Email already exists' }, 400);
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = (error.meta?.target as string[]) || [];
+        if (target.includes('phoneNumber')) return ctx.json({ error: 'Phone number already exists' }, 400);
+        if (target.includes('email')) return ctx.json({ error: 'Email already exists' }, 400);
       }
       return ctx.json({ error: 'Failed to update driver' }, 500);
     }
@@ -144,7 +144,7 @@ const app = new Hono()
       await deleteDriver(id);
       return ctx.json({ success: true });
     } catch (error) {
-       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
         return ctx.json({ error: 'Cannot delete driver with existing assignments' }, 400);
       }
       return ctx.json({ error: 'Failed to delete driver' }, 500);

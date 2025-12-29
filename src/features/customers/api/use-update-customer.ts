@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { client } from '@/lib/hono';
+
 import { UpdateCustomerInput } from '../schema';
 
 export const useUpdateCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ param, json }: { param: { id: string }, json: UpdateCustomerInput }) => {
+    mutationFn: async ({ param, json }: { param: { id: string }; json: UpdateCustomerInput }) => {
       const response = await client.api.customers[':id'].$patch({
         param,
         json,

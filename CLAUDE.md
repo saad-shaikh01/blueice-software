@@ -78,14 +78,16 @@ Example: `src/features/auth/` contains all authentication-related code.
 ### API Architecture (Hono.js)
 
 1. **Route Registration**: Feature API routes are registered in `src/app/api/[[...route]]/route.ts`:
+
    ```typescript
-   const routes = app.route('/auth', auth)
-   export type AppType = typeof routes
+   const routes = app.route('/auth', auth);
+   export type AppType = typeof routes;
    ```
 
 2. **Client Setup**: Type-safe client created in `src/lib/hono.ts`:
+
    ```typescript
-   export const client = hc<AppType>(process.env.NEXT_PUBLIC_APP_BASE_URL!)
+   export const client = hc<AppType>(process.env.NEXT_PUBLIC_APP_BASE_URL!);
    ```
 
 3. **Feature Routes**: Each feature defines its routes in `server/route.ts`
@@ -100,6 +102,7 @@ Example: `src/features/auth/` contains all authentication-related code.
 The schema follows a water distribution business model:
 
 **Core Models:**
+
 - `User` - Authentication (email/phone, role-based: SUPER_ADMIN, ADMIN, DRIVER, CUSTOMER, INVENTORY_MGR)
 - `CustomerProfile` - Extended customer data (location, route, delivery schedule, financials)
 - `DriverProfile` - Driver details and live tracking
@@ -113,6 +116,7 @@ The schema follows a water distribution business model:
 - `AuditLog` - Action tracking for compliance
 
 **Key Business Logic:**
+
 - Bottle exchange system: tracks filled bottles given vs empty bottles returned
 - Financial wallet: `cashBalance` can be positive (advance) or negative (credit/udhaar)
 - Credit limits: `creditLimit` prevents excessive debt
@@ -143,6 +147,7 @@ The schema follows a water distribution business model:
 ## Important Patterns
 
 ### Authentication Flow
+
 1. User signs in via `/auth/login` API endpoint
 2. Server validates credentials, generates JWT token
 3. Token stored in HTTP-only cookie (`AUTH_COOKIE`)
@@ -150,16 +155,19 @@ The schema follows a water distribution business model:
 5. Client hooks (`use-current.ts`) fetch user data
 
 ### Firebase Push Notifications
+
 - FCM tokens stored in `User.fcmTokens` array (supports multiple devices)
 - Service worker setup in `src/components/firebase-forground.tsx`
 - Admin SDK in `src/lib/firebase-admin.ts` for server-side sending
 
 ### File Upload
+
 - AWS S3 integration via `@aws-sdk/client-s3`
 - Upload utilities in `src/lib/upload.ts`
 - Presigned URLs for direct client uploads
 
 ### Rich Text Editing
+
 - TipTap for WYSIWYG editing with mentions support
 - Utility functions:
   - `src/lib/renderTipTapJsonToHtml.ts` - Convert TipTap JSON to HTML
@@ -168,6 +176,7 @@ The schema follows a water distribution business model:
 ## Code Style
 
 ### Prettier Configuration (.prettierrc.mjs)
+
 - Semi-colons: required
 - Quotes: single
 - Tab width: 2 spaces
@@ -176,10 +185,12 @@ The schema follows a water distribution business model:
 - Automatic import sorting and Tailwind class sorting
 
 ### Path Aliases
+
 - `@/*` maps to `src/*` (configured in tsconfig.json)
 - Always use absolute imports with `@/` prefix
 
 ### Naming Conventions
+
 - Components: PascalCase
 - Hooks: camelCase with `use` prefix
 - API hooks: `use-{action}.ts` (e.g., `use-login.ts`)
@@ -197,6 +208,7 @@ The schema follows a water distribution business model:
 ## Environment Variables
 
 Required variables (check `.env` file):
+
 - `DATABASE_URL` - PostgreSQL connection string
 - `JWT_SECRET` - Secret for JWT token signing
 - `NEXT_PUBLIC_APP_BASE_URL` - Base URL for API client

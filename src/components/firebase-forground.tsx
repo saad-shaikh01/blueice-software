@@ -1,31 +1,34 @@
-'use client'
-import useFcmToken from "@/hooks/use-fcmtoken";
+'use client';
+
+import { useQueryClient } from '@tanstack/react-query';
 import { getMessaging, onMessage } from 'firebase/messaging';
-import firebaseApp from '../../firebase';
 import { ElementRef, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { useQueryClient } from "@tanstack/react-query";
+
+import useFcmToken from '@/hooks/use-fcmtoken';
+
+import firebaseApp from '../../firebase';
 
 export default function FcmTokenComp() {
   const { token, notificationPermissionStatus } = useFcmToken();
-  const ringAudioRef = useRef<ElementRef<'audio'>>(null)
+  const ringAudioRef = useRef<ElementRef<'audio'>>(null);
 
   const playRingSound = () => {
     if (ringAudioRef?.current) {
-      ringAudioRef.current.currentTime = 0
-      ringAudioRef.current.play()
+      ringAudioRef.current.currentTime = 0;
+      ringAudioRef.current.play();
     }
-  }
+  };
 
   const queryClient = useQueryClient();
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       if (notificationPermissionStatus === 'granted') {
-        console.log("permission grandted")
+        console.log('permission grandted');
         const messaging = getMessaging(firebaseApp);
         const unsubscribe = onMessage(messaging, (payload) => {
           console.log('Foreground push notification received:', payload);
-          playRingSound()
+          playRingSound();
           // queryClient.setQueryData(['notifications'], (old) => {
           //   return {
           //     ...old,
@@ -42,11 +45,10 @@ export default function FcmTokenComp() {
           //   };
           // });
 
-
           if (payload?.data?.type === 'comment') {
             queryClient.invalidateQueries({
               queryKey: ['comments', payload?.data?.taskId],
-            })
+            });
           }
           setTimeout(() => {
             queryClient.invalidateQueries({
@@ -54,11 +56,11 @@ export default function FcmTokenComp() {
             });
           }, 1000);
 
-          toast.message(payload?.data?.title || "📩 New Notification", {
-            description: payload?.data?.body || "You have a new message.",
+          toast.message(payload?.data?.title || '📩 New Notification', {
+            description: payload?.data?.body || 'You have a new message.',
             duration: 5000,
             action: {
-              label: "View",
+              label: 'View',
               onClick: () => {
                 // You can navigate or perform some action here
                 // console.log("View clicked");
@@ -66,7 +68,7 @@ export default function FcmTokenComp() {
                 if (url) {
                   window.location.href = url;
                 } else {
-                  console.log("No URL provided in the notification data.");
+                  console.log('No URL provided in the notification data.');
                 }
               },
             },
@@ -81,7 +83,9 @@ export default function FcmTokenComp() {
 
   return (
     <div>
-      <audio ref={ringAudioRef} className="hidden invisible opacity-0" src="/files/new-msg-ring.wav" > </audio>
+      <audio ref={ringAudioRef} className="invisible hidden opacity-0" src="/files/new-msg-ring.wav">
+        {' '}
+      </audio>
     </div>
-  )
+  );
 }

@@ -1,10 +1,11 @@
-import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
+import { OrderStatus, UserRole } from '@prisma/client';
+import { Hono } from 'hono';
 import { z } from 'zod';
+
+import { getComprehensiveDashboardData } from '@/features/dashboard/queries-comprehensive';
 import { db } from '@/lib/db';
 import { sessionMiddleware } from '@/lib/session-middleware';
-import { OrderStatus, UserRole } from '@prisma/client';
-import { getComprehensiveDashboardData } from '@/features/dashboard/queries-comprehensive';
 
 const app = new Hono()
   .get('/', sessionMiddleware, async (ctx) => {
@@ -13,30 +14,23 @@ const app = new Hono()
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(today.getDate() - 30);
 
-      const [
-        customerCount,
-        orderCount,
-        activeOrderCount,
-        revenueData,
-        dailyRevenue,
-        orderStatusDistribution
-      ] = await Promise.all([
+      const [customerCount, orderCount, activeOrderCount, revenueData, dailyRevenue, orderStatusDistribution] = await Promise.all([
         db.customerProfile.count(),
         db.order.count(),
         db.order.count({
           where: {
             status: {
-              notIn: [OrderStatus.COMPLETED, OrderStatus.CANCELLED]
-            }
-          }
+              notIn: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+            },
+          },
         }),
         db.order.aggregate({
           where: {
-            status: OrderStatus.COMPLETED
+            status: OrderStatus.COMPLETED,
           },
           _sum: {
-            totalAmount: true
-          }
+            totalAmount: true,
+          },
         }),
         // Revenue per day (last 30 days)
         db.$queryRaw`
@@ -51,9 +45,9 @@ const app = new Hono()
         db.order.groupBy({
           by: ['status'],
           _count: {
-            id: true
-          }
-        })
+            id: true,
+          },
+        }),
       ]);
 
       return ctx.json({
@@ -63,11 +57,11 @@ const app = new Hono()
           activeOrderCount,
           totalRevenue: revenueData._sum.totalAmount?.toString() || '0',
           dailyRevenue: dailyRevenue as { date: Date; amount: number }[],
-          orderStatusDistribution: orderStatusDistribution.map(item => ({
+          orderStatusDistribution: orderStatusDistribution.map((item) => ({
             name: item.status,
-            value: item._count.id
-          }))
-        }
+            value: item._count.id,
+          })),
+        },
       });
     } catch (error) {
       return ctx.json({ error: 'Failed to fetch dashboard stats' }, 500);
@@ -81,7 +75,7 @@ const app = new Hono()
       z.object({
         startDate: z.string().optional(),
         endDate: z.string().optional(),
-      })
+      }),
     ),
     async (ctx) => {
       const user = ctx.get('user');
@@ -105,7 +99,7 @@ const app = new Hono()
         console.error('[COMPREHENSIVE_DASHBOARD_ERROR]:', error);
         return ctx.json({ error: 'Failed to fetch comprehensive dashboard data' }, 500);
       }
-    }
+    },
   );
 
 export default app;

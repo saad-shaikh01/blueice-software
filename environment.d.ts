@@ -15,4 +15,4 @@ declare global {
 
 declare module 'jsonwebtoken';
 
-export { };
+export {};

@@ -1,4 +1,5 @@
-import { Prisma, CashHandoverStatus, OrderStatus, PaymentMethod } from '@prisma/client';
+import { CashHandoverStatus, OrderStatus, PaymentMethod, Prisma } from '@prisma/client';
+
 import { db } from '@/lib/db';
 
 // --------------------------------------------------------
@@ -99,9 +100,9 @@ export async function getDriverDaySummary(driverId: string, date: Date) {
       driverId,
       date: { gte: startOfDay, lte: endOfDay },
       paymentMethod: 'CASH_ON_HAND',
-      status: { not: 'REJECTED' }
+      status: { not: 'REJECTED' },
     },
-    _sum: { amount: true }
+    _sum: { amount: true },
   });
 
   const expensesAmount = parseFloat(expenses._sum.amount?.toString() || '0');

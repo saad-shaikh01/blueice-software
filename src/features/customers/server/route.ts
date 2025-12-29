@@ -1,19 +1,65 @@
 import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
+import { Hono } from 'hono';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
-import { createCustomerSchema, getCustomersQuerySchema, updateCustomerSchema } from '@/features/customers/schema';
 import {
+  checkCustomerCodeExists,
   createCustomerWithProfile,
   deleteCustomer,
+  generateNextCustomerCode,
   getCustomerWithOrderHistory,
   getCustomers,
   updateCustomerProfile,
 } from '@/features/customers/queries';
+import { createCustomerSchema, getCustomersQuerySchema, updateCustomerSchema } from '@/features/customers/schema';
 import { generateToken } from '@/lib/authenticate';
+import { sessionMiddleware } from '@/lib/session-middleware';
 
 const app = new Hono()
+  /**
+   * GET /api/customers/generate-code
+   * Generate next available customer code (C-1001, C-1002, etc.)
+   */
+  .get('/generate-code', sessionMiddleware, async (ctx) => {
+    const user = ctx.get('user');
+
+    // Only SUPER_ADMIN, ADMIN, and INVENTORY_MGR can generate codes
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN && user.role !== UserRole.INVENTORY_MGR) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
+    }
+
+    try {
+      const code = await generateNextCustomerCode();
+      return ctx.json({ data: { code } });
+    } catch (error) {
+      console.error('[GENERATE_CUSTOMER_CODE]:', error);
+      return ctx.json({ error: 'Failed to generate customer code' }, 500);
+    }
+  })
+
+  /**
+   * GET /api/customers/check-code/:code
+   * Check if a customer code already exists
+   */
+  .get('/check-code/:code', sessionMiddleware, async (ctx) => {
+    const user = ctx.get('user');
+
+    // Only SUPER_ADMIN, ADMIN, and INVENTORY_MGR can check codes
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN && user.role !== UserRole.INVENTORY_MGR) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const { code } = ctx.req.param();
+
+    try {
+      const exists = await checkCustomerCodeExists(code);
+      return ctx.json({ data: { exists } });
+    } catch (error) {
+      console.error('[CHECK_CUSTOMER_CODE]:', error);
+      return ctx.json({ error: 'Failed to check customer code' }, 500);
+    }
+  })
+
   /**
    * POST /api/customers
    * Create a new customer with optional legacy data migration
@@ -30,11 +76,7 @@ const app = new Hono()
     const user = ctx.get('user');
 
     // Only SUPER_ADMIN, ADMIN, and INVENTORY_MGR can create customers
-    if (
-      user.role !== UserRole.SUPER_ADMIN &&
-      user.role !== UserRole.ADMIN &&
-      user.role !== UserRole.INVENTORY_MGR
-    ) {
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN && user.role !== UserRole.INVENTORY_MGR) {
       return ctx.json({ error: 'Unauthorized: Only admins can create customers' }, 403);
     }
 
@@ -130,11 +172,7 @@ const app = new Hono()
     const data = ctx.req.valid('json');
 
     // Only SUPER_ADMIN, ADMIN, and INVENTORY_MGR can update customers
-    if (
-      user.role !== UserRole.SUPER_ADMIN &&
-      user.role !== UserRole.ADMIN &&
-      user.role !== UserRole.INVENTORY_MGR
-    ) {
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN && user.role !== UserRole.INVENTORY_MGR) {
       return ctx.json({ error: 'Unauthorized: Only admins can update customers' }, 403);
     }
 
@@ -188,7 +226,8 @@ const app = new Hono()
       console.error('[DELETE_CUSTOMER]:', error);
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2003') { // ForeignKeyViolation
+        if (error.code === 'P2003') {
+          // ForeignKeyViolation
           return ctx.json({ error: 'Cannot delete customer with existing orders or records' }, 400);
         }
       }

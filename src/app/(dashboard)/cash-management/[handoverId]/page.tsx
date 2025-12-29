@@ -1,55 +1,40 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { client } from '@/lib/hono';
-import { useVerifyCashHandover } from '@/features/cash-management/api/use-verify-cash-handover';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  ArrowLeft,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  DollarSign,
-  Package,
-  Clock,
-  User,
-  Phone,
-  Calendar,
-  FileText,
-} from 'lucide-react';
-import { format } from 'date-fns';
 import { CashHandoverStatus } from '@prisma/client';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { AlertCircle, ArrowLeft, Calendar, CheckCircle, Clock, DollarSign, FileText, Package, Phone, User, XCircle } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { useVerifyCashHandover } from '@/features/cash-management/api/use-verify-cash-handover';
+import { client } from '@/lib/hono';
 
 function CashHandoverDetailContent() {
   const params = useParams();
   const router = useRouter();
   const handoverId = params.handoverId as string;
 
-  const [verificationStatus, setVerificationStatus] = useState<
-    'VERIFIED' | 'REJECTED' | 'ADJUSTED'
-  >(CashHandoverStatus.VERIFIED);
+  const [verificationStatus, setVerificationStatus] = useState<'VERIFIED' | 'REJECTED' | 'ADJUSTED'>(CashHandoverStatus.VERIFIED);
   const [adminNotes, setAdminNotes] = useState('');
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
 
   const { mutate: verifyHandover, isPending } = useVerifyCashHandover();
 
-  const { data: handover, isLoading, error } = useQuery({
+  const {
+    data: handover,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['cash-handover', handoverId],
     queryFn: async () => {
       const response = await client.api['cash-management'][':id'].$get({
@@ -66,19 +51,19 @@ function CashHandoverDetailContent() {
   });
 
   const handleVerify = () => {
-    verifyHandover({
-      id: handoverId,
-      status: verificationStatus,
-      adminNotes: adminNotes || undefined,
-      adjustmentAmount:
-        verificationStatus === CashHandoverStatus.ADJUSTED && adjustmentAmount
-          ? parseFloat(adjustmentAmount)
-          : undefined,
-    }, {
-      onSuccess: () => {
-        router.push('/cash-management');
-      }
-    });
+    verifyHandover(
+      {
+        id: handoverId,
+        status: verificationStatus,
+        adminNotes: adminNotes || undefined,
+        adjustmentAmount: verificationStatus === CashHandoverStatus.ADJUSTED && adjustmentAmount ? parseFloat(adjustmentAmount) : undefined,
+      },
+      {
+        onSuccess: () => {
+          router.push('/cash-management');
+        },
+      },
+    );
   };
 
   if (isLoading) {
@@ -97,8 +82,8 @@ function CashHandoverDetailContent() {
 
   if (error || !handover) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
         <p className="text-lg font-medium text-destructive">Failed to load handover details</p>
         <Button className="mt-4" onClick={() => router.push('/cash-management')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -121,13 +106,33 @@ function CashHandoverDetailContent() {
   const getStatusBadge = (status: CashHandoverStatus) => {
     switch (status) {
       case CashHandoverStatus.PENDING:
-        return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pending</Badge>;
+        return (
+          <Badge variant="secondary">
+            <Clock className="mr-1 h-3 w-3" />
+            Pending
+          </Badge>
+        );
       case CashHandoverStatus.VERIFIED:
-        return <Badge className="bg-green-600"><CheckCircle className="mr-1 h-3 w-3" />Verified</Badge>;
+        return (
+          <Badge className="bg-green-600">
+            <CheckCircle className="mr-1 h-3 w-3" />
+            Verified
+          </Badge>
+        );
       case CashHandoverStatus.REJECTED:
-        return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Rejected</Badge>;
+        return (
+          <Badge variant="destructive">
+            <XCircle className="mr-1 h-3 w-3" />
+            Rejected
+          </Badge>
+        );
       case CashHandoverStatus.ADJUSTED:
-        return <Badge variant="outline"><AlertCircle className="mr-1 h-3 w-3" />Adjusted</Badge>;
+        return (
+          <Badge variant="outline">
+            <AlertCircle className="mr-1 h-3 w-3" />
+            Adjusted
+          </Badge>
+        );
     }
   };
 
@@ -140,12 +145,8 @@ function CashHandoverDetailContent() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Cash Handover #{handover.readableId}
-            </h1>
-            <p className="text-muted-foreground">
-              {format(new Date(handover.date), 'MMMM dd, yyyy')}
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">Cash Handover #{handover.readableId}</h1>
+            <p className="text-muted-foreground">{format(new Date(handover.date), 'MMMM dd, yyyy')}</p>
           </div>
         </div>
         {getStatusBadge(handover.status)}
@@ -176,9 +177,7 @@ function CashHandoverDetailContent() {
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Submitted At</p>
-                <p className="font-medium">
-                  {format(new Date(handover.submittedAt), 'MMM dd, HH:mm')}
-                </p>
+                <p className="font-medium">{format(new Date(handover.submittedAt), 'MMM dd, HH:mm')}</p>
               </div>
             </div>
           </div>
@@ -187,7 +186,7 @@ function CashHandoverDetailContent() {
 
       {/* Cash Summary */}
       {hasUnverifiedExpenses && (
-        <Card className="border-yellow-200 bg-yellow-50/50 mb-6">
+        <Card className="mb-6 border-yellow-200 bg-yellow-50/50">
           <CardContent className="flex items-center gap-4 p-4">
             <AlertCircle className="h-6 w-6 text-yellow-600" />
             <div>
@@ -209,9 +208,7 @@ function CashHandoverDetailContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">PKR {grossCash.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              From {handover.cashOrders} cash orders
-            </p>
+            <p className="text-xs text-muted-foreground">From {handover.cashOrders} cash orders</p>
           </CardContent>
         </Card>
 
@@ -222,9 +219,7 @@ function CashHandoverDetailContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">PKR {handover.expectedCash.toString()}</div>
-            <p className="text-xs text-muted-foreground">
-              After expenses deduction
-            </p>
+            <p className="text-xs text-muted-foreground">After expenses deduction</p>
           </CardContent>
         </Card>
 
@@ -261,9 +256,7 @@ function CashHandoverDetailContent() {
               Discrepancy
             </CardTitle>
             {hasDiscrepancy ? (
-              <AlertCircle
-                className={`h-4 w-4 ${discrepancy > 0 ? 'text-yellow-600' : 'text-red-600'}`}
-              />
+              <AlertCircle className={`h-4 w-4 ${discrepancy > 0 ? 'text-yellow-600' : 'text-red-600'}`} />
             ) : (
               <CheckCircle className="h-4 w-4 text-green-600" />
             )}
@@ -278,9 +271,7 @@ function CashHandoverDetailContent() {
                   : 'text-green-600 dark:text-green-400'
               }`}
             >
-              {hasDiscrepancy
-                ? `PKR ${Math.abs(discrepancy).toFixed(2)}`
-                : 'Perfect Match'}
+              {hasDiscrepancy ? `PKR ${Math.abs(discrepancy).toFixed(2)}` : 'Perfect Match'}
             </div>
             <p className="text-xs text-muted-foreground">
               {hasDiscrepancy ? (discrepancy > 0 ? 'Cash shortage' : 'Cash excess') : 'No discrepancy'}
@@ -326,9 +317,7 @@ function CashHandoverDetailContent() {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Net Difference:</span>
-              <span className="font-medium">
-                {handover.bottlesGiven - handover.bottlesTaken}
-              </span>
+              <span className="font-medium">{handover.bottlesGiven - handover.bottlesTaken}</span>
             </div>
           </CardContent>
         </Card>
@@ -344,17 +333,13 @@ function CashHandoverDetailContent() {
             {handover.shiftStart && (
               <div>
                 <p className="text-sm text-muted-foreground">Shift Start</p>
-                <p className="font-medium">
-                  {format(new Date(handover.shiftStart), 'HH:mm')}
-                </p>
+                <p className="font-medium">{format(new Date(handover.shiftStart), 'HH:mm')}</p>
               </div>
             )}
             {handover.shiftEnd && (
               <div>
                 <p className="text-sm text-muted-foreground">Shift End</p>
-                <p className="font-medium">
-                  {format(new Date(handover.shiftEnd), 'HH:mm')}
-                </p>
+                <p className="font-medium">{format(new Date(handover.shiftEnd), 'HH:mm')}</p>
               </div>
             )}
           </CardContent>
@@ -366,7 +351,7 @@ function CashHandoverDetailContent() {
         <Card>
           <CardHeader>
             <CardTitle>
-              <FileText className="inline-block mr-2 h-5 w-5" />
+              <FileText className="mr-2 inline-block h-5 w-5" />
               Driver Notes
             </CardTitle>
           </CardHeader>
@@ -381,14 +366,12 @@ function CashHandoverDetailContent() {
         <Card>
           <CardHeader>
             <CardTitle>Admin Notes</CardTitle>
-            <CardDescription>
-              Verified by admin on {format(new Date(handover.verifiedAt!), 'MMM dd, yyyy HH:mm')}
-            </CardDescription>
+            <CardDescription>Verified by admin on {format(new Date(handover.verifiedAt!), 'MMM dd, yyyy HH:mm')}</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap">{handover.adminNotes}</p>
             {handover.adjustmentAmount && (
-              <div className="mt-4 p-3 bg-muted rounded-lg">
+              <div className="mt-4 rounded-lg bg-muted p-3">
                 <p className="text-sm font-medium">Adjustment Amount:</p>
                 <p className="text-lg font-bold">PKR {handover.adjustmentAmount.toString()}</p>
               </div>
@@ -409,29 +392,22 @@ function CashHandoverDetailContent() {
               <Label>Verification Decision</Label>
               <Select
                 value={verificationStatus}
-                onValueChange={(value) =>
-                  setVerificationStatus(
-                    value as
-                      | 'VERIFIED'
-                      | 'REJECTED'
-                      | 'ADJUSTED'
-                  )
-                }
+                onValueChange={(value) => setVerificationStatus(value as 'VERIFIED' | 'REJECTED' | 'ADJUSTED')}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={CashHandoverStatus.VERIFIED}>
-                    <CheckCircle className="inline-block mr-2 h-4 w-4 text-green-600" />
+                    <CheckCircle className="mr-2 inline-block h-4 w-4 text-green-600" />
                     Verify - Accept as submitted
                   </SelectItem>
                   <SelectItem value={CashHandoverStatus.ADJUSTED}>
-                    <AlertCircle className="inline-block mr-2 h-4 w-4 text-yellow-600" />
+                    <AlertCircle className="mr-2 inline-block h-4 w-4 text-yellow-600" />
                     Adjust - Accept with adjustments
                   </SelectItem>
                   <SelectItem value={CashHandoverStatus.REJECTED}>
-                    <XCircle className="inline-block mr-2 h-4 w-4 text-red-600" />
+                    <XCircle className="mr-2 inline-block h-4 w-4 text-red-600" />
                     Reject - Send back for correction
                   </SelectItem>
                 </SelectContent>
@@ -448,9 +424,7 @@ function CashHandoverDetailContent() {
                   value={adjustmentAmount}
                   onChange={(e) => setAdjustmentAmount(e.target.value)}
                 />
-                <p className="text-sm text-muted-foreground">
-                  Enter the final accepted amount if different from submitted
-                </p>
+                <p className="text-sm text-muted-foreground">Enter the final accepted amount if different from submitted</p>
               </div>
             )}
 
@@ -513,9 +487,9 @@ export default function CashHandoverDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
             <p className="mt-4 text-muted-foreground">Loading handover details...</p>
           </div>
         </div>

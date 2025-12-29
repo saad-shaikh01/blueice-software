@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { User } from '@prisma/client';
 
 export type AppUser = Omit<User, 'createdAt' | 'updatedAt' | 'birthDate' | 'resetPasswordExpire' | 'passwordChangedAt'> & {
   createdAt: string | Date;

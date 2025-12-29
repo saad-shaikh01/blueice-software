@@ -1,4 +1,4 @@
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { DBSchema, IDBPDatabase, openDB } from 'idb';
 
 // Database schema definition
 interface DriverDB extends DBSchema {
@@ -342,12 +342,7 @@ export async function getStorageStats() {
 export async function clearAllOfflineData(): Promise<void> {
   const db = await getDB();
 
-  await Promise.all([
-    db.clear('todays-orders'),
-    db.clear('pending-deliveries'),
-    db.clear('location-queue'),
-    db.clear('offline-photos'),
-  ]);
+  await Promise.all([db.clear('todays-orders'), db.clear('pending-deliveries'), db.clear('location-queue'), db.clear('offline-photos')]);
 
   console.log('[IndexedDB] Cleared all offline data');
 }

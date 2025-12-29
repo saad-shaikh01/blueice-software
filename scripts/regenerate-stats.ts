@@ -1,7 +1,7 @@
-
-import { db } from '@/lib/db';
-import { aggregateDailyStats } from '@/lib/cron/aggregate-daily-stats';
 import { startOfDay } from 'date-fns';
+
+import { aggregateDailyStats } from '@/lib/cron/aggregate-daily-stats';
+import { db } from '@/lib/db';
 
 async function regenerateStats() {
   console.log('Starting DailyStats regeneration...');

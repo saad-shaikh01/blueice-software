@@ -4,7 +4,7 @@ export function getPlainTextFromTiptap(jsonString: string): string {
     let text = '';
 
     const extractText = (nodes: any[]) => {
-      nodes.forEach(node => {
+      nodes.forEach((node) => {
         if (node.type === 'text') {
           text += node.text || '';
         } else if (node.type === 'mention') {

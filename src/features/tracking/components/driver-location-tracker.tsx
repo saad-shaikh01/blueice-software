@@ -1,18 +1,20 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { formatDistanceToNow } from 'date-fns';
+import { Activity, AlertCircle, Battery, CheckCircle2, Clock, MapPin, Navigation } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { useUpdateLocation } from '../api/use-update-location';
-import { useToggleDuty } from '../api/use-toggle-duty';
+import { Switch } from '@/components/ui/switch';
 import { useCurrent } from '@/features/auth/api/use-current';
-import { MapPin, Navigation, Activity, Battery, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
+
+import { useToggleDuty } from '../api/use-toggle-duty';
+import { useUpdateLocation } from '../api/use-update-location';
 
 interface LocationData {
   latitude: number;
@@ -254,7 +256,7 @@ export function DriverLocationTracker() {
 
           {!isOnDuty && (
             <div className="flex items-start gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3">
-              <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-4 w-4 text-yellow-500" />
               <div className="text-sm">
                 <p className="font-medium text-yellow-500">Go on duty to start tracking</p>
                 <p className="text-muted-foreground">Toggle the duty status switch above to begin</p>
@@ -264,7 +266,7 @@ export function DriverLocationTracker() {
 
           {error && (
             <div className="flex items-start gap-2 rounded-lg border border-destructive bg-destructive/10 p-3">
-              <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
+              <AlertCircle className="mt-0.5 h-4 w-4 text-destructive" />
               <div className="text-sm">
                 <p className="font-medium text-destructive">Location Error</p>
                 <p className="text-muted-foreground">{error}</p>
@@ -274,7 +276,7 @@ export function DriverLocationTracker() {
 
           {isOnDuty && !isTracking && !error && (
             <Button onClick={handleStartTracking} className="w-full">
-              <MapPin className="h-4 w-4 mr-2" />
+              <MapPin className="mr-2 h-4 w-4" />
               Start Location Tracking
             </Button>
           )}
@@ -296,10 +298,10 @@ export function DriverLocationTracker() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {/* Coordinates */}
                 <div className="flex items-start gap-2 rounded-lg border p-3">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Coordinates</p>
-                    <p className="font-medium text-xs">
+                    <p className="text-xs font-medium">
                       {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
                     </p>
                   </div>
@@ -307,7 +309,7 @@ export function DriverLocationTracker() {
 
                 {/* Accuracy */}
                 <div className="flex items-start gap-2 rounded-lg border p-3">
-                  <Navigation className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <Navigation className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Accuracy</p>
                     <p className="font-medium">±{Math.round(currentLocation.accuracy || 0)}m</p>
@@ -317,7 +319,7 @@ export function DriverLocationTracker() {
                 {/* Speed */}
                 {currentLocation.speed !== undefined && (
                   <div className="flex items-start gap-2 rounded-lg border p-3">
-                    <Activity className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <Activity className="mt-0.5 h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">Speed</p>
                       <p className="font-medium">{Math.round((currentLocation.speed || 0) * 3.6)} km/h</p>
@@ -328,7 +330,7 @@ export function DriverLocationTracker() {
                 {/* Battery */}
                 {batteryLevel !== null && (
                   <div className="flex items-start gap-2 rounded-lg border p-3">
-                    <Battery className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <Battery className="mt-0.5 h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">Battery</p>
                       <p className="font-medium">{batteryLevel}%</p>
@@ -338,8 +340,8 @@ export function DriverLocationTracker() {
 
                 {/* Last Update */}
                 {lastUpdateTime && (
-                  <div className="flex items-start gap-2 rounded-lg border p-3 col-span-2">
-                    <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div className="col-span-2 flex items-start gap-2 rounded-lg border p-3">
+                    <Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">Last Update</p>
                       <p className="font-medium">{formatDistanceToNow(lastUpdateTime, { addSuffix: true })}</p>

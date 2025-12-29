@@ -1,22 +1,22 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
 
+import { PageError } from '@/components/page-error';
+import { PageLoader } from '@/components/page-loader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageLoader } from '@/components/page-loader';
-import { PageError } from '@/components/page-error';
 
-import { createDriverSchema, type CreateDriverInput } from '../schema';
 import { useCreateDriver } from '../api/use-create-driver';
-import { useUpdateDriver } from '../api/use-update-driver';
 import { useGetDriver } from '../api/use-get-driver';
+import { useUpdateDriver } from '../api/use-update-driver';
+import { type CreateDriverInput, createDriverSchema } from '../schema';
 
 interface DriverFormProps {
   driverId?: string;
@@ -67,9 +67,12 @@ export const DriverForm = ({ driverId, onCancel }: DriverFormProps) => {
     if (isEdit && driverId) {
       // Use update logic
       const { password, ...updateData } = data;
-      updateDriver({ param: { id: driverId }, json: updateData }, {
-        onSuccess: () => router.push('/drivers'),
-      });
+      updateDriver(
+        { param: { id: driverId }, json: updateData },
+        {
+          onSuccess: () => router.push('/drivers'),
+        },
+      );
     } else {
       createDriver(data, {
         onSuccess: () => router.push('/drivers'),

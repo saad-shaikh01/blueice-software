@@ -1,18 +1,18 @@
 'use client';
 
-import { useFormContext } from 'react-hook-form';
 import { Calendar, DollarSign, Package, Truck } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { useFormContext } from 'react-hook-form';
 
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CUSTOMER_TYPES, DELIVERY_DAYS } from '@/features/customers/constants';
 import type { CreateCustomerInput } from '@/features/customers/schema';
-import { DELIVERY_DAYS, CUSTOMER_TYPES } from '@/features/customers/constants';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { useGetProducts } from '@/features/products/api/use-get-products';
-import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const SchedulePricingStep = () => {
   const form = useFormContext<CreateCustomerInput>();
@@ -25,7 +25,7 @@ export const SchedulePricingStep = () => {
     if (currentDays.includes(dayValue)) {
       form.setValue(
         'deliveryDays',
-        currentDays.filter((d) => d !== dayValue)
+        currentDays.filter((d) => d !== dayValue),
       );
     } else {
       form.setValue('deliveryDays', [...currentDays, dayValue].sort());
@@ -50,11 +50,7 @@ export const SchedulePricingStep = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Default Product</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value || undefined}
-                    disabled={isLoadingProducts}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value || undefined} disabled={isLoadingProducts}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select product" />
@@ -63,7 +59,7 @@ export const SchedulePricingStep = () => {
                     <SelectContent>
                       {isLoadingProducts ? (
                         <div className="flex items-center justify-center p-2">
-                          <Loader2 className="animate-spin h-4 w-4" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
                       ) : (
                         products.map((product: any) => (
@@ -87,12 +83,7 @@ export const SchedulePricingStep = () => {
                 <FormItem>
                   <FormLabel>Default Quantity</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      min="1"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                    />
+                    <Input type="number" min="1" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,15 +160,11 @@ export const SchedulePricingStep = () => {
                         onClick={() => toggleDay(day.value)}
                         className={cn(
                           'flex flex-col items-center rounded-lg border-2 p-3 transition-all hover:border-primary',
-                          isSelected
-                            ? 'border-primary bg-primary text-primary-foreground shadow-md'
-                            : 'border-muted bg-background'
+                          isSelected ? 'border-primary bg-primary text-primary-foreground shadow-md' : 'border-muted bg-background',
                         )}
                       >
                         <span className="text-xs font-medium">{day.short}</span>
-                        <span className={cn('mt-1 text-[10px]', isSelected ? 'opacity-90' : 'text-muted-foreground')}>
-                          {day.label}
-                        </span>
+                        <span className={cn('mt-1 text-[10px]', isSelected ? 'opacity-90' : 'text-muted-foreground')}>{day.label}</span>
                       </button>
                     );
                   })}
@@ -218,17 +205,9 @@ export const SchedulePricingStep = () => {
               <FormItem>
                 <FormLabel>Credit Limit (PKR)</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="100"
-                    placeholder="2000"
-                    {...field}
-                  />
+                  <Input type="number" min="0" step="100" placeholder="2000" {...field} />
                 </FormControl>
-                <FormDescription>
-                  Maximum allowed debt. Customer cannot order if balance exceeds this limit.
-                </FormDescription>
+                <FormDescription>Maximum allowed debt. Customer cannot order if balance exceeds this limit.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -236,8 +215,8 @@ export const SchedulePricingStep = () => {
 
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/20">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              <span className="font-semibold">💡 Note:</span> Custom pricing per product can be configured after
-              customer creation in the customer profile settings.
+              <span className="font-semibold">💡 Note:</span> Custom pricing per product can be configured after customer creation in the
+              customer profile settings.
             </p>
           </div>
         </CardContent>

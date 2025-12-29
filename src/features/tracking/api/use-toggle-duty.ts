@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { client } from '@/lib/hono';
 import { toast } from 'sonner';
+
+import { client } from '@/lib/hono';
 
 export const useToggleDuty = () => {
   const queryClient = useQueryClient();
@@ -14,7 +15,7 @@ export const useToggleDuty = () => {
 
       if (!response.ok) {
         const error = await response.json();
-          // @ts-expect-error - Hono client types inference
+        // @ts-expect-error - Hono client types inference
         throw new Error(error.error || 'Failed to update duty status');
       }
 

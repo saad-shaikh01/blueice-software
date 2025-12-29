@@ -8,23 +8,17 @@ import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { DottedSeparator } from '@/components/dotted-separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { DottedSeparator } from '@/components/dotted-separator';
-import { updateProfileSchema } from '../schema';
-import { useUpdateProfile } from '../api/use-update-profile';
-import { AppUser } from '../type';
 import { getImageUrl } from '@/lib/utils';
+
+import { useUpdateProfile } from '../api/use-update-profile';
+import { updateProfileSchema } from '../schema';
+import { AppUser } from '../type';
 
 interface EditProfileFormProps {
   onCancel?: () => void;
@@ -73,12 +67,7 @@ export const EditProfileForm = ({ onCancel, initialValues }: EditProfileFormProp
   return (
     <Card className="size-full border-none shadow-none">
       <CardHeader className="flex flex-row items-center gap-x-4 space-y-0 p-7">
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={onCancel ? onCancel : () => router.back()}
-          className="gap-x-1"
-        >
+        <Button size="sm" variant="secondary" onClick={onCancel ? onCancel : () => router.back()} className="gap-x-1">
           <ArrowLeft className="size-4" />
           Back
         </Button>
@@ -93,7 +82,6 @@ export const EditProfileForm = ({ onCancel, initialValues }: EditProfileFormProp
       <CardContent className="p-7">
         <Form {...updateProfileForm}>
           <form onSubmit={updateProfileForm.handleSubmit(onSubmit)} className="space-y-4">
-
             <FormField
               disabled={isPending}
               control={updateProfileForm.control}
@@ -216,11 +204,7 @@ export const EditProfileForm = ({ onCancel, initialValues }: EditProfileFormProp
                 <FormItem>
                   <FormLabel>Date of Birth</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value ? new Date(field.value).toISOString().split("T")[0] : ""}
-                    />
+                    <Input type="date" {...field} value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -272,9 +256,6 @@ export const EditProfileForm = ({ onCancel, initialValues }: EditProfileFormProp
                 </FormItem>
               )}
             />
-
-
-
 
             <DottedSeparator className="py-7" />
 

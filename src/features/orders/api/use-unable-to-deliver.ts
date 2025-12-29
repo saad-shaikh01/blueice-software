@@ -4,8 +4,8 @@ import { toast } from 'sonner';
 
 import { client } from '@/lib/hono';
 
-type ResponseType = InferResponseType<typeof client.api.orders[':id']['unable-to-deliver']['$post']>;
-type RequestType = InferRequestType<typeof client.api.orders[':id']['unable-to-deliver']['$post']>['json'];
+type ResponseType = InferResponseType<(typeof client.api.orders)[':id']['unable-to-deliver']['$post']>;
+type RequestType = InferRequestType<(typeof client.api.orders)[':id']['unable-to-deliver']['$post']>['json'];
 
 export const useUnableToDeliver = (orderId: string) => {
   const queryClient = useQueryClient();

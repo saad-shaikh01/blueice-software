@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { CashHandoverStatus } from '@prisma/client';
+import { z } from 'zod';
 
 export const submitCashHandoverSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
@@ -10,11 +10,7 @@ export const submitCashHandoverSchema = z.object({
 });
 
 export const verifyCashHandoverSchema = z.object({
-  status: z.enum([
-    CashHandoverStatus.VERIFIED,
-    CashHandoverStatus.REJECTED,
-    CashHandoverStatus.ADJUSTED,
-  ]),
+  status: z.enum([CashHandoverStatus.VERIFIED, CashHandoverStatus.REJECTED, CashHandoverStatus.ADJUSTED]),
   adminNotes: z.string().optional(),
   adjustmentAmount: z.number().optional(),
 });

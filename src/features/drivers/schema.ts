@@ -4,7 +4,12 @@ export const createDriverSchema = z.object({
   // User Fields
   name: z.string().trim().min(1, 'Name is required'),
   phoneNumber: z.string().trim().min(10, 'Valid phone number is required'),
-  email: z.string().email().optional().or(z.literal('')).transform(val => val === '' ? null : val),
+  email: z
+    .string()
+    .email()
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => (val === '' ? null : val)),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 
   // Driver Profile Fields

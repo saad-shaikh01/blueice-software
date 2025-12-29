@@ -1,13 +1,14 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash, FileText } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { OrderStatus } from '@prisma/client';
+import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { ArrowUpDown, FileText, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,9 +17,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { useDeleteOrder } from '../api/use-delete-order';
 import { useConfirm } from '@/hooks/use-confirm';
+
+import { useDeleteOrder } from '../api/use-delete-order';
 
 export type Order = {
   id: string;
@@ -37,11 +38,7 @@ export type Order = {
 const ActionCell = ({ order }: { order: Order }) => {
   const router = useRouter();
   const { mutate: deleteOrder, isPending } = useDeleteOrder();
-  const [ConfirmDialog, confirm] = useConfirm(
-    'Delete Order',
-    `Are you sure you want to delete order #${order.readableId}?`,
-    'destructive'
-  );
+  const [ConfirmDialog, confirm] = useConfirm('Delete Order', `Are you sure you want to delete order #${order.readableId}?`, 'destructive');
 
   const handleDelete = async () => {
     const ok = await confirm();
@@ -71,11 +68,7 @@ const ActionCell = ({ order }: { order: Order }) => {
             Print Invoice
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleDelete}
-            disabled={isPending}
-            className="text-red-600 focus:text-red-600"
-          >
+          <DropdownMenuItem onClick={handleDelete} disabled={isPending} className="text-red-600 focus:text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete Order
           </DropdownMenuItem>
@@ -87,13 +80,10 @@ const ActionCell = ({ order }: { order: Order }) => {
 
 export const columns: ColumnDef<Order>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
         className="translate-y-[2px]"
@@ -118,16 +108,13 @@ export const columns: ColumnDef<Order>[] = [
   {
     accessorKey: 'scheduledDate',
     header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Date
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      return (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+          Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => <div>{format(new Date(row.getValue('scheduledDate')), 'PPP')}</div>,
   },
   {
@@ -144,14 +131,23 @@ export const columns: ColumnDef<Order>[] = [
     header: 'Status',
     cell: ({ row }) => {
       const status = row.getValue('status') as OrderStatus;
-      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+      let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';
 
       switch (status) {
-        case 'COMPLETED': variant = "default"; break; // Greenish usually default/success
-        case 'CANCELLED': variant = "destructive"; break;
-        case 'PENDING': variant = "secondary"; break;
-        case 'SCHEDULED': variant = "outline"; break;
-        default: variant = "secondary";
+        case 'COMPLETED':
+          variant = 'default';
+          break; // Greenish usually default/success
+        case 'CANCELLED':
+          variant = 'destructive';
+          break;
+        case 'PENDING':
+          variant = 'secondary';
+          break;
+        case 'SCHEDULED':
+          variant = 'outline';
+          break;
+        default:
+          variant = 'secondary';
       }
 
       return <Badge variant={variant}>{status}</Badge>;

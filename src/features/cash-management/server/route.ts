@@ -1,24 +1,20 @@
 import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
 import { UserRole } from '@prisma/client';
+import { Hono } from 'hono';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
 import {
-  submitCashHandoverSchema,
-  verifyCashHandoverSchema,
-  getCashHandoversQuerySchema,
-} from '@/features/cash-management/schema';
-import {
-  submitCashHandover,
-  getCashHandovers,
-  getCashHandover,
-  verifyCashHandover,
+  getCashCollectionTrends,
   getCashDashboardStats,
+  getCashHandover,
+  getCashHandovers,
   getDriverDaySummary,
   getDriverHandoverHistory,
-  getCashCollectionTrends,
+  submitCashHandover,
+  verifyCashHandover,
 } from '@/features/cash-management/queries';
+import { getCashHandoversQuerySchema, submitCashHandoverSchema, verifyCashHandoverSchema } from '@/features/cash-management/schema';
 import { getDriverByUserId } from '@/features/drivers/queries';
+import { sessionMiddleware } from '@/lib/session-middleware';
 
 const ADMIN: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
 
@@ -48,39 +44,34 @@ const app = new Hono()
   })
 
   // Submit cash handover (Driver)
-  .post(
-    '/driver/submit',
-    sessionMiddleware,
-    zValidator('json', submitCashHandoverSchema),
-    async (ctx) => {
-      const user = ctx.get('user');
+  .post('/driver/submit', sessionMiddleware, zValidator('json', submitCashHandoverSchema), async (ctx) => {
+    const user = ctx.get('user');
 
-      if (user.role !== UserRole.DRIVER) {
-        return ctx.json({ error: 'Only drivers can submit cash handovers' }, 403);
-      }
-
-      const data = ctx.req.valid('json');
-
-      try {
-        const driver = await getDriverByUserId(user.id);
-        if (!driver) return ctx.json({ error: 'Driver not found' }, 404);
-
-        const handover = await submitCashHandover({
-          driverId: driver.id,
-          date: new Date(data.date),
-          actualCash: data.actualCash,
-          driverNotes: data.driverNotes,
-          shiftStart: data.shiftStart ? new Date(data.shiftStart) : undefined,
-          shiftEnd: data.shiftEnd ? new Date(data.shiftEnd) : undefined,
-        });
-
-        return ctx.json({ data: handover, message: 'Cash handover submitted successfully' });
-      } catch (error: any) {
-        console.error('[SUBMIT_CASH_HANDOVER_ERROR]:', error);
-        return ctx.json({ error: error.message || 'Failed to submit cash handover' }, 500);
-      }
+    if (user.role !== UserRole.DRIVER) {
+      return ctx.json({ error: 'Only drivers can submit cash handovers' }, 403);
     }
-  )
+
+    const data = ctx.req.valid('json');
+
+    try {
+      const driver = await getDriverByUserId(user.id);
+      if (!driver) return ctx.json({ error: 'Driver not found' }, 404);
+
+      const handover = await submitCashHandover({
+        driverId: driver.id,
+        date: new Date(data.date),
+        actualCash: data.actualCash,
+        driverNotes: data.driverNotes,
+        shiftStart: data.shiftStart ? new Date(data.shiftStart) : undefined,
+        shiftEnd: data.shiftEnd ? new Date(data.shiftEnd) : undefined,
+      });
+
+      return ctx.json({ data: handover, message: 'Cash handover submitted successfully' });
+    } catch (error: any) {
+      console.error('[SUBMIT_CASH_HANDOVER_ERROR]:', error);
+      return ctx.json({ error: error.message || 'Failed to submit cash handover' }, 500);
+    }
+  })
 
   // Get driver's handover history
   .get('/driver/history', sessionMiddleware, async (ctx) => {
@@ -105,33 +96,28 @@ const app = new Hono()
   // ========== ADMIN ENDPOINTS ==========
 
   // Get all cash handovers (Admin)
-  .get(
-    '/',
-    sessionMiddleware,
-    zValidator('query', getCashHandoversQuerySchema),
-    async (ctx) => {
-      const user = ctx.get('user');
+  .get('/', sessionMiddleware, zValidator('query', getCashHandoversQuerySchema), async (ctx) => {
+    const user = ctx.get('user');
 
-      if (!ADMIN.includes(user.role)) {
-        return ctx.json({ error: 'Unauthorized' }, 403);
-      }
-
-      const params = ctx.req.valid('query');
-
-      try {
-        const result = await getCashHandovers({
-          ...params,
-          startDate: params.startDate ? new Date(params.startDate) : undefined,
-          endDate: params.endDate ? new Date(params.endDate) : undefined,
-        });
-
-        return ctx.json(result);
-      } catch (error) {
-        console.error('[GET_CASH_HANDOVERS_ERROR]:', error);
-        return ctx.json({ error: 'Failed to fetch cash handovers' }, 500);
-      }
+    if (!ADMIN.includes(user.role)) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
     }
-  )
+
+    const params = ctx.req.valid('query');
+
+    try {
+      const result = await getCashHandovers({
+        ...params,
+        startDate: params.startDate ? new Date(params.startDate) : undefined,
+        endDate: params.endDate ? new Date(params.endDate) : undefined,
+      });
+
+      return ctx.json(result);
+    } catch (error) {
+      console.error('[GET_CASH_HANDOVERS_ERROR]:', error);
+      return ctx.json({ error: 'Failed to fetch cash handovers' }, 500);
+    }
+  })
 
   // Get dashboard statistics
   .get('/stats', sessionMiddleware, async (ctx) => {
@@ -196,36 +182,31 @@ const app = new Hono()
   })
 
   // Verify cash handover (Admin only)
-  .patch(
-    '/:id/verify',
-    sessionMiddleware,
-    zValidator('json', verifyCashHandoverSchema),
-    async (ctx) => {
-      const user = ctx.get('user');
-      const { id } = ctx.req.param();
+  .patch('/:id/verify', sessionMiddleware, zValidator('json', verifyCashHandoverSchema), async (ctx) => {
+    const user = ctx.get('user');
+    const { id } = ctx.req.param();
 
-      if (!ADMIN.includes(user.role)) {
-        return ctx.json({ error: 'Unauthorized' }, 403);
-      }
-
-      const data = ctx.req.valid('json');
-
-      try {
-        const handover = await verifyCashHandover({
-          id,
-          verifiedBy: user.id,
-          ...data,
-        });
-
-        return ctx.json({
-          data: handover,
-          message: `Cash handover ${data.status.toLowerCase()} successfully`,
-        });
-      } catch (error: any) {
-        console.error('[VERIFY_CASH_HANDOVER_ERROR]:', error);
-        return ctx.json({ error: error.message || 'Failed to verify cash handover' }, 500);
-      }
+    if (!ADMIN.includes(user.role)) {
+      return ctx.json({ error: 'Unauthorized' }, 403);
     }
-  );
+
+    const data = ctx.req.valid('json');
+
+    try {
+      const handover = await verifyCashHandover({
+        id,
+        verifiedBy: user.id,
+        ...data,
+      });
+
+      return ctx.json({
+        data: handover,
+        message: `Cash handover ${data.status.toLowerCase()} successfully`,
+      });
+    } catch (error: any) {
+      console.error('[VERIFY_CASH_HANDOVER_ERROR]:', error);
+      return ctx.json({ error: error.message || 'Failed to verify cash handover' }, 500);
+    }
+  });
 
 export default app;

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LiveMap } from '@/features/tracking/components/live-map';
 

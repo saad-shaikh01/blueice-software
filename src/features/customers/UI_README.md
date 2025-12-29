@@ -50,12 +50,14 @@ export default function NewCustomerPage() {
 ## ✨ Features
 
 ### 1. **Multi-Step Wizard**
+
 - **4 Steps** with visual progress indicator
 - **Step validation** before proceeding
 - **Navigate backwards** to edit previous steps
 - **Responsive stepper** design
 
 ### 2. **Step 1: Basic Information**
+
 - Full name (required)
 - Phone number with validation (min 10 digits)
 - Email (optional)
@@ -63,6 +65,7 @@ export default function NewCustomerPage() {
 - **Manual Code** in highlighted section for legacy customers
 
 ### 3. **Step 2: Location Details**
+
 - Area/locality for route grouping
 - Full address
 - Optional landmark
@@ -71,6 +74,7 @@ export default function NewCustomerPage() {
 - **Ready for Google Maps integration**
 
 ### 4. **Step 3: Schedule & Pricing**
+
 - **Interactive customer type selector** with icons:
   - 🏠 Residential
   - 🏢 Commercial
@@ -80,6 +84,7 @@ export default function NewCustomerPage() {
 - Credit limit configuration
 
 ### 5. **Step 4: Legacy Migration**
+
 - **Opening cash balance** (positive = advance, negative = debt)
 - **Opening bottle balance** with product selection
 - **Visual indicators** for migration status:
@@ -89,6 +94,7 @@ export default function NewCustomerPage() {
 - **Migration summary** showing what will be created
 
 ### 6. **UX Enhancements**
+
 - ✅ Real-time validation feedback
 - ✅ Loading states during submission
 - ✅ Success/error toast notifications
@@ -101,12 +107,14 @@ export default function NewCustomerPage() {
 ## 🎨 Design Highlights
 
 ### Color-Coded Sections
+
 - **Blue** - Legacy customer code (informational)
 - **Green** - GPS coordinates (optional feature)
 - **Orange** - Migration transaction preview
 - **Purple** - Migration data section header
 
 ### Interactive Elements
+
 - **Day selector buttons** - Change color when selected
 - **Customer type cards** - Show description on hover
 - **Progress bar** - Smooth transitions between steps
@@ -115,21 +123,23 @@ export default function NewCustomerPage() {
 ## 📋 Form Validation
 
 ### Built-in Validations
-| Field | Validation |
-|-------|-----------|
-| Name | Required, min 1 character |
-| Phone | Required, min 10 digits |
-| Email | Valid email format or empty |
-| Password | Min 8 characters |
-| Manual Code | Format: `L-XXXX` (e.g., L-3442) |
-| Delivery Days | At least 1 day, no duplicates |
-| Floor Number | Non-negative integer |
-| GPS Coordinates | Valid lat/lng ranges |
-| Credit Limit | Positive number |
-| Opening Balances | Valid decimal/integer |
-| Product ID | Required if bottle balance > 0 |
+
+| Field            | Validation                      |
+| ---------------- | ------------------------------- |
+| Name             | Required, min 1 character       |
+| Phone            | Required, min 10 digits         |
+| Email            | Valid email format or empty     |
+| Password         | Min 8 characters                |
+| Manual Code      | Format: `L-XXXX` (e.g., L-3442) |
+| Delivery Days    | At least 1 day, no duplicates   |
+| Floor Number     | Non-negative integer            |
+| GPS Coordinates  | Valid lat/lng ranges            |
+| Credit Limit     | Positive number                 |
+| Opening Balances | Valid decimal/integer           |
+| Product ID       | Required if bottle balance > 0  |
 
 ### Custom Business Rules
+
 - **Manual code** format validation with regex
 - **Delivery days** uniqueness check
 - **Product required** when bottle balance > 0
@@ -172,25 +182,30 @@ export const DEFAULT_FORM_VALUES = {
 ### Before Using in Production
 
 - [ ] **Run database migration**
+
   ```bash
   npx prisma migrate dev --name add_customer_onboarding_fields
   npx prisma generate
   ```
 
 - [ ] **Create products API endpoint** (or use mock data)
+
   - Update `use-get-products.ts` when ready
 
 - [ ] **Set up routing**
+
   - Create `/customers/new` page
   - Update redirect path after creation
   - Add navigation links
 
 - [ ] **Test all validations**
+
   - Try submitting invalid data
   - Test migration scenarios
   - Verify error messages
 
 - [ ] **Google Maps Integration** (optional)
+
   - Add Google Maps API key
   - Implement map picker component
   - Auto-fill lat/lng on map click
@@ -202,6 +217,7 @@ export const DEFAULT_FORM_VALUES = {
 ## 🚨 Important Notes
 
 ### Migration Data (Step 4)
+
 - **Only for existing customers** from legacy system
 - Leave at zero for new signups
 - System will create:
@@ -210,12 +226,14 @@ export const DEFAULT_FORM_VALUES = {
   - All in a single atomic transaction
 
 ### Manual Code Format
+
 - Must match pattern: `L-XXXX`
 - Examples: `L-3442`, `L-0001`, `L-9999`
 - Case-sensitive (uppercase L)
 - Used for tracking legacy customers
 
 ### Delivery Days
+
 - 0 = Sunday, 1 = Monday, ... 6 = Saturday
 - Select at least one day
 - No duplicates allowed
@@ -236,11 +254,13 @@ export const DEFAULT_FORM_VALUES = {
 ## 📱 Responsive Behavior
 
 ### Desktop (>= 768px)
+
 - Two-column grids for related fields
 - Full stepper with descriptions
 - Side-by-side navigation
 
 ### Mobile (< 768px)
+
 - Single-column layout
 - Compact stepper (numbers only)
 - Stacked navigation buttons
@@ -248,17 +268,20 @@ export const DEFAULT_FORM_VALUES = {
 ## 🐛 Troubleshooting
 
 ### Form not submitting?
+
 - Check browser console for validation errors
 - Verify all required fields are filled
 - Ensure delivery days are selected
 - If bottle balance > 0, product must be selected
 
 ### Products not loading?
+
 - Update `use-get-products.ts` with actual API endpoint
 - Check if products API is implemented
 - Verify authentication tokens
 
 ### Navigation not working?
+
 - Install `next/navigation` if missing
 - Update redirect path to match your routing
 - Check if router is available

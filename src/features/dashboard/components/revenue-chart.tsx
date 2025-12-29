@@ -1,15 +1,8 @@
 'use client';
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
 import { format } from 'date-fns';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface RevenueChartProps {
@@ -32,24 +25,9 @@ export const RevenueChart = ({ data }: RevenueChartProps) => {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={formattedData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="date"
-                stroke="#888888"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                stroke="#888888"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `Rs ${value}`}
-              />
-              <Tooltip
-                cursor={{ fill: 'transparent' }}
-                formatter={(value) => [`Rs ${value}`, 'Revenue']}
-              />
+              <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `Rs ${value}`} />
+              <Tooltip cursor={{ fill: 'transparent' }} formatter={(value) => [`Rs ${value}`, 'Revenue']} />
               <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

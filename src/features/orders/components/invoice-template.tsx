@@ -1,5 +1,5 @@
-import { format } from 'date-fns';
 import { OrderStatus } from '@prisma/client';
+import { format } from 'date-fns';
 
 // Define a rigorous type matching the getOrder query result
 interface InvoiceOrder {
@@ -39,7 +39,7 @@ export const InvoiceTemplate = ({ order }: InvoiceTemplateProps) => {
   const discount = Number(order.discount);
   const delivery = Number(order.deliveryCharge);
   // Calculate subtotal from items to show breakdown
-  const subtotal = order.orderItems.reduce((acc, item) => acc + (Number(item.priceAtTime) * item.quantity), 0);
+  const subtotal = order.orderItems.reduce((acc, item) => acc + Number(item.priceAtTime) * item.quantity, 0);
 
   // Previous Balance (Current Customer Balance)
   // Note: This is the current live balance. If order is completed, it effectively includes this order's debt.
@@ -61,18 +61,14 @@ export const InvoiceTemplate = ({ order }: InvoiceTemplateProps) => {
         <div className="text-right">
           <h2 className="text-xl font-semibold">INVOICE</h2>
           <p className="mt-1 text-gray-500">#{order.readableId}</p>
-          <p className="text-sm text-gray-600">
-            Date: {format(new Date(order.scheduledDate), 'PP')}
-          </p>
-          <div className="mt-2 inline-block rounded-md bg-gray-100 px-3 py-1 text-sm font-medium">
-            {order.status}
-          </div>
+          <p className="text-sm text-gray-600">Date: {format(new Date(order.scheduledDate), 'PP')}</p>
+          <div className="mt-2 inline-block rounded-md bg-gray-100 px-3 py-1 text-sm font-medium">{order.status}</div>
         </div>
       </div>
 
       {/* Bill To */}
       <div className="mb-8">
-        <h3 className="mb-2 text-sm font-semibold text-gray-500 uppercase">Bill To</h3>
+        <h3 className="mb-2 text-sm font-semibold uppercase text-gray-500">Bill To</h3>
         <div className="text-base">
           <p className="font-bold">{order.customer.user.name}</p>
           <p>{order.customer.address}</p>
@@ -132,18 +128,18 @@ export const InvoiceTemplate = ({ order }: InvoiceTemplateProps) => {
             </div>
           )}
 
-          <div className="border-t border-gray-300 pt-2 flex justify-between text-base font-bold">
+          <div className="flex justify-between border-t border-gray-300 pt-2 text-base font-bold">
             <span>Total</span>
             <span>{new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(total)}</span>
           </div>
 
-          <div className="border-t border-gray-300 pt-2 mt-4">
-             <div className="flex justify-between text-sm font-medium text-gray-500">
-                <span>Account Balance</span>
-                <span className={currentBalance < 0 ? 'text-red-600' : 'text-green-600'}>
-                    {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(currentBalance)}
-                </span>
-             </div>
+          <div className="mt-4 border-t border-gray-300 pt-2">
+            <div className="flex justify-between text-sm font-medium text-gray-500">
+              <span>Account Balance</span>
+              <span className={currentBalance < 0 ? 'text-red-600' : 'text-green-600'}>
+                {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(currentBalance)}
+              </span>
+            </div>
           </div>
         </div>
       </div>

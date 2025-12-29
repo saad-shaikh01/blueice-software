@@ -1,22 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import { Loader2, Check, FileText, MapPin } from 'lucide-react';
 import { OrderStatus, PaymentMethod } from '@prisma/client';
+import { Check, FileText, Loader2, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 
+import { PageError } from '@/components/page-error';
+import { PageLoader } from '@/components/page-loader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PageLoader } from '@/components/page-loader';
-import { PageError } from '@/components/page-error';
-
-import { useUpdateOrder } from '@/features/orders/api/use-update-order';
 import { useGetOrder } from '@/features/orders/api/use-get-order';
+import { useUpdateOrder } from '@/features/orders/api/use-update-order';
 
 interface CompleteDeliveryFormProps {
   orderId: string;
@@ -57,22 +56,25 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
   }, [order, form]);
 
   const onSubmit = (data: any) => {
-    updateOrder({
-      param: { id: orderId },
-      json: {
-        status: OrderStatus.COMPLETED,
-        cashCollected: data.cashCollected,
-        paymentMethod: data.paymentMethod,
-        items: data.items.map((item: any) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          filledGiven: item.filledGiven,
-          emptyTaken: item.emptyTaken,
-        })),
+    updateOrder(
+      {
+        param: { id: orderId },
+        json: {
+          status: OrderStatus.COMPLETED,
+          cashCollected: data.cashCollected,
+          paymentMethod: data.paymentMethod,
+          items: data.items.map((item: any) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            filledGiven: item.filledGiven,
+            emptyTaken: item.emptyTaken,
+          })),
+        },
       },
-    }, {
-      onSuccess: () => router.push('/deliveries'),
-    });
+      {
+        onSuccess: () => router.push('/deliveries'),
+      },
+    );
   };
 
   if (isLoadingOrder) return <PageLoader />;
@@ -88,37 +90,34 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
           <div>
             <p className="font-semibold">{order.customer.user.name}</p>
             <p className="text-sm text-muted-foreground">{order.customer.address}</p>
-            <a href={`tel:${order.customer.user.phoneNumber}`} className="text-sm text-blue-600 block mt-1">
+            <a href={`tel:${order.customer.user.phoneNumber}`} className="mt-1 block text-sm text-blue-600">
               {order.customer.user.phoneNumber}
             </a>
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="lg"
-              className="flex-1 h-14"
-              onClick={() => router.push(`/orders/${orderId}/invoice`)}
-            >
+            <Button variant="outline" size="lg" className="h-14 flex-1" onClick={() => router.push(`/orders/${orderId}/invoice`)}>
               <FileText className="mr-2 h-5 w-5" />
               Invoice
             </Button>
             <Button
               variant="outline"
               size="lg"
-              className="flex-1 h-14"
-              onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.customer.address)}`, '_blank')}
+              className="h-14 flex-1"
+              onClick={() =>
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.customer.address)}`, '_blank')
+              }
             >
               <MapPin className="mr-2 h-5 w-5" />
               Map
             </Button>
           </div>
 
-          <div className="flex justify-between items-center border-t pt-4">
-             <span className="font-medium">Total to Collect:</span>
-             <span className="text-xl font-bold">
-                {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(Number(order.totalAmount))}
-             </span>
+          <div className="flex items-center justify-between border-t pt-4">
+            <span className="font-medium">Total to Collect:</span>
+            <span className="text-xl font-bold">
+              {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(Number(order.totalAmount))}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -126,7 +125,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>
-            <CardContent className="pt-6 space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <FormField
                 control={form.control}
                 name="cashCollected"
@@ -138,7 +137,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                         type="number"
                         min="0"
                         {...field}
-                        onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                         className="h-14 text-lg"
                       />
                     </FormControl>
@@ -204,7 +203,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                                   type="number"
                                   min="0"
                                   {...field}
-                                  onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                   className="h-12 text-center text-lg font-semibold"
                                 />
                               </FormControl>
@@ -223,7 +222,7 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
                                   type="number"
                                   min="0"
                                   {...field}
-                                  onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                   className="h-12 text-center text-lg font-semibold"
                                 />
                               </FormControl>
@@ -238,8 +237,13 @@ export const CompleteDeliveryForm = ({ orderId }: CompleteDeliveryFormProps) => 
             </CardContent>
           </Card>
 
-          <Button type="submit" size="lg" className="w-full h-16 text-lg font-semibold" disabled={isPending || order.status === 'COMPLETED'}>
-            {isPending ? <Loader2 className="animate-spin mr-2 h-5 w-5" /> : <Check className="mr-2 h-5 w-5" />}
+          <Button
+            type="submit"
+            size="lg"
+            className="h-16 w-full text-lg font-semibold"
+            disabled={isPending || order.status === 'COMPLETED'}
+          >
+            {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Check className="mr-2 h-5 w-5" />}
             {order.status === 'COMPLETED' ? 'Already Completed' : 'Confirm Delivery'}
           </Button>
         </form>

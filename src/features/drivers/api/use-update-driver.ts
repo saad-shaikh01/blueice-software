@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { client } from '@/lib/hono';
+
 import { UpdateDriverInput } from '../schema';
 
 export const useUpdateDriver = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ param, json }: { param: { id: string }, json: UpdateDriverInput }) => {
+    mutationFn: async ({ param, json }: { param: { id: string }; json: UpdateDriverInput }) => {
       const response = await client.api.drivers[':id'].$patch({
         param,
         json,

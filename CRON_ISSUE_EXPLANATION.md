@@ -1,11 +1,14 @@
 # Cron Job Dependency & Fallback Strategy
 
 ## The Issue
+
 The Comprehensive Dashboard relies on a "Hybrid Architecture":
+
 1.  **Historical Data**: Fetched from the `DailyStats` table (aggregated nightly by a cron job).
 2.  **Live Data**: Fetched directly from the `Order` table (today/current period).
 
 ### The Risk
+
 If the nightly cron job (`src/lib/cron/aggregate-daily-stats.ts`) fails to run for any reason (server downtime, error, misconfiguration), the `DailyStats` table will **not have an entry** for the previous day.
 
 **Consequence**:
@@ -48,8 +51,10 @@ if (missingDates.length > 0) {
 ```
 
 ### Benefits
+
 1.  **Resilience**: Dashboard always shows accurate numbers, even if the cron fails.
 2.  **Self-Healing**: The next time the cron runs (or is manually triggered), `DailyStats` will be populated, and the dashboard will revert to using the optimized table.
 
 ### Next Steps
+
 This fallback mechanism should be implemented in `src/features/dashboard/queries-comprehensive.ts` in a follow-up task.

@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+
 import { db } from './db';
 
 if (!admin.apps.length) {
@@ -11,12 +12,7 @@ if (!admin.apps.length) {
   });
 }
 
-export const sendPushNotification = async (
-  userIds: string[],
-  title: string,
-  body: string,
-  data?: Record<string, string>
-) => {
+export const sendPushNotification = async (userIds: string[], title: string, body: string, data?: Record<string, string>) => {
   try {
     // console.log('Sending notification to users:', userIds);
 

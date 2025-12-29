@@ -1,6 +1,5 @@
 // import { Editor } from "@tiptap/core";
 // import StarterKit from "@tiptap/starter-kit";
-
 // export function renderTiptapJsonToHtml(json: string): string {
 //   try {
 //     const content = JSON.parse(json);
@@ -8,24 +7,18 @@
 //       extensions: [StarterKit],
 //       content,
 //     });
-
 //     return editor.getHTML();
 //   } catch (error) {
 //     return "";
 //   }
 // }
-
-
 // import { Editor } from "@tiptap/core";
 // import StarterKit from "@tiptap/starter-kit";
 // import Mention from "@tiptap/extension-mention";
-
 // export function renderTiptapJsonToHtml(input: string): string {
 //   try {
 //     const parsed = JSON.parse(input);
-
 //     console.log('Parsed Tiptap JSON:', parsed);
-
 //     if (typeof parsed === "object" && parsed?.type === "doc") {
 //       // Valid Tiptap JSON document
 //       const editor = new Editor({
@@ -46,39 +39,30 @@
 //         ],
 //         content: parsed,
 //       });
-
 //       return editor.getHTML();
 //     }
 //   } catch (e) {
 //     console.error('Error parsing JSON or rendering HTML:', e);
 //     // Not JSON or invalid JSON – fallback to plain string
 //   }
-
 //   // Return plain text wrapped in paragraph
 //   return `<p>${input}</p>`;
 // }
-
 //////////////////////////
-
-import { Editor } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
-import Mention from "@tiptap/extension-mention";
-import Link from "@tiptap/extension-link";
+import { Editor } from '@tiptap/core';
+import Link from '@tiptap/extension-link';
+import Mention from '@tiptap/extension-mention';
+import StarterKit from '@tiptap/starter-kit';
 
 // Utility to escape HTML to prevent XSS
 function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 // Configure the Mention extension to render mentions with custom HTML and text
 const CustomMention = Mention.configure({
   HTMLAttributes: {
-    class: "mention text-blue-500 hover:underline cursor-pointer",
+    class: 'mention text-blue-500 hover:underline cursor-pointer',
   },
   renderText({ node }) {
     return `@${node.attrs.label}`;
@@ -97,14 +81,14 @@ const CustomMention = Mention.configure({
 });
 
 export function renderTiptapJsonToHtml(input: string): string {
-  if (!input || typeof input !== "string") {
+  if (!input || typeof input !== 'string') {
     return '<p class="text-sm my-2"></p>';
   }
 
   try {
     const parsed = JSON.parse(input);
 
-    if (typeof parsed === "object" && parsed?.type === "doc") {
+    if (typeof parsed === 'object' && parsed?.type === 'doc') {
       const editor = new Editor({
         extensions: [
           StarterKit.configure({
@@ -402,7 +386,6 @@ export function renderTiptapJsonToHtml(input: string): string {
 //   // Fallback: treat input as plain text and wrap in a paragraph
 //   return `<p class="text-sm my-2">${escapeHtml(input)}</p>`;
 // }
-
 
 // import { Editor } from "@tiptap/core";
 // import StarterKit from "@tiptap/starter-kit";

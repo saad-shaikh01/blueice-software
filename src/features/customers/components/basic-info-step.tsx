@@ -1,15 +1,44 @@
 'use client';
 
+import { CheckCircle2, Info, RefreshCw, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Info } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCheckCode, useGenerateCode } from '@/features/customers/api/use-generate-code';
 import type { CreateCustomerInput } from '@/features/customers/schema';
 
 export const BasicInfoStep = () => {
   const form = useFormContext<CreateCustomerInput>();
+  const [isManualOverride, setIsManualOverride] = useState(false);
+
+  const { data: generatedCode, isLoading: isGenerating } = useGenerateCode();
+  const manualCodeValue = form.watch('manualCode');
+  const { data: codeCheck, isLoading: isChecking } = useCheckCode(manualCodeValue || '');
+
+  // Auto-set generated code when loaded
+  useEffect(() => {
+    if (generatedCode?.code && !manualCodeValue && !isManualOverride) {
+      form.setValue('manualCode', generatedCode.code);
+    }
+  }, [generatedCode, form, manualCodeValue, isManualOverride]);
+
+  const handleManualOverride = () => {
+    setIsManualOverride(true);
+    form.setValue('manualCode', '');
+  };
+
+  const handleResetToAuto = () => {
+    setIsManualOverride(false);
+    if (generatedCode?.code) {
+      form.setValue('manualCode', generatedCode.code);
+    }
+  };
+
+  const showCodeValidation = manualCodeValue && isManualOverride && codeCheck;
 
   return (
     <div className="space-y-6">
@@ -83,13 +112,30 @@ export const BasicInfoStep = () => {
 
       <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-            <Info className="size-5" />
-            Legacy Customer Code
-          </CardTitle>
-          <CardDescription className="text-blue-700 dark:text-blue-300">
-            Only for migrating existing customers from old system
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                <Info className="size-5" />
+                Customer Code
+              </CardTitle>
+              <CardDescription className="text-blue-700 dark:text-blue-300">
+                {isManualOverride ? 'Enter legacy customer code manually' : 'Auto-generated customer code'}
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              {!isManualOverride && (
+                <Button type="button" variant="outline" size="sm" onClick={handleManualOverride}>
+                  Override for Legacy
+                </Button>
+              )}
+              {isManualOverride && (
+                <Button type="button" variant="outline" size="sm" onClick={handleResetToAuto}>
+                  <RefreshCw className="mr-1 size-3" />
+                  Reset to Auto
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <FormField
@@ -97,18 +143,38 @@ export const BasicInfoStep = () => {
             name="manualCode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Manual Code (Optional)</FormLabel>
+                <FormLabel>Customer Code *</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="L-3442"
-                    {...field}
-                    value={field.value || ''}
-                    className="font-mono"
-                  />
+                  <div className="relative">
+                    <Input
+                      placeholder={isManualOverride ? 'L-3442' : 'Generating...'}
+                      {...field}
+                      value={field.value || ''}
+                      className="pr-10 font-mono"
+                      readOnly={!isManualOverride}
+                      disabled={isGenerating && !isManualOverride}
+                    />
+                    {showCodeValidation && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {isChecking ? (
+                          <RefreshCw className="size-4 animate-spin text-gray-400" />
+                        ) : codeCheck.exists ? (
+                          <XCircle className="size-4 text-red-500" />
+                        ) : (
+                          <CheckCircle2 className="size-4 text-green-500" />
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </FormControl>
                 <FormDescription>
-                  Format: L-XXXX (e.g., L-3442). Leave empty for new customers.
+                  {isManualOverride
+                    ? 'Format: [A-Z]-XXXX (e.g., L-3442 for legacy customers)'
+                    : 'Auto-generated format: C-1001, C-1002, etc.'}
                 </FormDescription>
+                {showCodeValidation && codeCheck.exists && (
+                  <p className="text-sm text-red-500">This customer code already exists. Please use a different code.</p>
+                )}
                 <FormMessage />
               </FormItem>
             )}

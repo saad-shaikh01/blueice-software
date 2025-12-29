@@ -1,6 +1,7 @@
-import { client } from '@/lib/hono';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
+
+import { client } from '@/lib/hono';
 
 export const useGetCustomers = () => {
   const searchParams = useSearchParams();

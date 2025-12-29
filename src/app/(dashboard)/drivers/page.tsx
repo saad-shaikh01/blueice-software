@@ -1,12 +1,13 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useGetDrivers } from '@/features/drivers/api/use-get-drivers';
-import { DriverTable } from '@/features/drivers/components/driver-list';
-import { columns, Driver } from '@/features/drivers/components/columns';
-import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { Suspense } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { useGetDrivers } from '@/features/drivers/api/use-get-drivers';
+import { Driver, columns } from '@/features/drivers/components/columns';
+import { DriverTable } from '@/features/drivers/components/driver-list';
 
 function DriversContent() {
   const { data, isLoading } = useGetDrivers();
@@ -18,7 +19,7 @@ function DriversContent() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Drivers</h1>
         <Button asChild>
-           <Link href="/drivers/new">
+          <Link href="/drivers/new">
             <Plus className="mr-2 h-4 w-4" />
             Add Driver
           </Link>
@@ -30,9 +31,9 @@ function DriversContent() {
 }
 
 export default function DriversPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <DriversContent />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DriversContent />
+    </Suspense>
+  );
 }

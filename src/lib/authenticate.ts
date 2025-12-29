@@ -20,11 +20,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export function generateToken(user: AuthUser): string {
-  return jwt.sign(
-    { id: user.id, email: user.email, name: user.name, role: user.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: '30d' }
-  );
+  return jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '30d' });
 }
 
 export async function verifyToken(token: string): Promise<User | null> {
@@ -68,8 +64,8 @@ export async function createUser(name: string, email: string | null, phoneNumber
       email: true,
       name: true,
       phoneNumber: true,
-      role: true
-    }
+      role: true,
+    },
   });
 }
 
@@ -77,11 +73,8 @@ export async function authenticateUser(emailOrPhone: string, password: string) {
   // Try to find user by email first, then by phoneNumber
   const user = await prisma.user.findFirst({
     where: {
-      OR: [
-        { email: emailOrPhone },
-        { phoneNumber: emailOrPhone }
-      ]
-    }
+      OR: [{ email: emailOrPhone }, { phoneNumber: emailOrPhone }],
+    },
   });
 
   if (!user || !user.password) {

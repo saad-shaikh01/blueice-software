@@ -1,20 +1,20 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 
+import { PageError } from '@/components/page-error';
+import { PageLoader } from '@/components/page-loader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { updateCustomerSchema, type UpdateCustomerInput, type CreateCustomerInput } from '@/features/customers/schema';
-import { useUpdateCustomer } from '@/features/customers/api/use-update-customer';
 import { useGetCustomer } from '@/features/customers/api/use-get-customer';
-import { PageLoader } from '@/components/page-loader';
-import { PageError } from '@/components/page-error';
+import { useUpdateCustomer } from '@/features/customers/api/use-update-customer';
+import { type CreateCustomerInput, type UpdateCustomerInput, updateCustomerSchema } from '@/features/customers/schema';
 
 import { BasicInfoStep } from './basic-info-step';
 import { LocationStep } from './location-step';
@@ -80,14 +80,17 @@ export const EditCustomerForm = ({ customerId }: EditCustomerFormProps) => {
       landmark: data.landmark || null,
     };
 
-    updateCustomer({
-      param: { id: customerId },
-      json: updateData,
-    }, {
+    updateCustomer(
+      {
+        param: { id: customerId },
+        json: updateData,
+      },
+      {
         onSuccess: () => {
-             router.push('/customers');
-        }
-    });
+          router.push('/customers');
+        },
+      },
+    );
   };
 
   if (isLoadingCustomer) return <PageLoader />;
@@ -95,10 +98,12 @@ export const EditCustomerForm = ({ customerId }: EditCustomerFormProps) => {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-       <div className="flex items-center justify-between">
-         <h2 className="text-2xl font-bold tracking-tight">Edit Customer</h2>
-         <Button variant="outline" onClick={() => router.push('/customers')}>Cancel</Button>
-       </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight">Edit Customer</h2>
+        <Button variant="outline" onClick={() => router.push('/customers')}>
+          Cancel
+        </Button>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -110,27 +115,27 @@ export const EditCustomerForm = ({ customerId }: EditCustomerFormProps) => {
             </TabsList>
 
             <div className="mt-4 space-y-4">
-                <TabsContent value="basic">
-                    <BasicInfoStep />
-                </TabsContent>
-                <TabsContent value="location">
-                    <LocationStep />
-                </TabsContent>
-                <TabsContent value="schedule">
-                    <SchedulePricingStep />
-                </TabsContent>
+              <TabsContent value="basic">
+                <BasicInfoStep />
+              </TabsContent>
+              <TabsContent value="location">
+                <LocationStep />
+              </TabsContent>
+              <TabsContent value="schedule">
+                <SchedulePricingStep />
+              </TabsContent>
             </div>
           </Tabs>
 
           <Card>
-            <CardContent className="p-6 flex justify-end gap-4">
-                 <Button type="button" variant="ghost" onClick={() => router.push('/customers')}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isPending}>
-                    {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-                    Save Changes
-                  </Button>
+            <CardContent className="flex justify-end gap-4 p-6">
+              <Button type="button" variant="ghost" onClick={() => router.push('/customers')}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                Save Changes
+              </Button>
             </CardContent>
           </Card>
         </form>

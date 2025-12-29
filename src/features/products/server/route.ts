@@ -1,16 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
+import { Hono } from 'hono';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
+import { createProduct, deleteProduct, getProduct, getProducts, updateProduct } from '@/features/products/queries';
 import { createProductSchema, getProductsQuerySchema, updateProductSchema } from '@/features/products/schema';
-import {
-  createProduct,
-  deleteProduct,
-  getProduct,
-  getProducts,
-  updateProduct,
-} from '@/features/products/queries';
+import { sessionMiddleware } from '@/lib/session-middleware';
 
 const app = new Hono()
   .get('/', sessionMiddleware, zValidator('query', getProductsQuerySchema), async (ctx) => {
@@ -67,7 +61,7 @@ const app = new Hono()
       const product = await updateProduct(id, data);
       return ctx.json({ data: product });
     } catch (error) {
-       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return ctx.json({ error: 'Product SKU already exists' }, 400);
       }
       return ctx.json({ error: 'Failed to update product' }, 500);
@@ -85,7 +79,7 @@ const app = new Hono()
       await deleteProduct(id);
       return ctx.json({ success: true });
     } catch (error) {
-       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
         return ctx.json({ error: 'Cannot delete product used in orders or wallets' }, 400);
       }
       return ctx.json({ error: 'Failed to delete product' }, 500);

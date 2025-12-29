@@ -1,15 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
+import { UserRole } from '@prisma/client';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
+import { getDriverRouteHistory, getLiveDriverLocations, toggleDriverDutyStatus, updateDriverLocation } from '@/features/tracking/queries';
 import { sessionMiddleware } from '@/lib/session-middleware';
-import {
-  updateDriverLocation,
-  getLiveDriverLocations,
-  getDriverRouteHistory,
-  toggleDriverDutyStatus,
-} from '@/features/tracking/queries';
-import { UserRole } from '@prisma/client';
 
 const app = new Hono()
   // Update driver location (called by driver app every 30 seconds)
@@ -26,7 +21,7 @@ const app = new Hono()
         heading: z.number().min(0).max(360).optional(),
         isMoving: z.boolean().optional(),
         batteryLevel: z.number().min(0).max(100).optional(),
-      })
+      }),
     ),
     async (ctx) => {
       const user = ctx.get('user');
@@ -73,7 +68,7 @@ const app = new Hono()
         console.error('[LOCATION_UPDATE_ERROR]:', error);
         return ctx.json({ error: 'Failed to update location' }, 500);
       }
-    }
+    },
   )
 
   // Get all live driver locations (for admin map view)
@@ -110,7 +105,7 @@ const app = new Hono()
       'query',
       z.object({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format
-      })
+      }),
     ),
     async (ctx) => {
       const user = ctx.get('user');
@@ -146,7 +141,7 @@ const app = new Hono()
         console.error('[GET_ROUTE_HISTORY_ERROR]:', error);
         return ctx.json({ error: 'Failed to fetch route history' }, 500);
       }
-    }
+    },
   )
 
   // Toggle driver duty status (on/off duty)
@@ -157,7 +152,7 @@ const app = new Hono()
       'json',
       z.object({
         isOnDuty: z.boolean(),
-      })
+      }),
     ),
     async (ctx) => {
       const user = ctx.get('user');
@@ -204,7 +199,7 @@ const app = new Hono()
         console.error('[TOGGLE_DUTY_STATUS_ERROR]:', error);
         return ctx.json({ error: 'Failed to update duty status' }, 500);
       }
-    }
+    },
   );
 
 export default app;

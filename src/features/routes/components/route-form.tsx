@@ -1,23 +1,23 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
 
+import { PageError } from '@/components/page-error';
+import { PageLoader } from '@/components/page-loader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageLoader } from '@/components/page-loader';
-import { PageError } from '@/components/page-error';
 
-import { createRouteSchema, type CreateRouteInput } from '../schema';
 import { useCreateRoute } from '../api/use-create-route';
-import { useUpdateRoute } from '../api/use-update-route';
 import { useGetRoute } from '../api/use-get-route';
+import { useUpdateRoute } from '../api/use-update-route';
+import { type CreateRouteInput, createRouteSchema } from '../schema';
 
 interface RouteFormProps {
   routeId?: string;
@@ -54,9 +54,12 @@ export const RouteForm = ({ routeId, onCancel }: RouteFormProps) => {
 
   const onSubmit = (data: CreateRouteInput) => {
     if (isEdit && routeId) {
-      updateRoute({ param: { id: routeId }, json: data }, {
-        onSuccess: () => router.push('/routes'),
-      });
+      updateRoute(
+        { param: { id: routeId }, json: data },
+        {
+          onSuccess: () => router.push('/routes'),
+        },
+      );
     } else {
       createRoute(data, {
         onSuccess: () => router.push('/routes'),
@@ -73,7 +76,7 @@ export const RouteForm = ({ routeId, onCancel }: RouteFormProps) => {
   if (isEdit && !route) return <PageError message="Route not found" />;
 
   return (
-    <Card className="mx-auto ">
+    <Card className="mx-auto">
       <CardHeader>
         <CardTitle>{isEdit ? 'Edit Route' : 'Create New Route'}</CardTitle>
       </CardHeader>
@@ -101,12 +104,7 @@ export const RouteForm = ({ routeId, onCancel }: RouteFormProps) => {
                 <FormItem>
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Details about the route..."
-                      className="resize-none"
-                      {...field}
-                      value={field.value || ''}
-                    />
+                    <Textarea placeholder="Details about the route..." className="resize-none" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

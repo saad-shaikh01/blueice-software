@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/use-confirm';
+
 import { useUpdateStatus } from '../api/use-update-status';
 
 interface UserActionsProps {
@@ -16,10 +17,8 @@ export const UserActions = ({ id, suspended, children }: PropsWithChildren<UserA
 
   const [ConfirmDialog, confirm] = useConfirm(
     suspended ? 'Activate User' : 'Suspend User',
-    suspended
-      ? 'This will activate the user.'
-      : 'This action will suspend the user and cannot be undone.',
-    'destructive'
+    suspended ? 'This will activate the user.' : 'This action will suspend the user and cannot be undone.',
+    'destructive',
   );
   const { mutate: updateStatus, isPending } = useUpdateStatus();
 

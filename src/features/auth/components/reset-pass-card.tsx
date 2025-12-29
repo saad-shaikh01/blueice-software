@@ -10,11 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { resetPasswordSchema } from '@/features/auth/schema';
+
 import { useReset } from '../api/use-resetPassword';
 import { useResetPassToken } from '../hooks/use-reset-token';
 
 export const ResetPassCard = () => {
-  const resetToken = useResetPassToken()
+  const resetToken = useResetPassToken();
   const { mutate: reset, isPending } = useReset();
   const resetForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),

@@ -8,10 +8,8 @@ type ResponseType = InferResponseType<(typeof client.api.auth)['profile']['$patc
 type RequestType = InferRequestType<(typeof client.api.auth)['profile']['$patch']>;
 
 export const useUpdateProfile = () => {
-
   const mutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async ({ form }) => {
-
       const response = await client.api.auth['profile']['$patch']({ form });
 
       if (!response.ok) throw new Error('Failed to update Profile.');

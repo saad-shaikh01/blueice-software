@@ -1,16 +1,17 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { useCurrentDriver } from '@/features/driver-view/api/use-current-driver';
-import { useGetOrders } from '@/features/orders/api/use-get-orders';
 import { format } from 'date-fns';
+import { Suspense, useEffect, useState } from 'react';
+
 import { PageLoader } from '@/components/page-loader';
-import { DriverStats } from '@/features/driver-view/components/driver-stats';
-import { LoadSheet } from '@/features/driver-view/components/load-sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DriverLocationTracker } from '@/features/tracking/components/driver-location-tracker';
-import { ExpenseForm } from '@/features/expenses/components/expense-form';
+import { useCurrentDriver } from '@/features/driver-view/api/use-current-driver';
+import { DriverStats } from '@/features/driver-view/components/driver-stats';
 import { EnhancedOrderCard } from '@/features/driver-view/components/enhanced-order-card';
+import { LoadSheet } from '@/features/driver-view/components/load-sheet';
+import { ExpenseForm } from '@/features/expenses/components/expense-form';
+import { useGetOrders } from '@/features/orders/api/use-get-orders';
+import { DriverLocationTracker } from '@/features/tracking/components/driver-location-tracker';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { cacheTodaysOrders, getCachedOrders } from '@/lib/offline-storage';
 
@@ -51,7 +52,7 @@ function DeliveriesContent() {
   if (!driver) return <div className="p-4">You are not registered as a driver.</div>;
 
   // Use cached orders when offline, otherwise use fresh data
-  const orders = isOnline ? (ordersData?.orders || []) : cachedOrders;
+  const orders = isOnline ? ordersData?.orders || [] : cachedOrders;
 
   const pendingOrders = orders.filter((o: any) => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
   const completedOrders = orders.filter((o: any) => o.status === 'COMPLETED');
@@ -71,19 +72,17 @@ function DeliveriesContent() {
           <TabsTrigger value="completed">Done ({completedOrders.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending" className="space-y-4 mt-4">
+        <TabsContent value="pending" className="mt-4 space-y-4">
           {pendingOrders.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No pending deliveries</p>
+            <p className="py-8 text-center text-muted-foreground">No pending deliveries</p>
           ) : (
-            pendingOrders.map((order: any, index: number) => (
-              <EnhancedOrderCard key={order.id} order={order} index={index} />
-            ))
+            pendingOrders.map((order: any, index: number) => <EnhancedOrderCard key={order.id} order={order} index={index} />)
           )}
         </TabsContent>
 
-        <TabsContent value="completed" className="space-y-4 mt-4">
+        <TabsContent value="completed" className="mt-4 space-y-4">
           {completedOrders.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No completed deliveries today</p>
+            <p className="py-8 text-center text-muted-foreground">No completed deliveries today</p>
           ) : (
             completedOrders.map((order: any) => <EnhancedOrderCard key={order.id} order={order} />)
           )}

@@ -1,6 +1,7 @@
-import { db } from '@/lib/db';
 import { OrderStatus } from '@prisma/client';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
+import { endOfDay, startOfDay, subDays } from 'date-fns';
+
+import { db } from '@/lib/db';
 
 /**
  * Aggregates daily statistics for a specific date
@@ -210,11 +211,7 @@ export async function aggregateDailyStats(date: Date = new Date()) {
 /**
  * Aggregates performance metrics for each driver for a specific date
  */
-async function aggregateDriverPerformanceMetrics(
-  dayStart: Date,
-  dayEnd: Date,
-  driverDistances: Map<string, number>,
-) {
+async function aggregateDriverPerformanceMetrics(dayStart: Date, dayEnd: Date, driverDistances: Map<string, number>) {
   console.log(`[CRON] Aggregating driver performance metrics`);
 
   // Get all drivers who were active on this day
@@ -300,9 +297,7 @@ async function aggregateDriverPerformanceMetrics(
     });
 
     const hoursActive =
-      firstLocation && lastLocation
-        ? (lastLocation.timestamp.getTime() - firstLocation.timestamp.getTime()) / (1000 * 60 * 60)
-        : 0;
+      firstLocation && lastLocation ? (lastLocation.timestamp.getTime() - firstLocation.timestamp.getTime()) / (1000 * 60 * 60) : 0;
 
     // Calculate performance score (0-100)
     const performanceScore = calculatePerformanceScore({

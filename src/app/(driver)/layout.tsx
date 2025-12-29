@@ -1,8 +1,9 @@
-import { UserButton } from '@/features/auth/components/user-button';
-import { ServiceWorkerRegister } from '@/components/service-worker-register';
-import { OfflineIndicator } from '@/components/offline-indicator';
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { OfflineIndicator } from '@/components/offline-indicator';
+import { ServiceWorkerRegister } from '@/components/service-worker-register';
+import { UserButton } from '@/features/auth/components/user-button';
 
 interface DriverLayoutProps {
   children: React.ReactNode;
@@ -27,7 +28,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
           </div>
         </div>
       </header>
-      <main className="container px-4 py-6 pb-20 max-w-md mx-auto">{children}</main>
+      <main className="container mx-auto max-w-md px-4 py-6 pb-20">{children}</main>
     </div>
   );
 }

@@ -25,8 +25,8 @@ export const AnalyticsCard = ({ title, previousValue, value, variant, increaseVa
           </CardDescription>
 
           <div className="flex items-center gap-x-1">
-            <Icon className={cn('text-muted-foreground size-4')} />
-            <span className={cn('text-foreground truncate text-base font-medium')}>{previousValue}</span>
+            <Icon className={cn('size-4 text-muted-foreground')} />
+            <span className={cn('truncate text-base font-medium text-foreground')}>{previousValue}</span>
           </div>
 
           {/* <div className="flex items-center gap-x-1">

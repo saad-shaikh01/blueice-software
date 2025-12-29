@@ -19,10 +19,7 @@ export const useRegister = () => {
       const responseBody = await response.json(); // Read once
 
       if (!response.ok) {
-        const message =
-          typeof responseBody === 'object' && 'error' in responseBody
-            ? responseBody.error
-            : 'Failed to register!';
+        const message = typeof responseBody === 'object' && 'error' in responseBody ? responseBody.error : 'Failed to register!';
         throw new Error(message); // Forward backend message
       }
 

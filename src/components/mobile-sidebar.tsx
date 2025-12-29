@@ -4,8 +4,10 @@ import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { MenuIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+
 import { Sidebar } from './sidebar';
 
 export const MobileSidebar = () => {

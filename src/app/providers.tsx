@@ -9,12 +9,7 @@ const queryClient = new QueryClient();
 export function Providers({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>
-      <NextThemesProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
+      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         {children}
       </NextThemesProvider>
     </QueryClientProvider>

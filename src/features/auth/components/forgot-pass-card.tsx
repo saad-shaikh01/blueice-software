@@ -4,13 +4,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+
 import { DottedSeparator } from '@/components/dotted-separator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { forgotPasswordSchema } from '../schema';
+
 import { useForgot } from '../api/use-forgot';
+import { forgotPasswordSchema } from '../schema';
 
 export const ForgotPassCard = () => {
   const { mutate: forgot, isPending } = useForgot();

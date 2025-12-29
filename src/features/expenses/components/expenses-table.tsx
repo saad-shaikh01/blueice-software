@@ -1,17 +1,12 @@
 'use client';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { useGetExpenses } from '../api/use-expenses';
-import { format } from 'date-fns';
 import { ExpenseStatus } from '@prisma/client';
+import { format } from 'date-fns';
+
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
+import { useGetExpenses } from '../api/use-expenses';
 
 export const ExpensesTable = () => {
   const { data, isLoading } = useGetExpenses();
@@ -58,8 +53,8 @@ export const ExpensesTable = () => {
                       expense.status === ExpenseStatus.APPROVED
                         ? 'default' // was 'success', checking ShadCN default variants. 'default' is usually black/primary.
                         : expense.status === ExpenseStatus.REJECTED
-                        ? 'destructive'
-                        : 'secondary'
+                          ? 'destructive'
+                          : 'secondary'
                     }
                   >
                     {expense.status}

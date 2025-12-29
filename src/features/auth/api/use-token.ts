@@ -18,8 +18,8 @@ export const useToken = () => {
     },
     onSuccess: (response) => {
       if ('data' in response) {
-        localStorage.setItem("fcmToken", response.data); // ✅ Save the token
-        console.log("✅ FCM token saved to localStorage:",);
+        localStorage.setItem('fcmToken', response.data); // ✅ Save the token
+        console.log('✅ FCM token saved to localStorage:');
       }
     },
     onError: () => {

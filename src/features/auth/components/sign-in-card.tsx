@@ -88,7 +88,7 @@ export const SignInCard = () => {
           </form>
         </Form>
       </CardContent>
-      <Link href="/password/forgot" className="px-7 text-right float-end">
+      <Link href="/password/forgot" className="float-end px-7 text-right">
         <span className="text-blue-700 dark:text-blue-500">Forgot Password</span>
       </Link>
 

@@ -10,7 +10,16 @@ const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableE
 Table.displayName = 'Table';
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
-  ({ className, ...props }, ref) => <thead ref={ref} className={cn('sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 [&_tr]:border-b shadow-sm', className)} {...props} />,
+  ({ className, ...props }, ref) => (
+    <thead
+      ref={ref}
+      className={cn(
+        'sticky top-0 z-10 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 [&_tr]:border-b',
+        className,
+      )}
+      {...props}
+    />
+  ),
 );
 TableHeader.displayName = 'TableHeader';
 
@@ -27,7 +36,11 @@ const TableFooter = React.forwardRef<HTMLTableSectionElement, React.HTMLAttribut
 TableFooter.displayName = 'TableFooter';
 
 const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(({ className, ...props }, ref) => (
-  <tr ref={ref} className={cn('border-b transition-colors hover:bg-muted/30 data-[state=selected]:bg-muted even:bg-muted/10', className)} {...props} />
+  <tr
+    ref={ref}
+    className={cn('border-b transition-colors even:bg-muted/10 hover:bg-muted/30 data-[state=selected]:bg-muted', className)}
+    {...props}
+  />
 ));
 TableRow.displayName = 'TableRow';
 

@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { ExpenseCategory, ExpensePaymentMethod, ExpenseStatus } from '@prisma/client';
+import { z } from 'zod';
 
 export const createExpenseSchema = z.object({
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
@@ -13,7 +13,10 @@ export const createExpenseSchema = z.object({
 
 export const updateExpenseSchema = z.object({
   amount: z.coerce.number().min(0.01).optional(),
-  date: z.string().transform((val) => new Date(val)).optional(),
+  date: z
+    .string()
+    .transform((val) => new Date(val))
+    .optional(),
   category: z.nativeEnum(ExpenseCategory).optional(),
   description: z.string().optional(),
   receiptUrl: z.string().optional(),

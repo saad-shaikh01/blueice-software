@@ -1,14 +1,15 @@
 'use client';
 
+import { FileText, Printer, Receipt } from 'lucide-react';
 import { useState } from 'react';
-import { Printer, FileText, Receipt } from 'lucide-react';
+
+import { PageError } from '@/components/page-error';
+import { PageLoader } from '@/components/page-loader';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetInvoiceData } from '@/features/orders/api/use-get-invoice-data';
 import { InvoiceA4 } from '@/features/orders/components/invoice-a4';
 import { InvoiceThermal } from '@/features/orders/components/invoice-thermal';
-import { PageLoader } from '@/components/page-loader';
-import { PageError } from '@/components/page-error';
 
 interface InvoicePageProps {
   params: {
@@ -30,7 +31,7 @@ export default function InvoicePage({ params }: InvoicePageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Header with Print Button */}
-      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Order Invoice</h1>
           <p className="text-sm text-muted-foreground">

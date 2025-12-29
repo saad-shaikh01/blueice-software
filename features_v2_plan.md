@@ -41,6 +41,7 @@ This document outlines the technical implementation strategy for upgrading Blue 
 ## Feature 1: Live Geolocation & Tracking
 
 ### Business Value
+
 - **For Admin:** Real-time visibility into fleet operations, route deviations, and driver locations
 - **For Drivers:** Turn-by-turn navigation to customers, reducing delivery time by 25%
 - **For Customers:** Live tracking of delivery (future enhancement)
@@ -50,12 +51,14 @@ This document outlines the technical implementation strategy for upgrading Blue 
 #### 1.1 Google Maps Integration
 
 **Libraries to Install:**
+
 ```bash
 npm install @react-google-maps/api
 npm install @googlemaps/google-maps-services-js
 ```
 
 **API Keys Required:**
+
 - Google Maps JavaScript API
 - Google Maps Directions API
 - Google Maps Geocoding API
@@ -68,10 +71,12 @@ npm install @googlemaps/google-maps-services-js
 **Technology:** WebSocket + Redis PubSub
 
 **Why not database polling?**
+
 - Polling every 10 seconds = 8,640 DB queries per driver per day
 - WebSocket = Single connection, instant updates, 95% less overhead
 
 **Install Dependencies:**
+
 ```bash
 npm install socket.io socket.io-client
 npm install ioredis  # Redis client for Node.js
@@ -94,6 +99,7 @@ Google Maps Component (Updates markers)
 #### 1.3 Database Schema Changes
 
 **New Table: `DriverLocationHistory`**
+
 ```prisma
 model DriverLocationHistory {
   id          String   @id @default(uuid())
@@ -119,6 +125,7 @@ model DriverLocationHistory {
 ```
 
 **Update `DriverProfile` Table:**
+
 ```prisma
 model DriverProfile {
   // ... existing fields
@@ -135,6 +142,7 @@ model DriverProfile {
 #### 1.4 API Endpoints
 
 **Real-Time Location Update (Driver App)**
+
 ```typescript
 // POST /api/drivers/location
 {
@@ -148,6 +156,7 @@ model DriverProfile {
 ```
 
 **Get Live Driver Locations (Admin)**
+
 ```typescript
 // GET /api/drivers/live-locations
 Response: {
@@ -170,6 +179,7 @@ Response: {
 ```
 
 **Get Driver Route History**
+
 ```typescript
 // GET /api/drivers/:id/route-history?date=2025-01-15
 Response: {
@@ -188,6 +198,7 @@ Response: {
 #### 1.5 Frontend Components
 
 **Admin Map View:**
+
 ```
 src/features/tracking/
   ├── components/
@@ -207,6 +218,7 @@ src/features/tracking/
 ```
 
 **Driver Navigation View:**
+
 ```
 src/features/driver-view/
   ├── components/
@@ -220,12 +232,14 @@ src/features/driver-view/
 #### 1.6 Implementation Steps
 
 **Phase 1: Basic Map Integration (Week 1-2)**
+
 1. Create Google Cloud project, enable APIs
 2. Implement static map showing all customer locations
 3. Add markers for customers color-coded by route
 4. Click marker → Show customer details (name, address, order status)
 
 **Phase 2: Live Driver Tracking (Week 3-4)**
+
 1. Set up Redis server (or use Upstash for managed Redis)
 2. Implement WebSocket server endpoint
 3. Driver app: Send location every 30 seconds
@@ -233,12 +247,14 @@ src/features/driver-view/
 5. Auto-refresh map every 10 seconds
 
 **Phase 3: Route History & Analytics (Week 5-6)**
+
 1. Store location history in database
 2. Implement route playback feature (see driver's path for any day)
 3. Calculate distance traveled, stops made, speed analytics
 4. Add heatmap showing frequently visited areas
 
 **Phase 4: Advanced Features (Week 7-8)**
+
 1. Implement route optimization (suggest best order of deliveries)
 2. Add geofencing (alert when driver enters/exits customer area)
 3. Driver navigation with turn-by-turn directions
@@ -247,6 +263,7 @@ src/features/driver-view/
 #### 1.7 Cost Optimization Strategies
 
 **Reduce Google Maps API Costs:**
+
 1. **Static Maps** for customer addresses (free tier covers most use)
 2. **Batch Geocoding** during off-peak hours (customer address → lat/lng)
 3. **Cache Directions** for commonly traveled routes
@@ -254,10 +271,12 @@ src/features/driver-view/
 5. Reserve Google Maps only for driver navigation
 
 **Recommended Approach:**
+
 - **Admin Dashboard:** Leaflet.js (open-source, free)
 - **Driver App:** Google Maps (accurate navigation critical)
 
 **Updated Dependencies:**
+
 ```bash
 npm install leaflet react-leaflet
 npm install @types/leaflet -D
@@ -268,6 +287,7 @@ npm install @types/leaflet -D
 ## Feature 2: Advanced Admin Dashboard (Business Intelligence)
 
 ### Current Dashboard Limitations
+
 - Only shows 4 basic metrics (customers, orders, revenue, active orders)
 - No time-based filtering
 - No comparison or trend analysis
@@ -278,6 +298,7 @@ npm install @types/leaflet -D
 #### 2.1 Key Performance Indicators (KPIs)
 
 **Top Metrics Row (Real-Time)**
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  Today's Revenue        Bottles Delivered    Active Drivers     │
@@ -289,10 +310,12 @@ npm install @types/leaflet -D
 ```
 
 **Time Period Selector:**
+
 - Predefined: Today | Yesterday | Last 7 Days | Last 30 Days | This Month | Last Month
 - Custom: Date Range Picker (from - to)
 
 **Comparison Mode:**
+
 - "This Week vs Last Week"
 - "This Month vs Last Month"
 - "This Quarter vs Last Quarter"
@@ -300,6 +323,7 @@ npm install @types/leaflet -D
 #### 2.2 Advanced Charts & Visualizations
 
 **Revenue Trend Chart (Recharts)**
+
 ```typescript
 // Multi-line chart showing:
 // - Daily revenue (actual vs target)
@@ -308,6 +332,7 @@ npm install @types/leaflet -D
 ```
 
 **Order Status Funnel**
+
 ```
 SCHEDULED (150) ────┐
                     ├──→ PENDING (80) ────┐
@@ -317,6 +342,7 @@ SCHEDULED (150) ────┐
 ```
 
 **Customer Segmentation Chart**
+
 ```typescript
 // Pie chart showing:
 // - Residential: 65% (450 customers)
@@ -325,6 +351,7 @@ SCHEDULED (150) ────┐
 ```
 
 **Product Performance Matrix**
+
 ```
 Product         | Sold This Month | Growth | Revenue    | Margin
 ----------------|-----------------|--------|------------|--------
@@ -334,6 +361,7 @@ Water Dispenser | 45              | -8%    | PKR 135K   | 42%
 ```
 
 **Driver Efficiency Leaderboard**
+
 ```
 Rank | Driver Name   | Deliveries | Completion % | Cash Collected
 -----|---------------|------------|--------------|---------------
@@ -349,6 +377,7 @@ Rank | Driver Name   | Deliveries | Completion % | Cash Collected
 **Solution:** Create Materialized Views or Aggregation Tables
 
 **New Table: `DailyStats`**
+
 ```prisma
 model DailyStats {
   id                String   @id @default(uuid())
@@ -383,6 +412,7 @@ model DailyStats {
 ```
 
 **Cron Job to Populate Daily Stats:**
+
 ```typescript
 // runs at 00:30 AM every day
 async function aggregateDailyStats() {
@@ -392,10 +422,10 @@ async function aggregateDailyStats() {
   const stats = await db.order.aggregate({
     where: {
       scheduledDate: yesterday,
-      status: 'COMPLETED'
+      status: 'COMPLETED',
     },
     _sum: { totalAmount: true, cashCollected: true },
-    _count: { id: true }
+    _count: { id: true },
   });
 
   await db.dailyStats.create({
@@ -404,7 +434,7 @@ async function aggregateDailyStats() {
       totalRevenue: stats._sum.totalAmount,
       ordersCompleted: stats._count.id,
       // ... other fields
-    }
+    },
   });
 }
 ```
@@ -412,6 +442,7 @@ async function aggregateDailyStats() {
 #### 2.4 API Endpoints
 
 **Get Dashboard Stats**
+
 ```typescript
 // GET /api/dashboard/stats?period=last30days&compare=true
 
@@ -438,6 +469,7 @@ Response: {
 ```
 
 **Get Time-Series Data**
+
 ```typescript
 // GET /api/dashboard/revenue-chart?from=2025-01-01&to=2025-01-31
 
@@ -479,24 +511,28 @@ src/features/dashboard/
 #### 2.6 Implementation Steps
 
 **Week 1-2: Data Layer**
+
 1. Create `DailyStats` table
 2. Write aggregation function
 3. Backfill historical data (migrate existing orders)
 4. Set up cron job (use Vercel Cron or node-cron)
 
 **Week 3-4: API Layer**
+
 1. Implement stats calculation with time filtering
 2. Add comparison logic (current vs previous period)
 3. Create time-series endpoints
 4. Optimize queries with indexes
 
 **Week 5-6: Frontend Components**
+
 1. Build KPI cards with comparison arrows
 2. Implement revenue trend chart (Recharts)
 3. Add order funnel visualization
 4. Create time period selector with presets
 
 **Week 7-8: Polish & Testing**
+
 1. Add loading states and error handling
 2. Implement real-time updates (WebSocket or polling)
 3. Add export functionality (PDF reports, CSV downloads)
@@ -507,6 +543,7 @@ src/features/dashboard/
 ## Feature 3: Driver Performance Analytics
 
 ### Business Value
+
 - Identify top performers → reward system
 - Detect underperformance → training needs
 - Prevent inventory loss → track bottle discrepancies
@@ -548,26 +585,22 @@ src/features/dashboard/
 ### 3.2 Performance Metrics
 
 **Delivery Efficiency Score (0-100)**
+
 ```typescript
-const score = (
-  (completedOrders / totalOrders) * 40 +
-  (cashCollected / totalBilled) * 30 +
-  (bottleAccuracy) * 20 +
-  (onTimeDelivery) * 10
-);
+const score = (completedOrders / totalOrders) * 40 + (cashCollected / totalBilled) * 30 + bottleAccuracy * 20 + onTimeDelivery * 10;
 ```
 
 **Bottle Accuracy Calculation:**
+
 ```typescript
-const bottleAccuracy = 100 - (
-  Math.abs(bottlesGiven - bottlesTaken) / bottlesGiven * 100
-);
+const bottleAccuracy = 100 - (Math.abs(bottlesGiven - bottlesTaken) / bottlesGiven) * 100;
 // Example: Gave 50, took 48 → 96% accuracy
 ```
 
 ### 3.3 Database Schema Changes
 
 **New Table: `DriverPerformanceMetrics`**
+
 ```prisma
 model DriverPerformanceMetrics {
   id                String   @id @default(uuid())
@@ -611,6 +644,7 @@ model DriverPerformanceMetrics {
 ### 3.4 API Endpoints
 
 **Get Driver Performance**
+
 ```typescript
 // GET /api/drivers/:id/performance?period=last30days
 
@@ -635,6 +669,7 @@ Response: {
 ```
 
 **Get Leaderboard**
+
 ```typescript
 // GET /api/drivers/leaderboard?metric=performanceScore&limit=10
 
@@ -675,10 +710,12 @@ src/features/driver-analytics/
 **Auto-generated alerts for admins:**
 
 1. **Low Performance Alert:**
+
    - If completion rate < 85% for 3 consecutive days
    - Bottle discrepancy > 10% for any day
 
 2. **Outstanding Performance:**
+
    - If performance score > 95 for a week → Bonus recommendation
 
 3. **Inventory Concern:**
@@ -689,6 +726,7 @@ src/features/driver-analytics/
 ## Feature 4: UI/UX Modernization
 
 ### Current Issues
+
 - Generic Next.js template design
 - No dashboard widgets
 - Tables are text-heavy, not visual
@@ -698,25 +736,28 @@ src/features/driver-analytics/
 ### 4.1 Design System Overhaul
 
 **Color Palette (Water-themed)**
+
 ```css
 :root {
-  --primary-blue: #006BA6;      /* Deep Water Blue */
-  --secondary-cyan: #00A9CE;     /* Aqua */
-  --accent-teal: #009B95;        /* Teal */
-  --success-green: #4CAF50;
-  --warning-amber: #FFA726;
-  --danger-red: #EF5350;
-  --neutral-gray: #546E7A;
-  --background: #F5F9FA;         /* Soft Blue-Gray */
+  --primary-blue: #006ba6; /* Deep Water Blue */
+  --secondary-cyan: #00a9ce; /* Aqua */
+  --accent-teal: #009b95; /* Teal */
+  --success-green: #4caf50;
+  --warning-amber: #ffa726;
+  --danger-red: #ef5350;
+  --neutral-gray: #546e7a;
+  --background: #f5f9fa; /* Soft Blue-Gray */
 }
 ```
 
 **Typography:**
+
 - Headings: Inter (Google Font) - Bold
 - Body: Inter - Regular
 - Numbers: JetBrains Mono (monospace for metrics)
 
 **Component Library Upgrade:**
+
 ```bash
 npm install @tremor/react  # Beautiful charts and analytics components
 npm install framer-motion  # Smooth animations
@@ -779,6 +820,7 @@ npm install framer-motion  # Smooth animations
 ```
 
 **Quick Actions Menu:**
+
 - "Generate Today's Orders" button on dashboard
 - "Assign Unassigned Orders" one-click button
 - "View Drivers Offline" filter
@@ -787,6 +829,7 @@ npm install framer-motion  # Smooth animations
 ### 4.4 Modern UI Components
 
 **Stat Cards with Trend Indicators:**
+
 ```tsx
 <Card>
   <CardContent className="pt-6">
@@ -795,7 +838,7 @@ npm install framer-motion  # Smooth animations
         <p className="text-sm text-gray-600">Today's Revenue</p>
         <h3 className="text-3xl font-bold">PKR 45,230</h3>
       </div>
-      <TrendingUp className="text-green-500 h-8 w-8" />
+      <TrendingUp className="h-8 w-8 text-green-500" />
     </div>
     <div className="mt-2 flex items-center gap-1 text-sm">
       <ArrowUp className="h-4 w-4 text-green-500" />
@@ -807,6 +850,7 @@ npm install framer-motion  # Smooth animations
 ```
 
 **Data Tables with Actions:**
+
 ```tsx
 <Table>
   <TableRow>
@@ -834,6 +878,7 @@ npm install framer-motion  # Smooth animations
 ### 4.5 Mobile-First Driver App
 
 **Bottom Navigation:**
+
 ```
 ┌─────────────────────────────────┐
 │                                  │
@@ -861,21 +906,25 @@ npm install framer-motion  # Smooth animations
 ### 4.6 Implementation Steps
 
 **Week 1-2: Design System**
+
 1. Define color palette, typography, spacing
 2. Create reusable component library
 3. Build Storybook for component showcase
 
 **Week 3-4: Dashboard Redesign**
+
 1. Rebuild dashboard with widget system
 2. Implement alert cards
 3. Add quick action buttons
 
 **Week 5-6: Data Visualization**
+
 1. Integrate Tremor components
 2. Build custom charts
 3. Add animations with Framer Motion
 
 **Week 7-8: Mobile Optimization**
+
 1. Redesign driver app with bottom nav
 2. Optimize touch targets (minimum 44px)
 3. Add offline mode indicators
@@ -892,17 +941,20 @@ Based on industry best practices for water supply businesses, I recommend these 
 **Solution:** QR code on each bottle for instant scanning
 
 **Technical Implementation:**
+
 ```bash
 npm install qrcode react-qr-scanner
 ```
 
 **Workflow:**
+
 1. Generate unique QR code for each bottle (or batch)
 2. Driver scans QR when giving bottle → auto-increment `filledGiven`
 3. Driver scans QR when taking empty → auto-increment `emptyTaken`
 4. System validates: Can't take bottle that wasn't given
 
 **Database:**
+
 ```prisma
 model Bottle {
   id            String   @id @default(uuid())
@@ -924,6 +976,7 @@ enum BottleStatus {
 ```
 
 **Benefits:**
+
 - 100% accuracy in bottle counting
 - Prevent bottle theft/loss
 - Track bottle lifecycle (how many times used)
@@ -937,11 +990,13 @@ enum BottleStatus {
 **Solution:** Subscription plans with auto-billing
 
 **Plans:**
+
 - **Basic:** 1x 19L bottle per week → PKR 800/month
 - **Family:** 2x 19L bottles per week → PKR 1,500/month
 - **Office:** 5x 19L bottles per week → PKR 3,500/month
 
 **Database:**
+
 ```prisma
 model Subscription {
   id              String   @id @default(uuid())
@@ -987,6 +1042,7 @@ enum SubscriptionStatus {
 ```
 
 **Auto-Order Generation:**
+
 ```typescript
 // Cron job runs daily at 6 AM
 async function generateSubscriptionOrders() {
@@ -994,9 +1050,9 @@ async function generateSubscriptionOrders() {
     where: {
       status: 'ACTIVE',
       nextDelivery: {
-        lte: new Date()
-      }
-    }
+        lte: new Date(),
+      },
+    },
   });
 
   for (const sub of subscriptions) {
@@ -1004,15 +1060,15 @@ async function generateSubscriptionOrders() {
       customerId: sub.customerId,
       productId: sub.productId,
       quantity: sub.quantity,
-      source: 'SUBSCRIPTION'
+      source: 'SUBSCRIPTION',
     });
 
     // Update next delivery date
     await db.subscription.update({
       where: { id: sub.id },
       data: {
-        nextDelivery: calculateNextDelivery(sub.frequency)
-      }
+        nextDelivery: calculateNextDelivery(sub.frequency),
+      },
     });
   }
 }
@@ -1027,17 +1083,20 @@ async function generateSubscriptionOrders() {
 **Solution:** ML-based route optimization using Google OR-Tools
 
 **Install:**
+
 ```bash
 pip install ortools  # Python service
 npm install node-fetch  # Call Python API
 ```
 
 **Algorithm:**
+
 - Input: List of orders (customer locations)
 - Output: Optimized sequence minimizing total distance
 - Constraints: Driver shift hours, vehicle capacity
 
 **API Endpoint:**
+
 ```typescript
 // POST /api/routes/optimize
 {
@@ -1067,6 +1126,7 @@ Response: {
 ### 5.4 Customer Self-Service Portal
 
 **Features:**
+
 - **Track My Delivery:** Live map showing driver location
 - **Order History:** View all past orders and invoices
 - **Wallet Balance:** See current credit/advance balance
@@ -1074,6 +1134,7 @@ Response: {
 - **Report Issue:** Damaged bottle, late delivery, etc.
 
 **Database:**
+
 ```prisma
 model CustomerIssue {
   id          String   @id @default(uuid())
@@ -1106,16 +1167,19 @@ enum IssueCategory {
 ### 5.5 Predictive Analytics (Future Revenue Forecasting)
 
 **Machine Learning Model:**
+
 - Predict next month's revenue based on historical data
 - Identify customers at risk of churning
 - Forecast stock requirements
 
 **Tech Stack:**
+
 ```bash
 npm install @tensorflow/tfjs-node
 ```
 
 **Use Cases:**
+
 1. **Demand Forecasting:** How many bottles needed next week?
 2. **Churn Prediction:** Which customers haven't ordered in 30 days?
 3. **Dynamic Pricing:** Suggest discounts for slow-moving products
@@ -1125,9 +1189,11 @@ npm install @tensorflow/tfjs-node
 ## Implementation Roadmap
 
 ### Phase 1: Foundation (Weeks 1-4)
+
 **Goal:** Set up infrastructure for live tracking and analytics
 
 **Tasks:**
+
 1. Set up Redis server (Upstash or self-hosted)
 2. Implement WebSocket server for real-time updates
 3. Create `DailyStats` and `DriverPerformanceMetrics` tables
@@ -1135,6 +1201,7 @@ npm install @tensorflow/tfjs-node
 5. Set up Google Maps API project
 
 **Deliverables:**
+
 - Real-time location updates working
 - Daily stats aggregation running
 - Dashboard showing basic analytics
@@ -1142,9 +1209,11 @@ npm install @tensorflow/tfjs-node
 ---
 
 ### Phase 2: Live Tracking (Weeks 5-8)
+
 **Goal:** Full geolocation and map features
 
 **Tasks:**
+
 1. Build admin live map view
 2. Implement driver route history
 3. Add navigation for driver app
@@ -1152,6 +1221,7 @@ npm install @tensorflow/tfjs-node
 5. Optimize location data storage
 
 **Deliverables:**
+
 - Admin can track all drivers in real-time
 - Drivers can navigate to customers
 - Route history playback functional
@@ -1159,9 +1229,11 @@ npm install @tensorflow/tfjs-node
 ---
 
 ### Phase 3: Advanced Dashboard (Weeks 9-12)
+
 **Goal:** Business intelligence and analytics
 
 **Tasks:**
+
 1. Redesign dashboard with widgets
 2. Implement time-based filtering
 3. Build comparison charts
@@ -1169,6 +1241,7 @@ npm install @tensorflow/tfjs-node
 5. Add export functionality (PDF reports)
 
 **Deliverables:**
+
 - God Mode dashboard with 20+ metrics
 - Time period selector working
 - Revenue trend charts with comparisons
@@ -1176,15 +1249,18 @@ npm install @tensorflow/tfjs-node
 ---
 
 ### Phase 4: Driver Analytics (Weeks 13-14)
+
 **Goal:** Individual driver performance tracking
 
 **Tasks:**
+
 1. Build driver profile view
 2. Implement performance score calculation
 3. Create bottle accuracy tracking
 4. Add auto-alerts for low performance
 
 **Deliverables:**
+
 - Each driver has detailed analytics page
 - Leaderboard shows top performers
 - Alerts notify admin of issues
@@ -1192,9 +1268,11 @@ npm install @tensorflow/tfjs-node
 ---
 
 ### Phase 5: UI/UX Overhaul (Weeks 15-16)
+
 **Goal:** Modern, beautiful interface
 
 **Tasks:**
+
 1. Implement new design system
 2. Rebuild dashboard with new components
 3. Add animations and transitions
@@ -1202,6 +1280,7 @@ npm install @tensorflow/tfjs-node
 5. Implement dark mode
 
 **Deliverables:**
+
 - Entire app matches new design
 - Mobile-first driver app
 - Smooth animations throughout
@@ -1209,9 +1288,11 @@ npm install @tensorflow/tfjs-node
 ---
 
 ### Phase 6: Value-Add Features (Weeks 17-20)
+
 **Goal:** Advanced features for competitive edge
 
 **Tasks:**
+
 1. Implement QR code bottle tracking
 2. Build subscription management
 3. Integrate route optimization
@@ -1219,6 +1300,7 @@ npm install @tensorflow/tfjs-node
 5. Add predictive analytics (optional)
 
 **Deliverables:**
+
 - QR scanning working
 - Subscriptions auto-generating orders
 - Routes optimized automatically
@@ -1230,6 +1312,7 @@ npm install @tensorflow/tfjs-node
 ### New Dependencies
 
 **Core Features:**
+
 ```json
 {
   "dependencies": {
@@ -1258,17 +1341,20 @@ npm install @tensorflow/tfjs-node
 ### Infrastructure Requirements
 
 **Redis Server:**
+
 - **Option 1:** Upstash (Managed Redis) - $10/month
 - **Option 2:** Self-hosted Redis on VPS - Free (if you have VPS)
 
 **Google Cloud Platform:**
+
 - Maps JavaScript API
 - Directions API
 - Geocoding API
 - Distance Matrix API
-**Estimated Cost:** PKR 15,000 - 30,000/month
+  **Estimated Cost:** PKR 15,000 - 30,000/month
 
 **Vercel/Deployment:**
+
 - Upgrade to Pro plan for cron jobs - $20/month
 
 **Total Monthly Cost:** PKR 25,000 - 50,000 (~$90-180)
@@ -1301,27 +1387,32 @@ npm run seed:analytics  # Custom script to populate DailyStats
 ## API Endpoints Map
 
 ### Tracking Endpoints
+
 - `POST /api/drivers/location` - Update driver location
 - `GET /api/drivers/live-locations` - Get all live positions
 - `GET /api/drivers/:id/route-history` - Historical route
 - `WS /api/tracking/subscribe` - WebSocket for real-time updates
 
 ### Dashboard Endpoints
+
 - `GET /api/dashboard/stats` - KPI metrics
 - `GET /api/dashboard/revenue-chart` - Time-series data
 - `GET /api/dashboard/comparison` - Period comparison
 - `GET /api/dashboard/alerts` - Critical issues
 
 ### Driver Analytics Endpoints
+
 - `GET /api/drivers/:id/performance` - Individual performance
 - `GET /api/drivers/leaderboard` - Rankings
 - `POST /api/drivers/:id/alerts` - Performance alerts
 
 ### Route Optimization
+
 - `POST /api/routes/optimize` - Calculate optimal route
 - `GET /api/routes/suggestions` - AI-suggested routes
 
 ### Subscription Endpoints
+
 - `GET /api/subscriptions` - List all subscriptions
 - `POST /api/subscriptions` - Create subscription
 - `PATCH /api/subscriptions/:id/pause` - Pause subscription
@@ -1334,24 +1425,29 @@ npm run seed:analytics  # Custom script to populate DailyStats
 ### Technical Risks
 
 **Risk 1: Google Maps API Costs Exceed Budget**
+
 - **Mitigation:** Use Leaflet for admin, Google only for driver navigation
 - **Fallback:** OpenStreetMap (free, but less accurate)
 
 **Risk 2: WebSocket Server Scalability**
+
 - **Mitigation:** Use Redis PubSub for horizontal scaling
 - **Fallback:** Polling every 30 seconds (less real-time but works)
 
 **Risk 3: Real-Time Updates Drain Mobile Battery**
+
 - **Mitigation:** Adaptive update frequency (every 10s when moving, 60s when idle)
 - **Fallback:** Manual location update button
 
 ### Business Risks
 
 **Risk 1: Drivers Resist Using New Features**
+
 - **Mitigation:** Incentivize usage (bonus for highest performance score)
 - **Training:** Conduct hands-on training sessions
 
 **Risk 2: Data Privacy Concerns (Location Tracking)**
+
 - **Mitigation:** Clear privacy policy, location tracking only during duty hours
 - **Legal:** Consent form in driver contract
 
@@ -1362,16 +1458,19 @@ npm run seed:analytics  # Custom script to populate DailyStats
 ### After 3 Months of V2 Launch
 
 **Operational Efficiency:**
+
 - Delivery time reduced by 25%
 - Route distance reduced by 30%
 - Order completion rate improved to 95%+
 
 **Financial Impact:**
+
 - Revenue increased by 20% (due to more deliveries/day)
 - Fuel costs reduced by 15%
 - Customer churn reduced by 10%
 
 **User Adoption:**
+
 - 90% of drivers actively using navigation
 - 80% of customers using self-service portal
 - 95% of orders tracked on map
@@ -1383,12 +1482,15 @@ npm run seed:analytics  # Custom script to populate DailyStats
 ### Development Costs
 
 **Phase 1-2 (8 weeks):** PKR 320,000
+
 - Full-stack developer: PKR 40,000/week × 8 weeks
 
 **Phase 3-4 (6 weeks):** PKR 240,000
+
 - Full-stack developer: PKR 40,000/week × 6 weeks
 
 **Phase 5-6 (6 weeks):** PKR 240,000
+
 - Full-stack developer + UI/UX designer: PKR 40,000/week × 6 weeks
 
 **Total Development:** PKR 800,000
@@ -1399,7 +1501,7 @@ npm run seed:analytics  # Custom script to populate DailyStats
 - Redis (Upstash): PKR 3,500
 - Vercel Pro: PKR 7,000
 - Firebase (push notifications): PKR 2,000
-**Total Monthly:** PKR 37,500
+  **Total Monthly:** PKR 37,500
 
 ### One-Time Costs
 
@@ -1416,6 +1518,7 @@ npm run seed:analytics  # Custom script to populate DailyStats
 This comprehensive V2 upgrade will transform Blue Ice CRM from a basic operations tool into a cutting-edge, data-driven platform that rivals international SaaS products.
 
 **Key Differentiators:**
+
 1. **Real-time visibility** into all operations
 2. **Predictive analytics** for proactive decision-making
 3. **Driver gamification** through performance leaderboards
@@ -1423,11 +1526,13 @@ This comprehensive V2 upgrade will transform Blue Ice CRM from a basic operation
 5. **AI-powered optimization** maximizing efficiency
 
 **Recommended Execution:**
+
 - Start with Phase 1-2 (Live Tracking) - highest ROI
 - Then Phase 3 (Advanced Dashboard) - visible impact
 - Phase 4-6 can be rolled out incrementally
 
 **Next Steps:**
+
 1. Approve budget and timeline
 2. Set up Google Cloud and Redis accounts
 3. Begin Phase 1 development

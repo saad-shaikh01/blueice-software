@@ -1,4 +1,4 @@
-import { CustomerProfile, User, Route, Order, CustomerBottleWallet, Ledger } from '@prisma/client';
+import { CustomerBottleWallet, CustomerProfile, Ledger, Order, Route, User } from '@prisma/client';
 
 /**
  * Customer with user information

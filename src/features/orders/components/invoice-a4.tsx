@@ -1,8 +1,8 @@
 'use client';
 
+import type { Decimal } from '@prisma/client/runtime/library';
 import { format } from 'date-fns';
 import { Droplet } from 'lucide-react';
-import type { Decimal } from '@prisma/client/runtime/library';
 
 interface InvoiceA4Props {
   data: {
@@ -90,9 +90,7 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
           <div className="text-right">
             <h2 className="text-2xl font-bold text-gray-800">INVOICE</h2>
             <p className="mt-1 text-sm text-gray-600">Invoice #{order.readableId}</p>
-            <p className="text-sm text-gray-600">
-              Date: {format(new Date(order.scheduledDate), 'dd MMM yyyy')}
-            </p>
+            <p className="text-sm text-gray-600">Date: {format(new Date(order.scheduledDate), 'dd MMM yyyy')}</p>
           </div>
         </div>
       </div>
@@ -115,17 +113,11 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
           <h3 className="mb-2 text-sm font-semibold uppercase text-gray-500">Bill To</h3>
           <div className="rounded-lg bg-blue-50 p-4">
             <p className="font-semibold text-gray-900">{order.customer.user.name}</p>
-            {order.customer.user.phone && (
-              <p className="mt-1 text-sm text-gray-600">Phone: {order.customer.user.phone}</p>
-            )}
-            {order.customer.user.email && (
-              <p className="text-sm text-gray-600">Email: {order.customer.user.email}</p>
-            )}
+            {order.customer.user.phone && <p className="mt-1 text-sm text-gray-600">Phone: {order.customer.user.phone}</p>}
+            {order.customer.user.email && <p className="text-sm text-gray-600">Email: {order.customer.user.email}</p>}
             <p className="mt-2 text-sm text-gray-600">{order.customer.address}</p>
             <p className="text-sm text-gray-600">{order.customer.area}</p>
-            {order.customer.landmark && (
-              <p className="text-sm text-gray-600">Near: {order.customer.landmark}</p>
-            )}
+            {order.customer.landmark && <p className="text-sm text-gray-600">Near: {order.customer.landmark}</p>}
             <p className="text-sm text-gray-600">
               Floor {order.customer.floorNumber} {order.customer.hasLift ? '(Lift Available)' : '(No Lift)'}
             </p>
@@ -153,9 +145,7 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.product.name}</td>
                   <td className="px-4 py-3 text-center text-sm text-gray-600">{item.product.sku}</td>
                   <td className="px-4 py-3 text-center text-sm text-gray-900">{item.quantity}</td>
-                  <td className="px-4 py-3 text-right text-sm text-gray-900">
-                    PKR {Number(item.priceAtTime).toFixed(2)}
-                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-gray-900">PKR {Number(item.priceAtTime).toFixed(2)}</td>
                   <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
                     PKR {(Number(item.priceAtTime) * item.quantity).toFixed(2)}
                   </td>
@@ -214,9 +204,7 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
                     <td className="px-4 py-2 text-gray-600">
                       {delivery.orderItems.map((item) => `${item.quantity}x ${item.product.name}`).join(', ')}
                     </td>
-                    <td className="px-4 py-2 text-right font-medium text-gray-900">
-                      PKR {Number(delivery.totalAmount).toFixed(2)}
-                    </td>
+                    <td className="px-4 py-2 text-right font-medium text-gray-900">PKR {Number(delivery.totalAmount).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -233,8 +221,11 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-blue-200 pb-2">
                 <span className="text-sm font-medium text-gray-700">Previous Balance:</span>
-                <span className={`text-lg font-semibold ${previousBalanceNum < 0 ? 'text-red-600' : previousBalanceNum > 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                  PKR {Math.abs(previousBalanceNum).toFixed(2)} {previousBalanceNum < 0 ? '(Payable)' : previousBalanceNum > 0 ? '(Advance)' : ''}
+                <span
+                  className={`text-lg font-semibold ${previousBalanceNum < 0 ? 'text-red-600' : previousBalanceNum > 0 ? 'text-green-600' : 'text-gray-900'}`}
+                >
+                  PKR {Math.abs(previousBalanceNum).toFixed(2)}{' '}
+                  {previousBalanceNum < 0 ? '(Payable)' : previousBalanceNum > 0 ? '(Advance)' : ''}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-blue-200 pb-2">
@@ -249,9 +240,11 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
                 <span className="text-sm font-medium text-gray-700">Payment Received:</span>
                 <span className="text-lg font-semibold text-green-600">PKR {paymentReceived.toFixed(2)}</span>
               </div>
-              <div className="flex items-center justify-between bg-blue-600 -mx-6 -mb-6 mt-4 px-6 py-4">
+              <div className="-mx-6 -mb-6 mt-4 flex items-center justify-between bg-blue-600 px-6 py-4">
                 <span className="text-sm font-bold uppercase text-white">Net Outstanding:</span>
-                <span className={`text-2xl font-bold ${netOutstanding < 0 ? 'text-green-300' : netOutstanding > 0 ? 'text-yellow-300' : 'text-white'}`}>
+                <span
+                  className={`text-2xl font-bold ${netOutstanding < 0 ? 'text-green-300' : netOutstanding > 0 ? 'text-yellow-300' : 'text-white'}`}
+                >
                   PKR {Math.abs(netOutstanding).toFixed(2)} {netOutstanding < 0 ? '(Overpaid)' : netOutstanding > 0 ? '(Due)' : '(Settled)'}
                 </span>
               </div>
@@ -263,12 +256,8 @@ export const InvoiceA4 = ({ data }: InvoiceA4Props) => {
       {/* Footer */}
       <div className="border-t border-gray-300 pt-6 text-center">
         <p className="text-sm text-gray-600">Thank you for your business!</p>
-        <p className="mt-1 text-xs text-gray-500">
-          For queries, contact us at info@blueice.com or call +92 XXX XXXXXXX
-        </p>
-        <p className="mt-2 text-xs text-gray-400">
-          This is a computer-generated invoice and does not require a signature.
-        </p>
+        <p className="mt-1 text-xs text-gray-500">For queries, contact us at info@blueice.com or call +92 XXX XXXXXXX</p>
+        <p className="mt-2 text-xs text-gray-400">This is a computer-generated invoice and does not require a signature.</p>
       </div>
     </div>
   );

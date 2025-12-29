@@ -1,15 +1,15 @@
 'use client';
 
+import { AlertTriangle, Database, Package } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { Database, AlertTriangle, Package } from 'lucide-react';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { CreateCustomerInput } from '@/features/customers/schema';
 import { useGetProducts } from '@/features/products/api/use-get-products';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export const LegacyMigrationStep = () => {
   const form = useFormContext<CreateCustomerInput>();
@@ -18,9 +18,7 @@ export const LegacyMigrationStep = () => {
   const openingCashBalance = form.watch('openingCashBalance');
   const openingBottleBalance = form.watch('openingBottleBalance');
 
-  const hasMigrationData =
-    (openingCashBalance && parseFloat(openingCashBalance) > 0) ||
-    (openingBottleBalance && openingBottleBalance > 0);
+  const hasMigrationData = (openingCashBalance && parseFloat(openingCashBalance) > 0) || (openingBottleBalance && openingBottleBalance > 0);
 
   return (
     <div className="space-y-6">
@@ -28,8 +26,8 @@ export const LegacyMigrationStep = () => {
         <Database className="size-4 text-purple-600 dark:text-purple-400" />
         <AlertTitle className="text-purple-900 dark:text-purple-100">Legacy Data Migration</AlertTitle>
         <AlertDescription className="text-purple-700 dark:text-purple-300">
-          This section is <strong>only for migrating existing customers</strong> from your old system. If this is a
-          brand new customer, leave all fields at zero and click Submit.
+          This section is <strong>only for migrating existing customers</strong> from your old system. If this is a brand new customer,
+          leave all fields at zero and click Submit.
         </AlertDescription>
       </Alert>
 
@@ -49,13 +47,7 @@ export const LegacyMigrationStep = () => {
               <FormItem>
                 <FormLabel>Opening Cash Balance (PKR)</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...field}
-                    className="font-mono text-lg"
-                  />
+                  <Input type="number" step="0.01" placeholder="0.00" {...field} className="font-mono text-lg" />
                 </FormControl>
                 <FormDescription>
                   Enter <strong>positive</strong> for advance payment, <strong>negative</strong> for debt (udhaar)
@@ -170,9 +162,7 @@ export const LegacyMigrationStep = () => {
           <AlertDescription className="text-orange-700 dark:text-orange-300">
             When you submit, the system will:
             <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
-              {openingCashBalance && parseFloat(openingCashBalance) !== 0 && (
-                <li>Create a Ledger entry: "Opening Balance Migration"</li>
-              )}
+              {openingCashBalance && parseFloat(openingCashBalance) !== 0 && <li>Create a Ledger entry: "Opening Balance Migration"</li>}
               {openingBottleBalance > 0 && <li>Create a Bottle Wallet entry for inventory tracking</li>}
               <li>Link all data in a single atomic transaction</li>
             </ul>

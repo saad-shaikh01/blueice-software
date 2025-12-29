@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand, ObjectCannedACL, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, ObjectCannedACL, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+
 // import { Readable } from "stream";
 
 const s3 = new S3Client({
@@ -10,10 +11,10 @@ const s3 = new S3Client({
   },
 });
 
-export const uploadFile = async (file: File, folder: string = "uploads") => {
-  if (!file) throw new Error("No file provided for upload");
+export const uploadFile = async (file: File, folder: string = 'uploads') => {
+  if (!file) throw new Error('No file provided for upload');
 
-  const fileExt = file.name.split(".").pop() || "png";
+  const fileExt = file.name.split('.').pop() || 'png';
   const fileName = `${Date.now()}.${fileExt}`;
 
   const buffer = Buffer.from(await file.arrayBuffer()); // File ko buffer me convert karna
@@ -23,13 +24,12 @@ export const uploadFile = async (file: File, folder: string = "uploads") => {
     Key: `${folder}/${fileName}`,
     Body: buffer,
     ContentType: file.type,
-    ACL: "public-read" as ObjectCannedACL, // ✅ Fix applied here
+    ACL: 'public-read' as ObjectCannedACL, // ✅ Fix applied here
   };
 
   await s3.send(new PutObjectCommand(params));
   return `${folder}/${fileName}`;
 };
-
 
 export const deleteFile = async (fileId: string) => {
   if (!fileId) return;
@@ -43,6 +43,6 @@ export const deleteFile = async (fileId: string) => {
     await s3.send(new DeleteObjectCommand(params));
     console.log(`File deleted: ${fileId}`);
   } catch (error) {
-    console.error("Error deleting file:", error);
+    console.error('Error deleting file:', error);
   }
 };

@@ -1,18 +1,16 @@
 'use client';
 
-import { Loader2, } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 
 import { DottedSeparator } from '@/components/dotted-separator';
-
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 
-import { columns } from './columns';
-
-import { DataSearch } from './data-search';
-import { DataTable } from './data-table';
 import { useGetUsers } from '../api/use-getUsers';
 import { useUserFilters } from '../hooks/user-filters';
+import { columns } from './columns';
+import { DataSearch } from './data-search';
+import { DataTable } from './data-table';
 
 export const UserView = () => {
   const [view, setView] = useQueryState('task-view', {

@@ -1,19 +1,14 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash, Eye } from 'lucide-react';
+import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useDeleteDriver } from '../api/use-delete-driver';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/use-confirm';
+
+import { useDeleteDriver } from '../api/use-delete-driver';
 
 export type Driver = {
   id: string;
@@ -36,7 +31,7 @@ const ActionCell = ({ driver }: { driver: Driver }) => {
   const [ConfirmDialog, confirm] = useConfirm(
     'Delete Driver',
     'Are you sure you want to delete this driver? This action cannot be undone.',
-    'destructive'
+    'destructive',
   );
 
   const handleDelete = async () => {
@@ -66,11 +61,7 @@ const ActionCell = ({ driver }: { driver: Driver }) => {
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDelete}
-            disabled={isPending}
-            className="text-red-600 focus:text-red-600"
-          >
+          <DropdownMenuItem onClick={handleDelete} disabled={isPending} className="text-red-600 focus:text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
@@ -85,10 +76,7 @@ export const columns: ColumnDef<Driver>[] = [
     accessorKey: 'user.name',
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
           Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -99,7 +87,7 @@ export const columns: ColumnDef<Driver>[] = [
       return (
         <button
           onClick={() => router.push(`/drivers/${row.original.id}`)}
-          className="pl-4 font-medium text-primary hover:underline cursor-pointer text-left"
+          className="cursor-pointer pl-4 text-left font-medium text-primary hover:underline"
         >
           {row.original.user.name}
         </button>

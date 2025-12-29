@@ -1,5 +1,7 @@
 'use server';
+
 import nodemailer from 'nodemailer';
+
 const SMPT_SERVICES = process.env.SMPT_SERVICES;
 const SMTP_SERVER_USERNAME = process.env.SMTP_SERVER_USERNAME;
 const SMTP_SERVER_PASSWORD = process.env.SMTP_SERVER_PASSWORD;

@@ -2,176 +2,176 @@
 
 ```yaml
 - generic [ref=e1]:
-  - region "Notifications alt+T"
-  - generic [ref=e3]:
-    - complementary [ref=e5]:
-      - link "Icon MADCOM DIGITAL" [ref=e6] [cursor=pointer]:
-        - /url: /
-        - img "Icon" [ref=e7]
-        - paragraph [ref=e8]: MADCOM DIGITAL
-      - list [ref=e11]:
-        - listitem [ref=e12]:
-          - link "Dashboard" [ref=e13] [cursor=pointer]:
-            - /url: /
-            - img [ref=e14]
-            - text: Dashboard
-        - listitem [ref=e19]:
-          - link "Customers" [ref=e20] [cursor=pointer]:
-            - /url: /customers
-            - img [ref=e21]
-            - text: Customers
-        - listitem [ref=e26]:
-          - link "Orders" [ref=e27] [cursor=pointer]:
-            - /url: /orders
-            - img [ref=e28]
-            - text: Orders
-        - listitem [ref=e32]:
-          - link "Products" [ref=e33] [cursor=pointer]:
-            - /url: /products
-            - img [ref=e34]
-            - text: Products
-        - listitem [ref=e38]:
-          - link "Expenses" [ref=e39] [cursor=pointer]:
-            - /url: /expenses
-            - img [ref=e40]
-            - text: Expenses
-        - listitem [ref=e43]:
-          - link "Drivers" [ref=e44] [cursor=pointer]:
-            - /url: /drivers
-            - img [ref=e45]
-            - text: Drivers
-        - listitem [ref=e50]:
-          - link "Routes" [ref=e51] [cursor=pointer]:
-            - /url: /routes
-            - img [ref=e52]
-            - text: Routes
-        - listitem [ref=e54]:
-          - link "Live Tracking" [ref=e55] [cursor=pointer]:
-            - /url: /tracking
-            - img [ref=e56]
-            - text: Live Tracking
-    - generic [ref=e62]:
-      - navigation [ref=e63]:
-        - generic [ref=e64]:
-          - heading "Home" [level=1] [ref=e65]
-          - paragraph [ref=e66]: Monitor all of your projects and tasks here.
-        - generic [ref=e67]:
-          - button "Toggle theme" [ref=e68] [cursor=pointer]:
-            - img
-            - img
-            - generic [ref=e69]: Toggle theme
-          - button "S" [ref=e70] [cursor=pointer]:
-            - generic [ref=e72]: S
-      - main [ref=e73]:
-        - generic [ref=e75]:
-          - generic [ref=e76]:
-            - generic [ref=e77]:
-              - heading "Add New Customer" [level=3] [ref=e78]
-              - paragraph [ref=e79]: Complete all steps to create a customer account
-            - generic [ref=e84]:
-              - generic [ref=e85]:
-                - button [ref=e86] [cursor=pointer]:
-                  - img [ref=e87]
-                - generic [ref=e89]:
-                  - paragraph [ref=e90]: Basic Information
-                  - paragraph [ref=e91]: Customer name, phone, and legacy code
-              - generic [ref=e92]:
-                - button "2" [ref=e93] [cursor=pointer]:
-                  - generic [ref=e94]: "2"
-                - generic [ref=e95]:
-                  - paragraph [ref=e96]: Location Details
-                  - paragraph [ref=e97]: Address and map coordinates
-              - generic [ref=e98]:
-                - button "3" [disabled] [ref=e99]:
-                  - generic [ref=e100]: "3"
-                - generic [ref=e101]:
-                  - paragraph [ref=e102]: Schedule & Pricing
-                  - paragraph [ref=e103]: Delivery days and credit limits
-              - generic [ref=e104]:
-                - button "4" [disabled] [ref=e105]:
-                  - generic [ref=e106]: "4"
-                - generic [ref=e107]:
-                  - paragraph [ref=e108]: Legacy Migration
-                  - paragraph [ref=e109]: Opening balances (optional)
-          - generic [ref=e110]:
-            - generic [ref=e111]:
-              - generic [ref=e112]:
-                - generic [ref=e113]:
-                  - heading "Address Information" [level=3] [ref=e114]:
-                    - img [ref=e115]
-                    - text: Address Information
-                  - paragraph [ref=e118]: Enter the customer's delivery location
-                - generic [ref=e119]:
-                  - generic [ref=e120]:
-                    - text: Area / Locality *
-                    - textbox "Area / Locality *" [ref=e121]:
-                      - /placeholder: Gulshan Block 4
-                    - paragraph [ref=e122]: Used for route grouping and filtering
-                    - paragraph [ref=e123]: Area is required
-                  - generic [ref=e124]:
-                    - text: Full Address *
-                    - textbox "Full Address *" [ref=e125]:
-                      - /placeholder: House 123, Street 5, Gulshan-e-Iqbal
-                      - text: Test Address, DHA
-                  - generic [ref=e126]:
-                    - text: Nearby Landmark (Optional)
-                    - textbox "Nearby Landmark (Optional)" [ref=e127]:
-                      - /placeholder: Near Madina Masjid
-                    - paragraph [ref=e128]: Helps drivers locate the address easily
-                  - generic [ref=e129]:
-                    - generic [ref=e130]:
-                      - text: Floor Number
-                      - spinbutton "Floor Number" [ref=e131]: "0"
-                      - paragraph [ref=e132]: 0 = Ground floor
-                    - generic [ref=e133]:
-                      - generic [ref=e134]:
-                        - text: Lift Available
-                        - paragraph [ref=e135]: Affects delivery charges for upper floors
-                      - switch "Lift Available" [ref=e136] [cursor=pointer]
-                      - checkbox
-              - generic [ref=e137]:
-                - generic [ref=e138]:
-                  - heading "GPS Coordinates (Optional)" [level=3] [ref=e139]:
-                    - img [ref=e140]
-                    - text: GPS Coordinates (Optional)
-                  - paragraph [ref=e144]: Pin exact location for driver navigation
-                - generic [ref=e145]:
-                  - generic [ref=e146]:
-                    - generic [ref=e147]:
-                      - text: Latitude
-                      - spinbutton "Latitude" [ref=e148]
-                    - generic [ref=e149]:
-                      - text: Longitude
-                      - spinbutton "Longitude" [ref=e150]
-                  - paragraph [ref=e152]:
-                    - text: 📍 Google Maps integration coming soon!
-                    - text: Click on map to auto-fill coordinates
-              - generic [ref=e153]:
-                - generic [ref=e154]:
-                  - heading "Delivery Route" [level=3] [ref=e155]
-                  - paragraph [ref=e156]: Assign customer to a delivery route
-                - generic [ref=e157]:
-                  - generic [ref=e158]:
-                    - text: Route
-                    - combobox "Route" [ref=e159] [cursor=pointer]:
-                      - generic: Bahria Town
-                      - img [ref=e160]
-                    - combobox [ref=e162]
-                    - paragraph [ref=e163]: Drivers follow this route for delivery
-                  - generic [ref=e164]:
-                    - text: Sequence Number (Optional)
-                    - spinbutton "Sequence Number (Optional)" [ref=e165]
-                    - paragraph [ref=e166]: Order in which driver visits (1, 2, 3...)
-            - generic [ref=e168]:
-              - button "Previous" [ref=e169] [cursor=pointer]:
-                - img
-                - text: Previous
-              - generic [ref=e170]: Step 2 of 4
-              - button "Next" [active] [ref=e171] [cursor=pointer]:
-                - text: Next
-                - img
-          - generic [ref=e172]:
-            - 'heading "Development: Form State" [level=3] [ref=e174]'
-            - generic [ref=e176]: "{ \"values\": { \"name\": \"Test Customer 1766910207919\", \"phoneNumber\": \"03910210644\", \"email\": \"\", \"password\": \"password123\", \"manualCode\": \"\", \"area\": \"\", \"address\": \"Test Address, DHA\", \"landmark\": \"\", \"floorNumber\": 0, \"hasLift\": false, \"geoLat\": null, \"geoLng\": null, \"routeId\": \"1a7aa440-30ec-4349-bc24-85d985c7ff9e\", \"sequenceOrder\": null, \"type\": \"RESIDENTIAL\", \"deliveryDays\": [], \"creditLimit\": \"2000\", \"openingCashBalance\": \"0\", \"openingBottleBalance\": 0, \"productId\": null }, \"errors\": { \"area\": { \"message\": \"Area is required\", \"type\": \"too_small\", \"ref\": {} } } }"
-  - alert [ref=e177]
+    - region "Notifications alt+T"
+    - generic [ref=e3]:
+        - complementary [ref=e5]:
+            - link "Icon MADCOM DIGITAL" [ref=e6] [cursor=pointer]:
+                - /url: /
+                - img "Icon" [ref=e7]
+                - paragraph [ref=e8]: MADCOM DIGITAL
+            - list [ref=e11]:
+                - listitem [ref=e12]:
+                    - link "Dashboard" [ref=e13] [cursor=pointer]:
+                        - /url: /
+                        - img [ref=e14]
+                        - text: Dashboard
+                - listitem [ref=e19]:
+                    - link "Customers" [ref=e20] [cursor=pointer]:
+                        - /url: /customers
+                        - img [ref=e21]
+                        - text: Customers
+                - listitem [ref=e26]:
+                    - link "Orders" [ref=e27] [cursor=pointer]:
+                        - /url: /orders
+                        - img [ref=e28]
+                        - text: Orders
+                - listitem [ref=e32]:
+                    - link "Products" [ref=e33] [cursor=pointer]:
+                        - /url: /products
+                        - img [ref=e34]
+                        - text: Products
+                - listitem [ref=e38]:
+                    - link "Expenses" [ref=e39] [cursor=pointer]:
+                        - /url: /expenses
+                        - img [ref=e40]
+                        - text: Expenses
+                - listitem [ref=e43]:
+                    - link "Drivers" [ref=e44] [cursor=pointer]:
+                        - /url: /drivers
+                        - img [ref=e45]
+                        - text: Drivers
+                - listitem [ref=e50]:
+                    - link "Routes" [ref=e51] [cursor=pointer]:
+                        - /url: /routes
+                        - img [ref=e52]
+                        - text: Routes
+                - listitem [ref=e54]:
+                    - link "Live Tracking" [ref=e55] [cursor=pointer]:
+                        - /url: /tracking
+                        - img [ref=e56]
+                        - text: Live Tracking
+        - generic [ref=e62]:
+            - navigation [ref=e63]:
+                - generic [ref=e64]:
+                    - heading "Home" [level=1] [ref=e65]
+                    - paragraph [ref=e66]: Monitor all of your projects and tasks here.
+                - generic [ref=e67]:
+                    - button "Toggle theme" [ref=e68] [cursor=pointer]:
+                        - img
+                        - img
+                        - generic [ref=e69]: Toggle theme
+                    - button "S" [ref=e70] [cursor=pointer]:
+                        - generic [ref=e72]: S
+            - main [ref=e73]:
+                - generic [ref=e75]:
+                    - generic [ref=e76]:
+                        - generic [ref=e77]:
+                            - heading "Add New Customer" [level=3] [ref=e78]
+                            - paragraph [ref=e79]: Complete all steps to create a customer account
+                        - generic [ref=e84]:
+                            - generic [ref=e85]:
+                                - button [ref=e86] [cursor=pointer]:
+                                    - img [ref=e87]
+                                - generic [ref=e89]:
+                                    - paragraph [ref=e90]: Basic Information
+                                    - paragraph [ref=e91]: Customer name, phone, and legacy code
+                            - generic [ref=e92]:
+                                - button "2" [ref=e93] [cursor=pointer]:
+                                    - generic [ref=e94]: '2'
+                                - generic [ref=e95]:
+                                    - paragraph [ref=e96]: Location Details
+                                    - paragraph [ref=e97]: Address and map coordinates
+                            - generic [ref=e98]:
+                                - button "3" [disabled] [ref=e99]:
+                                    - generic [ref=e100]: '3'
+                                - generic [ref=e101]:
+                                    - paragraph [ref=e102]: Schedule & Pricing
+                                    - paragraph [ref=e103]: Delivery days and credit limits
+                            - generic [ref=e104]:
+                                - button "4" [disabled] [ref=e105]:
+                                    - generic [ref=e106]: '4'
+                                - generic [ref=e107]:
+                                    - paragraph [ref=e108]: Legacy Migration
+                                    - paragraph [ref=e109]: Opening balances (optional)
+                    - generic [ref=e110]:
+                        - generic [ref=e111]:
+                            - generic [ref=e112]:
+                                - generic [ref=e113]:
+                                    - heading "Address Information" [level=3] [ref=e114]:
+                                        - img [ref=e115]
+                                        - text: Address Information
+                                    - paragraph [ref=e118]: Enter the customer's delivery location
+                                - generic [ref=e119]:
+                                    - generic [ref=e120]:
+                                        - text: Area / Locality *
+                                        - textbox "Area / Locality *" [ref=e121]:
+                                            - /placeholder: Gulshan Block 4
+                                        - paragraph [ref=e122]: Used for route grouping and filtering
+                                        - paragraph [ref=e123]: Area is required
+                                    - generic [ref=e124]:
+                                        - text: Full Address *
+                                        - textbox "Full Address *" [ref=e125]:
+                                            - /placeholder: House 123, Street 5, Gulshan-e-Iqbal
+                                            - text: Test Address, DHA
+                                    - generic [ref=e126]:
+                                        - text: Nearby Landmark (Optional)
+                                        - textbox "Nearby Landmark (Optional)" [ref=e127]:
+                                            - /placeholder: Near Madina Masjid
+                                        - paragraph [ref=e128]: Helps drivers locate the address easily
+                                    - generic [ref=e129]:
+                                        - generic [ref=e130]:
+                                            - text: Floor Number
+                                            - spinbutton "Floor Number" [ref=e131]: '0'
+                                            - paragraph [ref=e132]: 0 = Ground floor
+                                        - generic [ref=e133]:
+                                            - generic [ref=e134]:
+                                                - text: Lift Available
+                                                - paragraph [ref=e135]: Affects delivery charges for upper floors
+                                            - switch "Lift Available" [ref=e136] [cursor=pointer]
+                                            - checkbox
+                            - generic [ref=e137]:
+                                - generic [ref=e138]:
+                                    - heading "GPS Coordinates (Optional)" [level=3] [ref=e139]:
+                                        - img [ref=e140]
+                                        - text: GPS Coordinates (Optional)
+                                    - paragraph [ref=e144]: Pin exact location for driver navigation
+                                - generic [ref=e145]:
+                                    - generic [ref=e146]:
+                                        - generic [ref=e147]:
+                                            - text: Latitude
+                                            - spinbutton "Latitude" [ref=e148]
+                                        - generic [ref=e149]:
+                                            - text: Longitude
+                                            - spinbutton "Longitude" [ref=e150]
+                                    - paragraph [ref=e152]:
+                                        - text: 📍 Google Maps integration coming soon!
+                                        - text: Click on map to auto-fill coordinates
+                            - generic [ref=e153]:
+                                - generic [ref=e154]:
+                                    - heading "Delivery Route" [level=3] [ref=e155]
+                                    - paragraph [ref=e156]: Assign customer to a delivery route
+                                - generic [ref=e157]:
+                                    - generic [ref=e158]:
+                                        - text: Route
+                                        - combobox "Route" [ref=e159] [cursor=pointer]:
+                                            - generic: Bahria Town
+                                            - img [ref=e160]
+                                        - combobox [ref=e162]
+                                        - paragraph [ref=e163]: Drivers follow this route for delivery
+                                    - generic [ref=e164]:
+                                        - text: Sequence Number (Optional)
+                                        - spinbutton "Sequence Number (Optional)" [ref=e165]
+                                        - paragraph [ref=e166]: Order in which driver visits (1, 2, 3...)
+                        - generic [ref=e168]:
+                            - button "Previous" [ref=e169] [cursor=pointer]:
+                                - img
+                                - text: Previous
+                            - generic [ref=e170]: Step 2 of 4
+                            - button "Next" [active] [ref=e171] [cursor=pointer]:
+                                - text: Next
+                                - img
+                    - generic [ref=e172]:
+                        - 'heading "Development: Form State" [level=3] [ref=e174]'
+                        - generic [ref=e176]: '{ "values": { "name": "Test Customer 1766910207919", "phoneNumber": "03910210644", "email": "", "password": "password123", "manualCode": "", "area": "", "address": "Test Address, DHA", "landmark": "", "floorNumber": 0, "hasLift": false, "geoLat": null, "geoLng": null, "routeId": "1a7aa440-30ec-4349-bc24-85d985c7ff9e", "sequenceOrder": null, "type": "RESIDENTIAL", "deliveryDays": [], "creditLimit": "2000", "openingCashBalance": "0", "openingBottleBalance": 0, "productId": null }, "errors": { "area": { "message": "Area is required", "type": "too_small", "ref": {} } } }'
+    - alert [ref=e177]
 ```

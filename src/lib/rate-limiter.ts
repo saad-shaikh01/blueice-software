@@ -16,7 +16,7 @@ export const authRateLimiter = rateLimiter({
       {
         error: 'Too many requests. Please try again later.',
       },
-      429
+      429,
     );
   },
 });
@@ -36,7 +36,7 @@ export const apiRateLimiter = rateLimiter({
       {
         error: 'Too many requests. Please slow down.',
       },
-      429
+      429,
     );
   },
 });

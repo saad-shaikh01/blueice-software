@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { client } from '@/lib/hono';
+
 import { UpdateOrderInput } from '../schema';
 
 export const useUpdateOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ param, json }: { param: { id: string }, json: UpdateOrderInput }) => {
+    mutationFn: async ({ param, json }: { param: { id: string }; json: UpdateOrderInput }) => {
       const response = await client.api.orders[':id'].$patch({
         param,
         json,

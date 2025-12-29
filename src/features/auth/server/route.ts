@@ -3,12 +3,10 @@
 // import { deleteCookie, setCookie } from 'hono/cookie';
 // import { ID } from 'node-appwrite';
 // import { z } from 'zod';
-
 // import { AUTH_COOKIE } from '@/features/auth/constants';
 // import { signInFormSchema, signUpFormSchema } from '@/features/auth/schema';
 // import { createAdminClient } from '@/lib/appwrite';
 // import { sessionMiddleware } from '@/lib/session-middleware';
-
 // const app = new Hono()
 //   .get(
 //     '/',
@@ -21,10 +19,8 @@
 //     ),
 //     async (ctx) => {
 //       const { userId, secret } = ctx.req.valid('query');
-
 //       const { account } = await createAdminClient();
 //       const session = await account.createSession(userId, secret);
-
 //       setCookie(ctx, AUTH_COOKIE, session.secret, {
 //         path: '/',
 //         httpOnly: true,
@@ -32,22 +28,17 @@
 //         sameSite: 'strict',
 //         maxAge: 60 * 60 * 24 * 30,
 //       });
-
 //       return ctx.redirect(process.env.NEXT_PUBLIC_APP_BASE_URL);
 //     },
 //   )
 //   .get('/current', sessionMiddleware, (ctx) => {
 //     const user = ctx.get('user');
-
 //     return ctx.json({ data: user });
 //   })
 //   .post('/login', zValidator('json', signInFormSchema), async (ctx) => {
 //     const { email, password } = ctx.req.valid('json');
-
 //     const { account } = await createAdminClient();
-
 //     const session = await account.createEmailPasswordSession(email, password);
-
 //     setCookie(ctx, AUTH_COOKIE, session.secret, {
 //       path: '/',
 //       httpOnly: true,
@@ -55,18 +46,13 @@
 //       sameSite: 'strict',
 //       maxAge: 60 * 60 * 24 * 30,
 //     });
-
 //     return ctx.json({ success: true });
 //   })
 //   .post('/register', zValidator('json', signUpFormSchema), async (ctx) => {
 //     const { name, email, password } = ctx.req.valid('json');
-
 //     const { account } = await createAdminClient();
-
 //     await account.create(ID.unique(), email, password, name);
-
 //     const session = await account.createEmailPasswordSession(email, password);
-
 //     setCookie(ctx, AUTH_COOKIE, session.secret, {
 //       path: '/',
 //       httpOnly: true,
@@ -74,23 +60,18 @@
 //       sameSite: 'strict',
 //       maxAge: 60 * 60 * 24 * 30,
 //     });
-
 //     return ctx.json({ success: true });
 //   })
 //   .post('/logout', sessionMiddleware, async (ctx) => {
 //     const account = ctx.get('account');
-
 //     deleteCookie(ctx, AUTH_COOKIE);
 //     await account.deleteSession('current');
-
 //     return ctx.json({ success: true });
 //   });
-
 // export default app;
-
-
-
 import { zValidator } from '@hono/zod-validator';
+import { Prisma, UserRole } from '@prisma/client';
+import crypto from 'crypto';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
@@ -98,15 +79,11 @@ import { z } from 'zod';
 import { AUTH_COOKIE } from '@/features/auth/constants';
 import { resetPasswordSchema, signInFormSchema, signUpFormSchema, updateProfileSchema } from '@/features/auth/schema';
 import { authenticateUser, createUser, generateToken, hashPassword, verifyToken } from '@/lib/authenticate';
-import { Prisma, UserRole } from '@prisma/client';
-import { sessionMiddleware } from '@/lib/session-middleware';
 import { db } from '@/lib/db';
-import { deleteFile, uploadFile } from '@/lib/upload';
-import crypto from 'crypto';
-import { sendMail } from '@/lib/send-mail';
 import { authRateLimiter } from '@/lib/rate-limiter';
-
-
+import { sendMail } from '@/lib/send-mail';
+import { sessionMiddleware } from '@/lib/session-middleware';
+import { deleteFile, uploadFile } from '@/lib/upload';
 
 const app = new Hono()
   .get('/current', async (ctx) => {
@@ -180,152 +157,148 @@ const app = new Hono()
       return ctx.json({ error: 'Something went wrong' }, 500);
     }
   })
-  .get('/users', sessionMiddleware, zValidator(
-    'query',
-    z.object({
-      search: z.string().nullish(),
-    }),
-  ), async (ctx) => {
-
-    const { search } = ctx.req.valid('query');
-
-    try {
-      const users = await db.user.findMany({
-        where: search
-          ? {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { email: { contains: search, mode: 'insensitive' } },
-            ],
-          }
-          : undefined,
-      });
-
-      return ctx.json({ data: users });
-    } catch (error) {
-      console.error('[GET_USERS]:', error);
-      return ctx.json({ error: 'Internal Server Error' }, 500);
-    }
-  })
-  .post(
-    '/token',
-    zValidator('json', z.object({ token: z.string().min(10) })),
+  .get(
+    '/users',
+    sessionMiddleware,
+    zValidator(
+      'query',
+      z.object({
+        search: z.string().nullish(),
+      }),
+    ),
     async (ctx) => {
-      const { token } = ctx.req.valid('json');
+      const { search } = ctx.req.valid('query');
 
-      const authCookie = getCookie(ctx, AUTH_COOKIE);
-      if (!authCookie) return ctx.json({ error: 'Unauthorized cookie' }, 401);
+      try {
+        const users = await db.user.findMany({
+          where: search
+            ? {
+                OR: [{ name: { contains: search, mode: 'insensitive' } }, { email: { contains: search, mode: 'insensitive' } }],
+              }
+            : undefined,
+        });
 
-      const user = await verifyToken(authCookie);
-      if (!user) return ctx.json({ error: 'Unauthorized token' }, 401);
+        return ctx.json({ data: users });
+      } catch (error) {
+        console.error('[GET_USERS]:', error);
+        return ctx.json({ error: 'Internal Server Error' }, 500);
+      }
+    },
+  )
+  .post('/token', zValidator('json', z.object({ token: z.string().min(10) })), async (ctx) => {
+    const { token } = ctx.req.valid('json');
 
-      const existingUser = await db.user.findUnique({
+    const authCookie = getCookie(ctx, AUTH_COOKIE);
+    if (!authCookie) return ctx.json({ error: 'Unauthorized cookie' }, 401);
+
+    const user = await verifyToken(authCookie);
+    if (!user) return ctx.json({ error: 'Unauthorized token' }, 401);
+
+    const existingUser = await db.user.findUnique({
+      where: { id: user.id },
+      select: { fcmTokens: true },
+    });
+
+    if (!existingUser) return ctx.json({ error: 'User not found' }, 404);
+
+    // Only add token if it doesn't already exist
+    if (!existingUser.fcmTokens.includes(token)) {
+      await db.user.update({
         where: { id: user.id },
-        select: { fcmTokens: true },
+        data: {
+          fcmTokens: {
+            push: token,
+          },
+        },
       });
+    }
 
-      if (!existingUser) return ctx.json({ error: 'User not found' }, 404);
+    return ctx.json({
+      data: token,
+    });
+  })
+  .patch('/profile', sessionMiddleware, zValidator('form', updateProfileSchema), async (ctx) => {
+    const user = ctx.get('user'); // set by sessionMiddleware
+    const { name, image, phoneNumber, birthDate, gender, designation } = ctx.req.valid('form');
 
-      // Only add token if it doesn't already exist
-      if (!existingUser.fcmTokens.includes(token)) {
-        await db.user.update({
-          where: { id: user.id },
+    const userData = await db.user.findUnique({
+      where: { id: user.id },
+    });
+
+    if (!userData) {
+      return ctx.json({ error: 'User not found' }, 404);
+    }
+
+    let uploadedImageId: string | undefined = userData.imageUrl ?? undefined;
+
+    if (image instanceof File) {
+      uploadedImageId = await uploadFile(image, 'users');
+      if (userData.imageUrl) {
+        await deleteFile(userData.imageUrl);
+      }
+    }
+
+    const updatedUser = await db.user.update({
+      where: { id: user.id },
+      data: {
+        name,
+        imageUrl: uploadedImageId,
+        phoneNumber,
+        birthDate,
+        designation,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        imageUrl: true,
+        phoneNumber: true,
+        birthDate: true,
+        designation: true,
+      },
+    });
+
+    return ctx.json({ data: updatedUser });
+  })
+  .patch(
+    '/:userId',
+    sessionMiddleware,
+    zValidator(
+      'json',
+      z.object({
+        suspended: z.boolean(),
+      }),
+    ),
+    async (ctx) => {
+      const user = ctx.get('user');
+      const { suspended } = ctx.req.valid('json');
+
+      // Only SUPER_ADMIN and ADMIN can suspend users
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN) {
+        return ctx.json({ error: 'Unauthorized access' }, 403);
+      }
+
+      const { userId } = ctx.req.param();
+
+      try {
+        const updatedUser = await db.user.update({
+          where: { id: userId },
           data: {
-            fcmTokens: {
-              push: token,
-            },
+            suspended,
+          },
+          select: {
+            id: true,
+            name: true,
+            suspended: true,
           },
         });
-      }
 
-      return ctx.json({
-        data: token
-      });
-    }
+        return ctx.json({ data: updatedUser });
+      } catch (error) {
+        return ctx.json({ error: 'Failed to update user status' }, 500);
+      }
+    },
   )
-  .patch(
-    '/profile',
-    sessionMiddleware,
-    zValidator('form', updateProfileSchema),
-    async (ctx) => {
-      const user = ctx.get('user'); // set by sessionMiddleware
-      const { name, image, phoneNumber, birthDate, gender, designation } = ctx.req.valid('form');
-
-      const userData = await db.user.findUnique({
-        where: { id: user.id },
-      });
-
-      if (!userData) {
-        return ctx.json({ error: 'User not found' }, 404);
-      }
-
-      let uploadedImageId: string | undefined = userData.imageUrl ?? undefined;
-
-      if (image instanceof File) {
-        uploadedImageId = await uploadFile(image, "users");
-        if (userData.imageUrl) {
-          await deleteFile(userData.imageUrl);
-        }
-      }
-
-
-      const updatedUser = await db.user.update({
-        where: { id: user.id },
-        data: {
-          name,
-          imageUrl: uploadedImageId,
-          phoneNumber,
-          birthDate,
-          designation
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          imageUrl: true,
-          phoneNumber: true,
-          birthDate: true,
-          designation: true,
-        },
-      });
-
-      return ctx.json({ data: updatedUser });
-    }
-  )
-  .patch('/:userId', sessionMiddleware, zValidator(
-    'json',
-    z.object({
-      suspended: z.boolean(),
-    }),
-  ), async (ctx) => {
-    const user = ctx.get('user');
-    const { suspended } = ctx.req.valid('json');
-
-    // Only SUPER_ADMIN and ADMIN can suspend users
-    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN) {
-      return ctx.json({ error: 'Unauthorized access' }, 403);
-    }
-
-    const { userId } = ctx.req.param();
-
-    try {
-      const updatedUser = await db.user.update({
-        where: { id: userId },
-        data: {
-          suspended,
-        },
-        select: {
-          id: true,
-          name: true,
-          suspended: true,
-        },
-      });
-
-      return ctx.json({ data: updatedUser });
-    } catch (error) {
-      return ctx.json({ error: 'Failed to update user status' }, 500);
-    }
-  })
   .post('/logout', (ctx) => {
     deleteCookie(ctx, AUTH_COOKIE);
     return ctx.json({ success: true });
@@ -336,7 +309,7 @@ const app = new Hono()
     zValidator(
       'json',
       z.object({
-        email: z.string().email()
+        email: z.string().email(),
       }),
     ),
     async (ctx) => {
@@ -344,22 +317,19 @@ const app = new Hono()
       try {
         // Find user by email
         const user = await db.user.findUnique({
-          where: { email }
+          where: { email },
         });
 
         if (!user) {
           return ctx.json({ error: "User doesn't exist" }, 404);
         }
         if (user.suspended) {
-          return ctx.json({ error: "This User Has been Suspended" })
+          return ctx.json({ error: 'This User Has been Suspended' });
         }
 
         // Generate reset token (similar to your Express implementation)
         const resetToken = crypto.randomBytes(20).toString('hex');
-        const resetPasswordToken = crypto
-          .createHash('sha256')
-          .update(resetToken)
-          .digest('hex');
+        const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
         // Set token expiry (30 minutes from now)
         const resetPasswordExpire = new Date(Date.now() + 30 * 60 * 1000);
@@ -369,8 +339,8 @@ const app = new Hono()
           where: { id: user.id },
           data: {
             resetPasswordToken,
-            resetPasswordExpire
-          }
+            resetPasswordExpire,
+          },
         });
 
         // Create reset URL
@@ -389,7 +359,7 @@ const app = new Hono()
 
         return ctx.json({
           success: true,
-          message: `Email sent to ${user.email} successfully`
+          message: `Email sent to ${user.email} successfully`,
         });
       } catch (error) {
         // If email sending fails, clear the reset token
@@ -398,83 +368,76 @@ const app = new Hono()
             where: { email },
             data: {
               resetPasswordToken: null,
-              resetPasswordExpire: null
-            }
+              resetPasswordExpire: null,
+            },
           });
         }
 
         console.error('[FORGOT_PASSWORD]:', error);
         return ctx.json({ error: 'Failed to send password reset email' }, 500);
       }
-    }
+    },
   )
-  .post(
-    '/reset/:resetToken',
-    authRateLimiter,
-    zValidator('json', resetPasswordSchema),
-    async (ctx) => {
-      const { password, confirmPassword } = ctx.req.valid('json');
-      // const { resetToken } = ctx.req.param();
-      const { resetToken } = ctx.req.param() as { resetToken: string };
+  .post('/reset/:resetToken', authRateLimiter, zValidator('json', resetPasswordSchema), async (ctx) => {
+    const { password, confirmPassword } = ctx.req.valid('json');
+    // const { resetToken } = ctx.req.param();
+    const { resetToken } = ctx.req.param() as { resetToken: string };
 
-      // Validate password match
-      if (password !== confirmPassword) {
-        return ctx.json({ error: 'Password and confirm password do not match' }, 400);
-      }
-
-      try {
-        // Hash the token to compare with stored token
-        const resetPasswordToken: string = crypto
-          .createHash('sha256')
-          .update(resetToken)
-          .digest('hex');
-
-        // Find user with valid token
-        const user = await db.user.findFirst({
-          where: {
-            resetPasswordToken,
-            resetPasswordExpire: {
-              gt: new Date()
-            }
-          }
-        });
-
-        if (!user) {
-          return ctx.json({
-            error: 'Reset password token is invalid or has expired'
-          }, 400);
-        }
-
-        const hashedPassword = await hashPassword(password);
-        const updatedUser = await db.user.update({
-          where: { id: user.id },
-          data: {
-            password: hashedPassword,
-            resetPasswordToken: null,
-            resetPasswordExpire: null,
-            passwordChangedAt: new Date(), // Invalidate all existing JWT tokens
-          },
-        });
-
-        // Generate JWT token for the user
-        const token = generateToken(updatedUser);
-
-        setCookie(ctx, AUTH_COOKIE, token, {
-          path: '/',
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-          maxAge: 60 * 60 * 24 * 30, // 30 days
-        });
-
-
-        return ctx.json({ data: updatedUser });
-
-      } catch (error) {
-        console.error('[RESET_PASSWORD]:', error);
-        return ctx.json({ error: 'Failed to reset password' }, 500);
-      }
+    // Validate password match
+    if (password !== confirmPassword) {
+      return ctx.json({ error: 'Password and confirm password do not match' }, 400);
     }
-  );
+
+    try {
+      // Hash the token to compare with stored token
+      const resetPasswordToken: string = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+      // Find user with valid token
+      const user = await db.user.findFirst({
+        where: {
+          resetPasswordToken,
+          resetPasswordExpire: {
+            gt: new Date(),
+          },
+        },
+      });
+
+      if (!user) {
+        return ctx.json(
+          {
+            error: 'Reset password token is invalid or has expired',
+          },
+          400,
+        );
+      }
+
+      const hashedPassword = await hashPassword(password);
+      const updatedUser = await db.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpire: null,
+          passwordChangedAt: new Date(), // Invalidate all existing JWT tokens
+        },
+      });
+
+      // Generate JWT token for the user
+      const token = generateToken(updatedUser);
+
+      setCookie(ctx, AUTH_COOKIE, token, {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      });
+
+      return ctx.json({ data: updatedUser });
+    } catch (error) {
+      console.error('[RESET_PASSWORD]:', error);
+      return ctx.json({ error: 'Failed to reset password' }, 500);
+    }
+  });
 
 export default app;

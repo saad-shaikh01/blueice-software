@@ -1,11 +1,9 @@
-import { db } from '@/lib/db';
-import { OrderStatus, PaymentMethod, CashHandoverStatus, ExpenseStatus } from '@prisma/client';
-import { subDays, startOfDay, endOfDay, format, differenceInDays } from 'date-fns';
+import { CashHandoverStatus, ExpenseStatus, OrderStatus, PaymentMethod } from '@prisma/client';
+import { differenceInDays, endOfDay, format, startOfDay, subDays } from 'date-fns';
 
-export async function getComprehensiveDashboardData(params?: {
-  startDate?: Date;
-  endDate?: Date;
-}) {
+import { db } from '@/lib/db';
+
+export async function getComprehensiveDashboardData(params?: { startDate?: Date; endDate?: Date }) {
   const { startDate = startOfDay(new Date()), endDate = endOfDay(new Date()) } = params || {};
   const today = startOfDay(new Date());
 
@@ -40,7 +38,7 @@ export async function getComprehensiveDashboardData(params?: {
       const revenue = Number(stat.totalRevenue);
       historicalRevenue += revenue;
       historicalCompletedOrders += stat.ordersCompleted;
-      historicalTotalVolume += (stat.ordersCompleted + stat.ordersCancelled + stat.ordersPending + stat.ordersRescheduled);
+      historicalTotalVolume += stat.ordersCompleted + stat.ordersCancelled + stat.ordersPending + stat.ordersRescheduled;
 
       historicalTrends.push({
         date: stat.date,
@@ -84,7 +82,7 @@ export async function getComprehensiveDashboardData(params?: {
 
     // Live Total Volume (All Statuses)
     liveTotalVolume = await db.order.count({
-        where: { scheduledDate: { gte: liveStart, lte: endDate } }
+      where: { scheduledDate: { gte: liveStart, lte: endDate } },
     });
 
     // Live Revenue Trend (Group by Date)
@@ -261,12 +259,12 @@ export async function getComprehensiveDashboardData(params?: {
 
     // Verified Cash Handovers (In the selected period)
     db.cashHandover.aggregate({
-        where: {
-            date: { gte: startDate, lte: endDate },
-            status: CashHandoverStatus.VERIFIED
-        },
-        _sum: { actualCash: true },
-        _count: { id: true }
+      where: {
+        date: { gte: startDate, lte: endDate },
+        status: CashHandoverStatus.VERIFIED,
+      },
+      _sum: { actualCash: true },
+      _count: { id: true },
     }),
 
     // Driver performance (Live Data)
@@ -282,17 +280,19 @@ export async function getComprehensiveDashboardData(params?: {
     }),
 
     // Driver performance (Historical Data)
-    !isLiveOnly ? db.driverPerformanceMetrics.groupBy({
-      by: ['driverId'],
-      where: {
-        date: { gte: startDate, lte: historicalEnd },
-      },
-      _sum: {
-        ordersCompleted: true,
-        cashCollected: true,
-        totalBilled: true,
-      },
-    }) : Promise.resolve([]),
+    !isLiveOnly
+      ? db.driverPerformanceMetrics.groupBy({
+          by: ['driverId'],
+          where: {
+            date: { gte: startDate, lte: historicalEnd },
+          },
+          _sum: {
+            ordersCompleted: true,
+            cashCollected: true,
+            totalBilled: true,
+          },
+        })
+      : Promise.resolve([]),
 
     // Bottle statistics
     db.orderItem.aggregate({
@@ -444,7 +444,7 @@ export async function getComprehensiveDashboardData(params?: {
       orderBy: { date: 'asc' },
     });
 
-    dailyStats.forEach(stat => {
+    dailyStats.forEach((stat) => {
       combinedOrderTrends.push({
         date: format(stat.date, 'MMM dd'),
         [OrderStatus.COMPLETED]: stat.ordersCompleted,
@@ -470,23 +470,26 @@ export async function getComprehensiveDashboardData(params?: {
     `;
 
     (liveOrderTrendRaw as any[]).forEach((curr) => {
-        const dateStr = format(new Date(curr.date), 'MMM dd');
-        let existing = combinedOrderTrends.find(i => i.date === dateStr);
-        if (!existing) {
-            existing = { date: dateStr };
-            combinedOrderTrends.push(existing);
-        }
-        existing[curr.status] = Number(curr.count || 0);
+      const dateStr = format(new Date(curr.date), 'MMM dd');
+      let existing = combinedOrderTrends.find((i) => i.date === dateStr);
+      if (!existing) {
+        existing = { date: dateStr };
+        combinedOrderTrends.push(existing);
+      }
+      existing[curr.status] = Number(curr.count || 0);
     });
   }
 
   // Merge Driver Performance
-  const driverPerformanceMap = new Map<string, {
-    driverId: string;
-    completedOrders: number;
-    cashCollected: number;
-    revenue: number;
-  }>();
+  const driverPerformanceMap = new Map<
+    string,
+    {
+      driverId: string;
+      completedOrders: number;
+      cashCollected: number;
+      revenue: number;
+    }
+  >();
 
   // Add Live Data
   liveDriverPerformance.forEach((d) => {
@@ -580,12 +583,13 @@ export async function getComprehensiveDashboardData(params?: {
     cashManagement: {
       totalCashCollected: parseFloat(cashStats._sum.cashCollected?.toString() || '0'),
       cashOrders: cashOrdersCount,
-      pendingHandovers: Array.isArray(pendingHandovers) && pendingHandovers[0]
-        ? {
-          count: Number(pendingHandovers[0].count || 0),
-          amount: parseFloat(pendingHandovers[0].amount?.toString() || '0'),
-        }
-        : { count: 0, amount: 0 },
+      pendingHandovers:
+        Array.isArray(pendingHandovers) && pendingHandovers[0]
+          ? {
+              count: Number(pendingHandovers[0].count || 0),
+              amount: parseFloat(pendingHandovers[0].amount?.toString() || '0'),
+            }
+          : { count: 0, amount: 0 },
       // New Field
       verifiedCash: parseFloat(verifiedHandovers._sum.actualCash?.toString() || '0'),
     },
@@ -657,7 +661,7 @@ export async function getComprehensiveDashboardData(params?: {
         phone: c.user.phoneNumber,
         balance: parseFloat(c.cashBalance.toString()),
         creditLimit: parseFloat(c.creditLimit.toString()),
-        utilizationPercent: Math.abs(parseFloat(c.cashBalance.toString())) / parseFloat(c.creditLimit.toString()) * 100,
+        utilizationPercent: (Math.abs(parseFloat(c.cashBalance.toString())) / parseFloat(c.creditLimit.toString())) * 100,
       })),
     },
     routePerformance: (routePerformance as any[]).map((r) => ({

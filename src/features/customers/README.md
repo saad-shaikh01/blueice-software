@@ -19,28 +19,35 @@ src/features/customers/
 ## 🎯 Key Features
 
 ### 1. **Legacy Data Migration Support**
+
 When creating a customer with opening balances > 0:
+
 - Creates User + CustomerProfile in a **Prisma transaction**
 - Inserts Ledger entry: `"Opening Balance Migration"`
 - Inserts CustomerBottleWallet entry (if bottle balance > 0)
 - Ensures data integrity with atomic operations
 
 ### 2. **Regular Customer Signup**
+
 When opening balances = 0:
+
 - Simply creates User + CustomerProfile
 - No extra ledger/wallet entries
 
 ### 3. **Invoice Context Retrieval**
+
 GET endpoint returns customer + **last 5 orders** to mimic paper invoices
 
 ## 🔧 API Endpoints
 
 ### POST `/api/customers`
+
 Create a new customer
 
 **Authorization:** SUPER_ADMIN, ADMIN, INVENTORY_MGR only
 
 **Request Body:**
+
 ```json
 {
   // User Information
@@ -76,6 +83,7 @@ Create a new customer
 ```
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -94,9 +102,11 @@ Create a new customer
 ```
 
 ### GET `/api/customers`
+
 Get all customers with filtering and pagination
 
 **Query Parameters:**
+
 - `search`: Search by name, phone, email, address, manualCode
 - `area`: Filter by area
 - `type`: Filter by customer type (RESIDENTIAL, COMMERCIAL, CORPORATE)
@@ -105,6 +115,7 @@ Get all customers with filtering and pagination
 - `limit`: Items per page (default: 20, max: 100)
 
 **Response:**
+
 ```json
 {
   "data": [...],
@@ -118,9 +129,11 @@ Get all customers with filtering and pagination
 ```
 
 ### GET `/api/customers/:id`
+
 Get single customer with order history (last 5 orders)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -137,11 +150,13 @@ Get single customer with order history (last 5 orders)
 ```
 
 ### PATCH `/api/customers/:id`
+
 Update customer profile
 
 **Authorization:** SUPER_ADMIN, ADMIN, INVENTORY_MGR only
 
 **Request Body:** (all fields optional)
+
 ```json
 {
   "name": "Ahmed Khan Updated",
@@ -193,6 +208,7 @@ If any step fails, **entire transaction is rolled back**.
 ## 📊 Database Schema Updates
 
 ### CustomerProfile Model
+
 ```prisma
 model CustomerProfile {
   // ... existing fields ...
@@ -245,7 +261,7 @@ const response = await fetch('/api/customers', {
     openingCashBalance: '8000.00',
     openingBottleBalance: 15,
     productId: 'product-uuid-here',
-  })
+  }),
 });
 ```
 

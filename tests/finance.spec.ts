@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+
 import { loginAs } from './utils';
 
 test.describe('Finance & Expenses', () => {
@@ -30,10 +31,10 @@ test.describe('Finance & Expenses', () => {
     // Verify Success Toast or Dialog Close
     // If dialog is still open, check for error message
     if (await page.getByRole('dialog').isVisible()) {
-        const errorToast = page.getByText('Error'); // Generic check
-        if (await errorToast.isVisible()) {
-            console.error('Test failed with Toast Error');
-        }
+      const errorToast = page.getByText('Error'); // Generic check
+      if (await errorToast.isVisible()) {
+        console.error('Test failed with Toast Error');
+      }
     }
     await expect(page.getByRole('dialog')).toBeHidden();
 

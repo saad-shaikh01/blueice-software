@@ -1,6 +1,6 @@
-import { PrismaClient, UserRole, CustomerType, OrderStatus, PaymentMethod } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 import { faker } from '@faker-js/faker';
+import { CustomerType, OrderStatus, PaymentMethod, PrismaClient, UserRole } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -103,13 +103,15 @@ async function main() {
   const areaNames = ['DHA Phase 6', 'Clifton Block 2', 'Gulshan-e-Iqbal', 'North Nazimabad', 'PECHS Block 6', 'Bahria Town'];
   const routes = [];
   for (const name of areaNames) {
-    routes.push(await prisma.route.create({
-      data: {
-        name,
-        description: `Deliveries for ${name}`,
-        defaultDriverId: drivers[Math.floor(Math.random() * drivers.length)].driverProfile?.id,
-      },
-    }));
+    routes.push(
+      await prisma.route.create({
+        data: {
+          name,
+          description: `Deliveries for ${name}`,
+          defaultDriverId: drivers[Math.floor(Math.random() * drivers.length)].driverProfile?.id,
+        },
+      }),
+    );
   }
   console.log('✅ Created Routes');
 
@@ -184,7 +186,12 @@ async function main() {
       let status: OrderStatus = OrderStatus.COMPLETED;
       if (d === 0) {
         // Today: Mix of Pending/Completed
-        const randomStatus = faker.helpers.arrayElement([OrderStatus.COMPLETED, OrderStatus.PENDING, OrderStatus.IN_PROGRESS, OrderStatus.SCHEDULED]);
+        const randomStatus = faker.helpers.arrayElement([
+          OrderStatus.COMPLETED,
+          OrderStatus.PENDING,
+          OrderStatus.IN_PROGRESS,
+          OrderStatus.SCHEDULED,
+        ]);
         status = randomStatus;
       }
 
@@ -206,8 +213,8 @@ async function main() {
             filledGiven: status === OrderStatus.COMPLETED ? quantity : 0,
             emptyTaken: status === OrderStatus.COMPLETED ? quantity : 0, // Usually 1:1
             damagedReturned: status === OrderStatus.COMPLETED && Math.random() > 0.95 ? 1 : 0, // 5% chance of damage
-          }
-        }
+          },
+        },
       };
 
       if (status === OrderStatus.COMPLETED) {
@@ -221,7 +228,7 @@ async function main() {
         bottlesDelivered += quantity;
         bottlesReturned += quantity;
         if (orderData.orderItems.create.damagedReturned > 0) {
-            bottlesDamaged += orderData.orderItems.create.damagedReturned;
+          bottlesDamaged += orderData.orderItems.create.damagedReturned;
         }
       }
 
@@ -244,7 +251,7 @@ async function main() {
           bottleNetChange: bottlesDelivered - bottlesReturned,
           driversActive: drivers.length,
           newCustomers: Math.floor(Math.random() * 5),
-        }
+        },
       });
     }
 
@@ -258,22 +265,22 @@ async function main() {
     date.setDate(date.getDate() + d);
 
     for (let i = 0; i < 30; i++) {
-        const customer = faker.helpers.arrayElement(customers);
-        await prisma.order.create({
-            data: {
-                customerId: customer.id,
-                scheduledDate: date,
-                status: OrderStatus.SCHEDULED,
-                totalAmount: Number(mainProduct.basePrice) * 2,
-                orderItems: {
-                    create: {
-                        productId: mainProduct.id,
-                        quantity: 2,
-                        priceAtTime: mainProduct.basePrice
-                    }
-                }
-            }
-        });
+      const customer = faker.helpers.arrayElement(customers);
+      await prisma.order.create({
+        data: {
+          customerId: customer.id,
+          scheduledDate: date,
+          status: OrderStatus.SCHEDULED,
+          totalAmount: Number(mainProduct.basePrice) * 2,
+          orderItems: {
+            create: {
+              productId: mainProduct.id,
+              quantity: 2,
+              priceAtTime: mainProduct.basePrice,
+            },
+          },
+        },
+      });
     }
   }
 

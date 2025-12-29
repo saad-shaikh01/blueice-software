@@ -1,21 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetDrivers } from '@/features/drivers/api/use-get-drivers';
-import { useBulkAssignOrders } from '@/features/orders/api/use-bulk-assign-orders';
 import { Driver } from '@/features/drivers/components/columns';
+import { useBulkAssignOrders } from '@/features/orders/api/use-bulk-assign-orders';
 
 interface AssignDriverModalProps {
   orderIds: string[];
@@ -35,16 +28,19 @@ export const AssignDriverModal = ({ orderIds, open, onOpenChange, onSuccess }: A
   const handleSubmit = () => {
     if (!driverId) return;
 
-    assignOrders({
-      orderIds,
-      driverId,
-    }, {
-      onSuccess: () => {
-        onSuccess();
-        onOpenChange(false);
-        setDriverId('');
-      }
-    });
+    assignOrders(
+      {
+        orderIds,
+        driverId,
+      },
+      {
+        onSuccess: () => {
+          onSuccess();
+          onOpenChange(false);
+          setDriverId('');
+        },
+      },
+    );
   };
 
   return (
@@ -52,9 +48,7 @@ export const AssignDriverModal = ({ orderIds, open, onOpenChange, onSuccess }: A
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Assign Driver</DialogTitle>
-          <DialogDescription>
-            Assign {orderIds.length} orders to a driver.
-          </DialogDescription>
+          <DialogDescription>Assign {orderIds.length} orders to a driver.</DialogDescription>
         </DialogHeader>
 
         <div className="py-4">

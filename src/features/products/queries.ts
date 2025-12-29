@@ -1,13 +1,11 @@
 import { Prisma } from '@prisma/client';
+
 import { db } from '@/lib/db';
 
 export async function getProducts(search?: string) {
   const where: Prisma.ProductWhereInput = search
     ? {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { sku: { contains: search, mode: 'insensitive' } },
-        ],
+        OR: [{ name: { contains: search, mode: 'insensitive' } }, { sku: { contains: search, mode: 'insensitive' } }],
       }
     : {};
 
@@ -52,7 +50,7 @@ export async function updateProduct(
     isReturnable: boolean;
     stockFilled: number;
     stockEmpty: number;
-  }>
+  }>,
 ) {
   const { basePrice, ...rest } = data;
 

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+
 import { useLiveLocations } from '../api/use-live-locations';
 import { DriverMarkerPopup } from './driver-marker-popup';
-import { Loader2 } from 'lucide-react';
 
 interface LiveMapCoreProps {
   center?: [number, number];
@@ -113,48 +114,36 @@ export default function LiveMapCore({ center = [33.6844, 73.0479], zoom = 12, he
   }
 
   return (
-    <div className="relative rounded-lg overflow-hidden border shadow-sm" style={{ height }}>
+    <div className="relative overflow-hidden rounded-lg border shadow-sm" style={{ height }}>
       {/* Legend */}
-      <div className="absolute top-4 right-4 z-[1000] bg-white dark:bg-gray-900 rounded-lg shadow-lg p-3 space-y-2 text-xs">
-        <div className="font-semibold mb-2 text-sm">Driver Status</div>
+      <div className="absolute right-4 top-4 z-[1000] space-y-2 rounded-lg bg-white p-3 text-xs shadow-lg dark:bg-gray-900">
+        <div className="mb-2 text-sm font-semibold">Driver Status</div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <div className="h-3 w-3 rounded-full bg-green-500"></div>
           <span>Moving (On Duty)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+          <div className="h-3 w-3 rounded-full bg-blue-500"></div>
           <span>Idle (On Duty)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+          <div className="h-3 w-3 rounded-full bg-gray-400"></div>
           <span>Off Duty</span>
         </div>
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+        <div className="border-t border-gray-200 pt-2 dark:border-gray-700">
           <div className="font-medium">Total Drivers: {drivers?.length || 0}</div>
-          <div className="text-muted-foreground">
-            On Duty: {drivers?.filter((d) => d.isOnDuty).length || 0}
-          </div>
+          <div className="text-muted-foreground">On Duty: {drivers?.filter((d) => d.isOnDuty).length || 0}</div>
         </div>
       </div>
 
-      <MapContainer
-        center={center}
-        zoom={zoom}
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={true}
-        className="z-0"
-      >
+      <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} className="z-0">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         {drivers?.map((driver) => (
-          <Marker
-            key={driver.driverId}
-            position={[driver.latitude, driver.longitude]}
-            icon={createDriverIcon(driver.isOnDuty, false)}
-          >
+          <Marker key={driver.driverId} position={[driver.latitude, driver.longitude]} icon={createDriverIcon(driver.isOnDuty, false)}>
             <Popup maxWidth={300} className="custom-popup">
               <DriverMarkerPopup driver={driver} />
             </Popup>

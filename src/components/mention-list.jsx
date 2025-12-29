@@ -84,82 +84,76 @@
 //   )
 // }
 
-
 // mention-list.jsx
-import React, {
-  useEffect, 
-  useImperativeHandle,
-  useState,
-  forwardRef
-} from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { cn, getAvatarColor, getImageUrl } from '@/lib/utils'
+import React, { useEffect, useImperativeHandle, useState, forwardRef } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { cn, getAvatarColor, getImageUrl } from '@/lib/utils';
 
 const MentionList = forwardRef((props, ref) => {
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const selectItem = (index) => {
-    const item = props.items[index]
+    const item = props.items[index];
 
     if (item) {
-      props.command({ id: item.id, label: item.display })
+      props.command({ id: item.id, label: item.display });
     }
-  }
+  };
 
   const upHandler = () => {
-    setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length)
-  }
+    setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
+  };
 
   const downHandler = () => {
-    setSelectedIndex((selectedIndex + 1) % props.items.length)
-  }
+    setSelectedIndex((selectedIndex + 1) % props.items.length);
+  };
 
   const enterHandler = () => {
-  selectItem(selectedIndex);
-  if (props.event) {
-    props.event.stopPropagation();
-    props.event.preventDefault();
-  }
-};
+    selectItem(selectedIndex);
+    if (props.event) {
+      props.event.stopPropagation();
+      props.event.preventDefault();
+    }
+  };
 
-  useEffect(() => setSelectedIndex(0), [props.items])
+  useEffect(() => setSelectedIndex(0), [props.items]);
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }) => {
       // Handle as DOM KeyboardEvent (from Tiptap suggestion)
       if (event.key === 'ArrowUp') {
-        upHandler()
-        event.preventDefault() // Prevent default arrow behavior
-        return true
+        upHandler();
+        event.preventDefault(); // Prevent default arrow behavior
+        return true;
       }
 
       if (event.key === 'ArrowDown') {
-        downHandler()
-        event.preventDefault() // Prevent default arrow behavior
-        return true
+        downHandler();
+        event.preventDefault(); // Prevent default arrow behavior
+        return true;
       }
 
       if (event.key === 'Enter') {
-        enterHandler()
-        event.preventDefault() // Prevent default enter behavior
-        return true
+        enterHandler();
+        event.preventDefault(); // Prevent default enter behavior
+        return true;
       }
 
       if (event.key === 'Escape') {
         // Optional: Close suggestion on Escape
-        return true
+        return true;
       }
 
-      return false
+      return false;
     },
-  }))
+  }));
 
   if (!props.items.length) {
     return (
       <div className="bg-popover text-popover-foreground border border-border rounded-lg shadow-md flex flex-col gap-1 overflow-auto p-2 relative">
         <div className="item p-2 text-muted-foreground">No result</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -169,7 +163,7 @@ const MentionList = forwardRef((props, ref) => {
           type="button" // Add type to prevent form submission if inside form
           className={cn(
             `w-full flex items-center gap-2 text-left px-3 py-2 rounded-md transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus:outline-none`,
-            index === selectedIndex && 'bg-accent text-accent-foreground border-l-2 border-primary'
+            index === selectedIndex && 'bg-accent text-accent-foreground border-l-2 border-primary',
           )}
           key={item.id}
           onClick={() => selectItem(index)}
@@ -178,17 +172,15 @@ const MentionList = forwardRef((props, ref) => {
         >
           <Avatar className="h-8 w-8 flex-shrink-0">
             <AvatarImage src={getImageUrl(item.avatarUrl || '')} alt={item.display} />
-            <AvatarFallback className={cn(getAvatarColor(item.display))} >
-              {item.display.substring(0, 1).toUpperCase()}
-            </AvatarFallback>
+            <AvatarFallback className={cn(getAvatarColor(item.display))}>{item.display.substring(0, 1).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="font-medium truncate">{item.display}</span>
         </button>
       ))}
     </div>
-  )
-})
+  );
+});
 
-MentionList.displayName = 'MentionList'
+MentionList.displayName = 'MentionList';
 
-export default MentionList
+export default MentionList;

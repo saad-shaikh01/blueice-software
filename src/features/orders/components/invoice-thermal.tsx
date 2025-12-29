@@ -1,7 +1,7 @@
 'use client';
 
-import { format } from 'date-fns';
 import type { Decimal } from '@prisma/client/runtime/library';
+import { format } from 'date-fns';
 
 interface InvoiceThermalProps {
   data: {
@@ -185,9 +185,7 @@ export const InvoiceThermal = ({ data }: InvoiceThermalProps) => {
       <div className="mt-3 border-t-2 border-dashed border-gray-800 pt-2 text-center">
         <div className="text-[10px] font-bold">THANK YOU!</div>
         <div className="mt-1 text-[8px]">info@blueice.com</div>
-        <div className="mt-2 text-[8px]">
-          {format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
-        </div>
+        <div className="mt-2 text-[8px]">{format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</div>
       </div>
     </div>
   );

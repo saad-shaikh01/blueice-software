@@ -1,6 +1,7 @@
-import { Prisma, UserRole, OrderStatus } from '@prisma/client';
-import { db } from '@/lib/db';
+import { OrderStatus, Prisma, UserRole } from '@prisma/client';
+
 import { hashPassword } from '@/lib/authenticate';
+import { db } from '@/lib/db';
 
 export async function createDriver(data: {
   name: string;
@@ -39,11 +40,7 @@ export async function createDriver(data: {
   });
 }
 
-export async function getDrivers(params: {
-  search?: string;
-  page: number;
-  limit: number;
-}) {
+export async function getDrivers(params: { search?: string; page: number; limit: number }) {
   const { search, page, limit } = params;
   const skip = (page - 1) * limit;
 
@@ -101,9 +98,7 @@ export async function getDrivers(params: {
   ]);
 
   // Create a map of driverId -> cashCollected for O(1) lookup
-  const cashCollectedMap = new Map(
-    cashCollectedStats.map((stat) => [stat.driverId, stat._sum.cashCollected?.toString() || '0'])
-  );
+  const cashCollectedMap = new Map(cashCollectedStats.map((stat) => [stat.driverId, stat._sum.cashCollected?.toString() || '0']));
 
   // Merge the stats with driver data
   const driversWithStats = drivers.map((driver) => ({
@@ -166,7 +161,7 @@ export async function updateDriver(
     email: string | null;
     vehicleNo: string | null;
     licenseNo: string | null;
-  }>
+  }>,
 ) {
   const { name, phoneNumber, email, ...profileData } = data;
 

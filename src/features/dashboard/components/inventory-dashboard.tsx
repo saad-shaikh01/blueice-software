@@ -1,13 +1,14 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Package, ShoppingCart, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { client } from '@/lib/hono';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
+import { AlertCircle, Package, ShoppingCart } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { client } from '@/lib/hono';
 
 export const InventoryDashboard = () => {
   // We can reuse the products API to get stock levels
@@ -16,7 +17,7 @@ export const InventoryDashboard = () => {
     queryFn: async () => {
       // Fetch products without limit as current schema doesn't support pagination
       const response = await client.api.products.$get({
-        query: {}
+        query: {},
       });
       if (!response.ok) throw new Error('Failed to fetch products');
       const data = await response.json();
@@ -29,7 +30,7 @@ export const InventoryDashboard = () => {
     queryKey: ['orders', { status: 'PENDING' }],
     queryFn: async () => {
       const response = await client.api.orders.$get({
-        query: { status: 'PENDING', limit: '5' }
+        query: { status: 'PENDING', limit: '5' },
       });
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
@@ -54,7 +55,7 @@ export const InventoryDashboard = () => {
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Stock Alert Card */}
-        <Card className={lowStockProducts.length > 0 ? "border-yellow-200 bg-yellow-50/50" : ""}>
+        <Card className={lowStockProducts.length > 0 ? 'border-yellow-200 bg-yellow-50/50' : ''}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
@@ -71,14 +72,12 @@ export const InventoryDashboard = () => {
             ) : (
               <div className="space-y-4">
                 {lowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-2 bg-background/50 rounded border">
+                  <div key={product.id} className="flex items-center justify-between rounded border bg-background/50 p-2">
                     <div>
                       <div className="font-medium">{product.name}</div>
                       <div className="text-xs text-muted-foreground">SKU: {product.sku}</div>
                     </div>
-                    <Badge variant="destructive">
-                      {product.stockFilled} Left
-                    </Badge>
+                    <Badge variant="destructive">{product.stockFilled} Left</Badge>
                   </div>
                 ))}
               </div>
@@ -101,8 +100,8 @@ export const InventoryDashboard = () => {
             ) : (
               <div className="space-y-4">
                 {pendingOrders.map((order: any) => (
-                  <div key={order.id} className="flex flex-col gap-1 p-2 border rounded">
-                    <div className="flex justify-between items-start">
+                  <div key={order.id} className="flex flex-col gap-1 rounded border p-2">
+                    <div className="flex items-start justify-between">
                       <span className="font-medium">Order #{order.readableId}</span>
                       <Badge variant="secondary">{order.status}</Badge>
                     </div>

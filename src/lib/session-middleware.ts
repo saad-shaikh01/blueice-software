@@ -4,8 +4,8 @@ import { createMiddleware } from 'hono/factory';
 import 'server-only';
 
 import { AUTH_COOKIE } from '@/features/auth/constants';
-import { verifyToken } from './authenticate';
 
+import { verifyToken } from './authenticate';
 
 type AdditionalContext = {
   Variables: {
@@ -16,7 +16,6 @@ type AdditionalContext = {
       name: string;
       role: UserRole;
     };
-
   };
 };
 
@@ -48,4 +47,3 @@ export const sessionMiddleware = createMiddleware<AdditionalContext>(async (ctx,
 
   await next();
 });
-

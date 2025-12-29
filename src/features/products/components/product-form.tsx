@@ -1,23 +1,23 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
 
+import { PageError } from '@/components/page-error';
+import { PageLoader } from '@/components/page-loader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { PageLoader } from '@/components/page-loader';
-import { PageError } from '@/components/page-error';
 
-import { createProductSchema, type CreateProductInput } from '../schema';
 import { useCreateProduct } from '../api/use-create-product';
-import { useUpdateProduct } from '../api/use-update-product';
 import { useGetProduct } from '../api/use-get-product';
+import { useUpdateProduct } from '../api/use-update-product';
+import { type CreateProductInput, createProductSchema } from '../schema';
 
 interface ProductFormProps {
   productId?: string;
@@ -62,9 +62,12 @@ export const ProductForm = ({ productId, onCancel }: ProductFormProps) => {
 
   const onSubmit = (data: CreateProductInput) => {
     if (isEdit && productId) {
-      updateProduct({ param: { id: productId }, json: data }, {
-        onSuccess: () => router.push('/products'),
-      });
+      updateProduct(
+        { param: { id: productId }, json: data },
+        {
+          onSuccess: () => router.push('/products'),
+        },
+      );
     } else {
       createProduct(data, {
         onSuccess: () => router.push('/products'),
@@ -139,16 +142,13 @@ export const ProductForm = ({ productId, onCancel }: ProductFormProps) => {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Returnable Item</FormLabel>
                     <FormDescription>
-                      Check this if the bottle/container is returned by customer (e.g. 19L Bottle).
-                      Uncheck for one-time items (e.g. Disposable cups).
+                      Check this if the bottle/container is returned by customer (e.g. 19L Bottle). Uncheck for one-time items (e.g.
+                      Disposable cups).
                     </FormDescription>
                   </div>
                 </FormItem>

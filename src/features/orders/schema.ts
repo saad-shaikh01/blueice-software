@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { OrderStatus, PaymentMethod } from '@prisma/client';
+import { z } from 'zod';
 
 export const createOrderSchema = z.object({
   customerId: z.string().uuid('Invalid customer'),
@@ -9,11 +9,15 @@ export const createOrderSchema = z.object({
   deliveryCharge: z.coerce.number().min(0).default(0),
   discount: z.coerce.number().min(0).default(0),
 
-  items: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.coerce.number().int().min(1),
-    price: z.coerce.number().min(0).optional(), // Optional, fetch from product if missing
-  })).min(1, 'At least one item is required'),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.coerce.number().int().min(1),
+        price: z.coerce.number().min(0).optional(), // Optional, fetch from product if missing
+      }),
+    )
+    .min(1, 'At least one item is required'),
 });
 
 export const updateOrderSchema = z.object({
@@ -27,14 +31,18 @@ export const updateOrderSchema = z.object({
   cashCollected: z.coerce.number().min(0).optional(),
   paymentMethod: z.nativeEnum(PaymentMethod).optional(),
 
-  items: z.array(z.object({
-    id: z.string().optional(),
-    productId: z.string().uuid(),
-    quantity: z.coerce.number().int().min(1),
-    price: z.coerce.number().min(0).optional(),
-    filledGiven: z.coerce.number().int().min(0).optional(),
-    emptyTaken: z.coerce.number().int().min(0).optional(),
-  })).optional(),
+  items: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        productId: z.string().uuid(),
+        quantity: z.coerce.number().int().min(1),
+        price: z.coerce.number().min(0).optional(),
+        filledGiven: z.coerce.number().int().min(0).optional(),
+        emptyTaken: z.coerce.number().int().min(0).optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const bulkAssignSchema = z.object({

@@ -1,12 +1,13 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useGetRoutes } from '@/features/routes/api/use-get-routes';
-import { RouteTable } from '@/features/routes/components/route-list';
-import { columns, Route } from '@/features/routes/components/columns';
-import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { Suspense } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { useGetRoutes } from '@/features/routes/api/use-get-routes';
+import { Route, columns } from '@/features/routes/components/columns';
+import { RouteTable } from '@/features/routes/components/route-list';
 
 function RoutesContent() {
   const { data, isLoading } = useGetRoutes();
@@ -18,7 +19,7 @@ function RoutesContent() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Routes</h1>
         <Button asChild>
-           <Link href="/routes/new">
+          <Link href="/routes/new">
             <Plus className="mr-2 h-4 w-4" />
             Add Route
           </Link>
@@ -30,9 +31,9 @@ function RoutesContent() {
 }
 
 export default function RoutesPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <RoutesContent />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RoutesContent />
+    </Suspense>
+  );
 }

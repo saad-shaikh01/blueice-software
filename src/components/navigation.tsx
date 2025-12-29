@@ -1,11 +1,12 @@
 'use client';
 
-import { Settings, Users, Package, Truck, Map, ShoppingCart, LayoutDashboard, MapPin, Receipt, DollarSign } from 'lucide-react';
+import { UserRole } from '@prisma/client';
+import { DollarSign, LayoutDashboard, Map, MapPin, Package, Receipt, Settings, ShoppingCart, Truck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+
 import { useCurrent } from '@/features/auth/api/use-current';
-import { UserRole } from '@prisma/client';
+import { cn } from '@/lib/utils';
 
 const routes = [
   {

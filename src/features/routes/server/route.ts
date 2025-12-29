@@ -1,16 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
+import { Hono } from 'hono';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
+import { createRoute, deleteRoute, getRoute, getRoutes, updateRoute } from '@/features/routes/queries';
 import { createRouteSchema, getRoutesQuerySchema, updateRouteSchema } from '@/features/routes/schema';
-import {
-  createRoute,
-  deleteRoute,
-  getRoute,
-  getRoutes,
-  updateRoute,
-} from '@/features/routes/queries';
+import { sessionMiddleware } from '@/lib/session-middleware';
 
 const app = new Hono()
   .get('/', sessionMiddleware, zValidator('query', getRoutesQuerySchema), async (ctx) => {
@@ -79,7 +73,7 @@ const app = new Hono()
       await deleteRoute(id);
       return ctx.json({ success: true });
     } catch (error) {
-       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
         return ctx.json({ error: 'Cannot delete route with assigned customers' }, 400);
       }
       return ctx.json({ error: 'Failed to delete route' }, 500);

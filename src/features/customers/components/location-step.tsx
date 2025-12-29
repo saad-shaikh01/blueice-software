@@ -1,16 +1,17 @@
 'use client';
 
+import { Building2, MapPin } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { MapPin, Building2 } from 'lucide-react';
 
+import { LocationMapPicker } from '@/components/location-map-picker';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import type { CreateCustomerInput } from '@/features/customers/schema';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import type { CreateCustomerInput } from '@/features/customers/schema';
 import { useGetRoutes } from '@/features/routes/api/use-get-routes';
 
 interface Route {
@@ -22,6 +23,14 @@ export const LocationStep = () => {
   const form = useFormContext<CreateCustomerInput>();
   const { data: routesData } = useGetRoutes();
   const routes = (routesData?.routes as Route[]) || [];
+
+  const geoLat = form.watch('geoLat');
+  const geoLng = form.watch('geoLng');
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    form.setValue('geoLat', lat);
+    form.setValue('geoLng', lng);
+  };
 
   return (
     <div className="space-y-6">
@@ -127,9 +136,7 @@ export const LocationStep = () => {
             <Building2 className="size-5" />
             GPS Coordinates (Optional)
           </CardTitle>
-          <CardDescription className="text-green-700 dark:text-green-300">
-            Pin exact location for driver navigation
-          </CardDescription>
+          <CardDescription className="text-green-700 dark:text-green-300">Pin exact location for driver navigation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -176,12 +183,10 @@ export const LocationStep = () => {
             />
           </div>
 
-          <div className="rounded-lg border border-dashed border-green-300 bg-green-50 p-4 text-center dark:border-green-800 dark:bg-green-950/30">
-            <p className="text-sm text-green-700 dark:text-green-300">
-              📍 Google Maps integration coming soon!
-              <br />
-              <span className="text-xs">Click on map to auto-fill coordinates</span>
-            </p>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Interactive Map</Label>
+            <p className="text-xs text-muted-foreground">Click on the map to select customer location</p>
+            <LocationMapPicker lat={geoLat ?? undefined} lng={geoLng ?? undefined} onLocationSelect={handleLocationSelect} height="350px" />
           </div>
         </CardContent>
       </Card>
@@ -212,9 +217,7 @@ export const LocationStep = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>
-                  Drivers follow this route for delivery
-                </FormDescription>
+                <FormDescription>Drivers follow this route for delivery</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -235,9 +238,7 @@ export const LocationStep = () => {
                     onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                   />
                 </FormControl>
-                <FormDescription>
-                  Order in which driver visits (1, 2, 3...)
-                </FormDescription>
+                <FormDescription>Order in which driver visits (1, 2, 3...)</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

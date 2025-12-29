@@ -1,10 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
+import { ExpenseStatus, UserRole } from '@prisma/client';
 import { Hono } from 'hono';
-import { UserRole, ExpenseStatus } from '@prisma/client';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
-import { createExpenseSchema, getExpensesQuerySchema, updateExpenseSchema } from '@/features/expenses/schema';
 import { createExpense, deleteExpense, getExpenses, updateExpense } from '@/features/expenses/queries';
+import { createExpenseSchema, getExpensesQuerySchema, updateExpenseSchema } from '@/features/expenses/schema';
+import { sessionMiddleware } from '@/lib/session-middleware';
 
 const app = new Hono()
   .get('/', sessionMiddleware, zValidator('query', getExpensesQuerySchema), async (ctx) => {
@@ -75,8 +75,8 @@ const app = new Hono()
     // Only Admins can approve/reject or edit arbitrary expenses
     const adminRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
     if (!adminRoles.includes(user.role)) {
-       // Drivers might edit their own PENDING expenses? Let's restrict for simplicity first.
-       return ctx.json({ error: 'Unauthorized' }, 403);
+      // Drivers might edit their own PENDING expenses? Let's restrict for simplicity first.
+      return ctx.json({ error: 'Unauthorized' }, 403);
     }
 
     try {

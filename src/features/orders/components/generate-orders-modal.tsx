@@ -1,24 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Loader2, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { CalendarIcon, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { useGenerateOrders } from '@/features/orders/api/use-generate-orders';
 import { useGetRoutes } from '@/features/routes/api/use-get-routes';
+import { cn } from '@/lib/utils';
 
 interface GenerateOrdersModalProps {
   open: boolean;
@@ -36,14 +29,17 @@ export const GenerateOrdersModal = ({ open, onOpenChange }: GenerateOrdersModalP
   const handleGenerate = () => {
     if (!date) return;
 
-    generateOrders({
-      date: format(date, 'yyyy-MM-dd'),
-      routeId: routeId === 'all' ? undefined : routeId,
-    }, {
-      onSuccess: () => {
-        onOpenChange(false);
-      }
-    });
+    generateOrders(
+      {
+        date: format(date, 'yyyy-MM-dd'),
+        routeId: routeId === 'all' ? undefined : routeId,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
   };
 
   return (
@@ -51,9 +47,7 @@ export const GenerateOrdersModal = ({ open, onOpenChange }: GenerateOrdersModalP
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Generate Daily Orders</DialogTitle>
-          <DialogDescription>
-            Create orders for all customers scheduled for the selected date.
-          </DialogDescription>
+          <DialogDescription>Create orders for all customers scheduled for the selected date.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
@@ -61,50 +55,33 @@ export const GenerateOrdersModal = ({ open, onOpenChange }: GenerateOrdersModalP
             <label className="text-sm font-medium">Delivery Date</label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
+                <Button variant={'outline'} className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  {date ? format(date, 'PPP') : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
+                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
               </PopoverContent>
             </Popover>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Route (Optional)</label>
-            <Select
-                value={routeId}
-                onValueChange={setRouteId}
-                disabled={isLoadingRoutes}
-            >
-                <SelectTrigger>
-                    <SelectValue placeholder="All Routes" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Routes</SelectItem>
-                    {routes.map((route: any) => (
-                        <SelectItem key={route.id} value={route.id}>
-                            {route.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
+            <Select value={routeId} onValueChange={setRouteId} disabled={isLoadingRoutes}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Routes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Routes</SelectItem>
+                {routes.map((route: any) => (
+                  <SelectItem key={route.id} value={route.id}>
+                    {route.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-            <p className="text-[0.8rem] text-muted-foreground">
-                Leave as "All Routes" to generate for everyone.
-            </p>
+            <p className="text-[0.8rem] text-muted-foreground">Leave as "All Routes" to generate for everyone.</p>
           </div>
         </div>
 

@@ -1,6 +1,65 @@
 import { CustomerType, Prisma, UserRole } from '@prisma/client';
-import { db } from '@/lib/db';
+
 import { hashPassword } from '@/lib/authenticate';
+import { db } from '@/lib/db';
+
+/**
+ * Generate next available customer code
+ * Format: C-1001, C-1002, etc.
+ *
+ * @returns Next available customer code
+ */
+export async function generateNextCustomerCode(): Promise<string> {
+  // Find the highest numeric code starting with 'C-'
+  const lastCustomer = await db.customerProfile.findFirst({
+    where: {
+      manualCode: {
+        startsWith: 'C-',
+      },
+    },
+    orderBy: {
+      manualCode: 'desc',
+    },
+    select: {
+      manualCode: true,
+    },
+  });
+
+  if (!lastCustomer || !lastCustomer.manualCode) {
+    return 'C-1001'; // Start from C-1001
+  }
+
+  // Extract number from code (e.g., "C-1005" → 1005)
+  const match = lastCustomer.manualCode.match(/C-(\d+)/);
+  if (!match) {
+    return 'C-1001';
+  }
+
+  const lastNumber = parseInt(match[1]);
+  const nextNumber = lastNumber + 1;
+
+  // Pad with zeros to maintain 4 digits (C-1001, C-9999)
+  return `C-${String(nextNumber).padStart(4, '0')}`;
+}
+
+/**
+ * Check if a customer code already exists
+ *
+ * @param code - Customer code to check
+ * @returns true if code exists, false otherwise
+ */
+export async function checkCustomerCodeExists(code: string): Promise<boolean> {
+  const existing = await db.customerProfile.findUnique({
+    where: {
+      manualCode: code,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return !!existing;
+}
 
 interface CreateCustomerData {
   // User fields
@@ -10,7 +69,7 @@ interface CreateCustomerData {
   password: string;
 
   // CustomerProfile fields
-  manualCode?: string | null;
+  manualCode: string; // Required: Auto-generated (C-1001) or manual (L-3442)
   area: string;
   address: string;
   landmark?: string | null;
@@ -72,6 +131,20 @@ export async function createCustomerWithProfile(data: CreateCustomerData) {
   // Check if this is a migration (opening balances > 0)
   const isMigration = openingCashDecimal.greaterThan(0) || openingBottleBalance > 0;
 
+  // Auto-generate customer code if not provided, or validate if provided
+  let finalManualCode: string;
+  if (manualCode) {
+    // Check if provided code already exists
+    const codeExists = await checkCustomerCodeExists(manualCode);
+    if (codeExists) {
+      throw new Error(`Customer code '${manualCode}' already exists. Please use a different code.`);
+    }
+    finalManualCode = manualCode;
+  } else {
+    // Auto-generate next available code
+    finalManualCode = await generateNextCustomerCode();
+  }
+
   // Use Prisma transaction to ensure data integrity
   return await db.$transaction(async (tx) => {
     // 1. Create User
@@ -96,7 +169,7 @@ export async function createCustomerWithProfile(data: CreateCustomerData) {
     const customerProfile = await tx.customerProfile.create({
       data: {
         userId: user.id,
-        manualCode,
+        manualCode: finalManualCode,
         area,
         address,
         landmark,
@@ -347,7 +420,7 @@ export async function updateCustomerProfile(
     defaultProductId: string | null;
     defaultQuantity: number;
     creditLimit: string;
-  }>
+  }>,
 ) {
   const { name, phoneNumber, email, creditLimit, ...profileData } = data;
 

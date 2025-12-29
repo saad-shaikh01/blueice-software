@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
+import { redirect } from 'next/navigation';
 
 import { getCurrent } from '@/features/auth/queries';
 import { ComprehensiveDashboard } from '@/features/dashboard/components/comprehensive-dashboard';

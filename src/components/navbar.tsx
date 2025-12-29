@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { UserButton } from '@/features/auth/components/user-button';
 
 import { MobileSidebar } from './mobile-sidebar';
-
 // import { NotificationButton } from '@/features/notifications/commponents/notification-buttoon';
 import { ModeToggle } from './toggle-btn';
 
@@ -45,7 +44,6 @@ export const Navbar = () => {
       <MobileSidebar />
 
       <div className="flex items-center gap-x-2.5">
-
         {/* <Link href="/notifications" className="">
           <BellIcon />
         </Link> */}

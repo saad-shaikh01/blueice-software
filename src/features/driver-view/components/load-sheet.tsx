@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package } from 'lucide-react';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface LoadSheetProps {
   orders: any[]; // Using any for simplicity here, ideally typed
@@ -32,15 +33,13 @@ export const LoadSheet = ({ orders }: LoadSheetProps) => {
       <CardContent>
         <div className="space-y-2">
           {Object.entries(totals).map(([name, stats]: [string, any]) => (
-            <div key={name} className="flex justify-between items-center border-b border-blue-200 pb-1 last:border-0 dark:border-blue-800">
-              <span className="font-medium text-sm">{name}</span>
-              <span className="font-bold text-lg">{stats.quantity}</span>
+            <div key={name} className="flex items-center justify-between border-b border-blue-200 pb-1 last:border-0 dark:border-blue-800">
+              <span className="text-sm font-medium">{name}</span>
+              <span className="text-lg font-bold">{stats.quantity}</span>
             </div>
           ))}
         </div>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Total {pendingOrders.length} stops remaining.
-        </p>
+        <p className="mt-4 text-xs text-muted-foreground">Total {pendingOrders.length} stops remaining.</p>
       </CardContent>
     </Card>
   );

@@ -1,27 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Phone,
-  MapPin,
-  Navigation,
-  Package,
-  Building2,
-  Landmark,
-  TrendingUp,
-  AlertCircle,
-  Clock,
-  XCircle,
-} from 'lucide-react';
-import Link from 'next/link';
 import type { Decimal } from '@prisma/client/runtime/library';
 import { format } from 'date-fns';
-import { UnableToDeliverDialog } from './unable-to-deliver-dialog';
-import { useUnableToDeliver } from '@/features/orders/api/use-unable-to-deliver';
+import { AlertCircle, Building2, Clock, Landmark, MapPin, Navigation, Package, Phone, TrendingUp, XCircle } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 import { toast } from 'sonner';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { useUnableToDeliver } from '@/features/orders/api/use-unable-to-deliver';
+
+import { UnableToDeliverDialog } from './unable-to-deliver-dialog';
 
 interface EnhancedOrderCardProps {
   order: {
@@ -139,9 +130,7 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
           </div>
           <div className="flex items-center gap-2">
             <p className="text-sm text-muted-foreground">{order.customer.area}</p>
-            {order.customer.route && (
-              <span className="text-xs text-muted-foreground">• {order.customer.route.name}</span>
-            )}
+            {order.customer.route && <span className="text-xs text-muted-foreground">• {order.customer.route.name}</span>}
           </div>
         </div>
         <div className="text-right">
@@ -160,8 +149,8 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
 
         {/* Landmark - Prominent Display */}
         {order.customer.landmark && (
-          <div className="flex items-center gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
-            <Landmark className="h-4 w-4 text-amber-600 flex-shrink-0" />
+          <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
+            <Landmark className="h-4 w-4 flex-shrink-0 text-amber-600" />
             <p className="text-sm font-medium text-amber-900">Near: {order.customer.landmark}</p>
           </div>
         )}
@@ -181,7 +170,7 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
             </Badge>
           )}
           {order.customer.hasLift && order.customer.floorNumber > 0 && (
-            <Badge variant="secondary" className="gap-1 text-xs bg-green-100 text-green-800">
+            <Badge variant="secondary" className="gap-1 bg-green-100 text-xs text-green-800">
               Lift Available
             </Badge>
           )}
@@ -190,9 +179,7 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
         {/* Delivery Instructions - Most Important! */}
         {order.customer.deliveryInstructions && (
           <div className="rounded-md border-2 border-blue-300 bg-blue-50 p-3">
-            <p className="text-sm font-semibold text-blue-900">
-              📝 {order.customer.deliveryInstructions}
-            </p>
+            <p className="text-sm font-semibold text-blue-900">📝 {order.customer.deliveryInstructions}</p>
           </div>
         )}
 
@@ -206,25 +193,21 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
 
         {/* Special Notes */}
         {order.customer.specialNotes && (
-          <div className="rounded-md bg-gray-50 border border-gray-200 p-3">
+          <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
             <p className="text-xs font-medium text-gray-700">⚠️ {order.customer.specialNotes}</p>
           </div>
         )}
 
         {/* Customer Balance Warning */}
         {hasDebt && (
-          <div className="rounded-md bg-red-50 border-2 border-red-200 p-3">
+          <div className="rounded-md border-2 border-red-200 bg-red-50 p-3">
             <div className="flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-red-900">
-                  Outstanding Balance: ₨{Math.abs(customerBalance).toFixed(0)}
-                </p>
-                <p className="text-xs text-red-700 mt-1">
+                <p className="text-sm font-bold text-red-900">Outstanding Balance: ₨{Math.abs(customerBalance).toFixed(0)}</p>
+                <p className="mt-1 text-xs text-red-700">
                   After this delivery: ₨{totalDue.toFixed(0)}
-                  {exceedsCreditLimit && (
-                    <span className="ml-1 font-semibold">(⚠️ Exceeds credit limit!)</span>
-                  )}
+                  {exceedsCreditLimit && <span className="ml-1 font-semibold">(⚠️ Exceeds credit limit!)</span>}
                 </p>
               </div>
             </div>
@@ -246,12 +229,12 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
 
       {/* Unable to Deliver Button - Only for pending orders */}
       {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
-        <div className="border-t bg-gray-50 px-4 pt-3 pb-2">
+        <div className="border-t bg-gray-50 px-4 pb-2 pt-3">
           <Button
             onClick={() => setUnableToDeliverOpen(true)}
             variant="outline"
             size="lg"
-            className="h-14 w-full border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+            className="h-14 w-full border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
           >
             <XCircle className="mr-2 h-5 w-5" />
             <span className="font-semibold">Unable to Deliver</span>
@@ -267,34 +250,23 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
           disabled={!order.customer.user.phoneNumber}
           size="lg"
           variant="outline"
-          className="h-16 flex-col gap-1 hover:bg-green-50 hover:border-green-300"
+          className="h-16 flex-col gap-1 hover:border-green-300 hover:bg-green-50"
         >
           <Phone className="h-5 w-5 text-green-600" />
           <span className="text-xs font-medium">Call</span>
         </Button>
 
         {/* Navigate Button */}
-        <Button
-          onClick={handleNavigate}
-          size="lg"
-          variant="outline"
-          className="h-16 flex-col gap-1 hover:bg-blue-50 hover:border-blue-300"
-        >
+        <Button onClick={handleNavigate} size="lg" variant="outline" className="h-16 flex-col gap-1 hover:border-blue-300 hover:bg-blue-50">
           <Navigation className="h-5 w-5 text-blue-600" />
           <span className="text-xs font-medium">Navigate</span>
         </Button>
 
         {/* Complete/View Button */}
         <Link href={`/deliveries/${order.id}`} className="block">
-          <Button
-            size="lg"
-            variant={order.status === 'COMPLETED' ? 'secondary' : 'primary'}
-            className="h-16 w-full flex-col gap-1"
-          >
+          <Button size="lg" variant={order.status === 'COMPLETED' ? 'secondary' : 'primary'} className="h-16 w-full flex-col gap-1">
             <Package className="h-5 w-5" />
-            <span className="text-xs font-medium">
-              {order.status === 'COMPLETED' ? 'View' : 'Deliver'}
-            </span>
+            <span className="text-xs font-medium">{order.status === 'COMPLETED' ? 'View' : 'Deliver'}</span>
           </Button>
         </Link>
       </div>

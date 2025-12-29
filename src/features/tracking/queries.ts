@@ -1,5 +1,6 @@
-import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
+
+import { db } from '@/lib/db';
 
 /**
  * Update driver's current location
@@ -153,12 +154,7 @@ export async function getDriverRouteHistory(driverId: string, date: Date) {
     const curr = locations[i];
 
     // Calculate distance using Haversine formula
-    const distance = calculateDistance(
-      prev.latitude,
-      prev.longitude,
-      curr.latitude,
-      curr.longitude
-    );
+    const distance = calculateDistance(prev.latitude, prev.longitude, curr.latitude, curr.longitude);
     totalDistance += distance;
 
     if (curr.speed) {
@@ -168,8 +164,7 @@ export async function getDriverRouteHistory(driverId: string, date: Date) {
 
     // Calculate stopped duration
     if (!curr.isMoving) {
-      const timeDiff =
-        (curr.timestamp.getTime() - prev.timestamp.getTime()) / 1000 / 60;
+      const timeDiff = (curr.timestamp.getTime() - prev.timestamp.getTime()) / 1000 / 60;
       stoppedDuration += timeDiff;
     }
   }
@@ -219,8 +214,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const dLon = toRad(lon2 - lon1);
 
   const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;

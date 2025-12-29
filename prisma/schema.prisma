@@ -144,8 +144,8 @@ model CustomerProfile {
   userId          String       @unique
   user            User         @relation(fields: [userId], references: [id])
 
-  // --- Legacy Migration ---
-  manualCode      String?      @unique // Legacy ID like 'L-3442' for migrated customers
+  // --- Customer Code (Auto-generated or Manual for Legacy) ---
+  manualCode      String       @unique // Customer code like 'C-1001' (auto) or 'L-3442' (legacy)
 
   // --- Location & Logistics ---
   area            String       // e.g., "Gulshan Blk 4" (Filtering ke liye)

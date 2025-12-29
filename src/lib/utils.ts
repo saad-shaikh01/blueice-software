@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
 // import Quill from 'quill';
 
 export function cn(...inputs: ClassValue[]) {
@@ -73,16 +74,15 @@ export function snakeCaseToTitleCase(str: string) {
 
 export function extractMentions(content: string): string[] {
   const mentions = content.match(/@\[([^\]]+)\]\(([^)]+)\)/g) || [];
-  return mentions.map(mention => {
+  return mentions.map((mention) => {
     const match = mention.match(/@\[([^\]]+)\]\(([^)]+)\)/);
     return match ? match[2] : '';
   });
-};
-
+}
 
 // utils/getImageUrl.js
 export function getImageUrl(imageName: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "https://your-default-base-url.com";
+  const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://your-default-base-url.com';
   return `${baseUrl}/${imageName}`;
 }
 
@@ -102,7 +102,7 @@ export const downloadFile = async (url: string, filename: string): Promise<void>
     const blobUrl = URL.createObjectURL(blob);
 
     // Create a link element
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = blobUrl;
     link.download = filename;
 
@@ -113,13 +113,11 @@ export const downloadFile = async (url: string, filename: string): Promise<void>
 
     // Clean up the blob URL
     setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-
   } catch (error) {
-    console.error("Download failed:", error);
+    console.error('Download failed:', error);
     throw error;
   }
 };
-
 
 export const validFileTypes = [
   // Images
@@ -151,40 +149,39 @@ export const validFileTypes = [
 
   // Videos
   'video/mp4',
-  'video/x-msvideo',      // .avi
-  'video/x-matroska',     // .mkv
+  'video/x-msvideo', // .avi
+  'video/x-matroska', // .mkv
   'video/webm',
-  'video/quicktime',      // .mov
-  'video/mpeg',           // .mpeg
-  'video/x-flv',          // .flv
-  'video/3gpp',           // .3gp
-  'video/x-m4v',          // .m4v
+  'video/quicktime', // .mov
+  'video/mpeg', // .mpeg
+  'video/x-flv', // .flv
+  'video/3gpp', // .3gp
+  'video/x-m4v', // .m4v
 
   // Audio
-  'audio/mpeg',           // .mp3
-  'audio/wav',            // .wav
-  'audio/ogg',            // .ogg
-  'audio/aac',            // .aac
-  'audio/mp4',            // .m4a
+  'audio/mpeg', // .mp3
+  'audio/wav', // .wav
+  'audio/ogg', // .ogg
+  'audio/aac', // .aac
+  'audio/mp4', // .m4a
 
   // Text & Code
-  'text/plain',           // .txt, .log, .env
-  'text/csv',             // .csv
-  'application/json',     // .json
-  'application/xml',      // .xml
-  'text/html',            // .html
-  'text/css',             // .css
+  'text/plain', // .txt, .log, .env
+  'text/csv', // .csv
+  'application/json', // .json
+  'application/xml', // .xml
+  'text/html', // .html
+  'text/css', // .css
   'application/javascript', // .js
   'application/typescript', // .ts
-  'text/markdown',        // .md
-  'application/x-yaml',   // .yaml, .yml
+  'text/markdown', // .md
+  'application/x-yaml', // .yaml, .yml
 
   // Design & Creative
-  'image/vnd.adobe.photoshop',      // .psd
-  'application/postscript',         // .ai, .eps
-  'application/octet-stream',       // .sketch (generic binary MIME)
+  'image/vnd.adobe.photoshop', // .psd
+  'application/postscript', // .ai, .eps
+  'application/octet-stream', // .sketch (generic binary MIME)
 ];
-
 
 // export const downloadFile = (url: string, filename: string) => {
 //   const link = document.createElement("a");

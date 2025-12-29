@@ -1,9 +1,7 @@
 import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
 import { Prisma, UserRole } from '@prisma/client';
+import { Hono } from 'hono';
 
-import { sessionMiddleware } from '@/lib/session-middleware';
-import { bulkAssignSchema, createOrderSchema, generateOrdersSchema, getOrdersQuerySchema, unableToDeliverSchema, updateOrderSchema } from '@/features/orders/schema';
 import {
   bulkAssignOrders,
   createOrder,
@@ -15,6 +13,15 @@ import {
   markOrderUnableToDeliver,
   updateOrder,
 } from '@/features/orders/queries';
+import {
+  bulkAssignSchema,
+  createOrderSchema,
+  generateOrdersSchema,
+  getOrdersQuerySchema,
+  unableToDeliverSchema,
+  updateOrderSchema,
+} from '@/features/orders/schema';
+import { sessionMiddleware } from '@/lib/session-middleware';
 
 const app = new Hono()
   .get('/', sessionMiddleware, zValidator('query', getOrdersQuerySchema), async (ctx) => {

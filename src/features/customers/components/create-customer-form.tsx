@@ -1,22 +1,23 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Check, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
-import { createCustomerSchema, type CreateCustomerInput } from '@/features/customers/schema';
 import { useCreateCustomer } from '@/features/customers/api/use-create-customer';
 import { DEFAULT_FORM_VALUES, FORM_STEPS } from '@/features/customers/constants';
+import { type CreateCustomerInput, createCustomerSchema } from '@/features/customers/schema';
 import { cn } from '@/lib/utils';
+
 import { BasicInfoStep } from './basic-info-step';
+import { LegacyMigrationStep } from './legacy-migration-step';
 import { LocationStep } from './location-step';
 import { SchedulePricingStep } from './schedule-pricing-step';
-import { LegacyMigrationStep } from './legacy-migration-step';
 
 export const CreateCustomerForm = () => {
   const router = useRouter();
@@ -123,24 +124,13 @@ export const CreateCustomerForm = () => {
                         isCurrent && 'border-primary bg-primary text-primary-foreground shadow-lg',
                         isCompleted && 'border-primary bg-primary text-primary-foreground',
                         !isCurrent && !isCompleted && 'border-muted text-muted-foreground',
-                        step.id < currentStep && 'cursor-pointer hover:bg-primary/90'
+                        step.id < currentStep && 'cursor-pointer hover:bg-primary/90',
                       )}
                     >
-                      {isCompleted ? (
-                        <Check className="size-5" />
-                      ) : (
-                        <span className="text-sm font-semibold">{step.id}</span>
-                      )}
+                      {isCompleted ? <Check className="size-5" /> : <span className="text-sm font-semibold">{step.id}</span>}
                     </button>
                     <div className="mt-2 hidden flex-col items-center md:flex">
-                      <p
-                        className={cn(
-                          'text-sm font-medium',
-                          isCurrent ? 'text-foreground' : 'text-muted-foreground'
-                        )}
-                      >
-                        {step.title}
-                      </p>
+                      <p className={cn('text-sm font-medium', isCurrent ? 'text-foreground' : 'text-muted-foreground')}>{step.title}</p>
                       <p className="text-xs text-muted-foreground">{step.description}</p>
                     </div>
                   </div>
@@ -159,13 +149,7 @@ export const CreateCustomerForm = () => {
           {/* Navigation Buttons */}
           <Card>
             <CardContent className="flex items-center justify-between p-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 1 || isPending}
-                className="gap-2"
-              >
+              <Button type="button" variant="outline" onClick={prevStep} disabled={currentStep === 1 || isPending} className="gap-2">
                 <ChevronLeft className="size-4" />
                 Previous
               </Button>
@@ -213,7 +197,7 @@ export const CreateCustomerForm = () => {
                   errors: form.formState.errors,
                 },
                 null,
-                2
+                2,
               )}
             </pre>
           </CardContent>

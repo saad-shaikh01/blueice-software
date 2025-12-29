@@ -1,12 +1,13 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useGetCustomers } from '@/features/customers/api/use-get-customers';
-import { CustomerTable } from '@/features/customers/components/customer-list';
-import { columns, Customer } from '@/features/customers/components/columns';
-import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { Suspense } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { useGetCustomers } from '@/features/customers/api/use-get-customers';
+import { Customer, columns } from '@/features/customers/components/columns';
+import { CustomerTable } from '@/features/customers/components/customer-list';
 
 function CustomersContent() {
   const { data, isLoading } = useGetCustomers();
@@ -19,7 +20,7 @@ function CustomersContent() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
         <Button asChild>
-           <Link href="/customers/new">
+          <Link href="/customers/new">
             <Plus className="mr-2 h-4 w-4" />
             Add Customer
           </Link>
@@ -31,9 +32,9 @@ function CustomersContent() {
 }
 
 export default function CustomersPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <CustomersContent />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CustomersContent />
+    </Suspense>
+  );
 }
