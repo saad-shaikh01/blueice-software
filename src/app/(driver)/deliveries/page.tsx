@@ -6,14 +6,18 @@ import { Suspense, useEffect, useState } from 'react';
 import { PageLoader } from '@/components/page-loader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrentDriver } from '@/features/driver-view/api/use-current-driver';
+import { Map, List } from 'lucide-react';
+
 import { DriverStats } from '@/features/driver-view/components/driver-stats';
 import { EnhancedOrderCard } from '@/features/driver-view/components/enhanced-order-card';
 import { LoadSheet } from '@/features/driver-view/components/load-sheet';
+import { DeliveryMap } from '@/features/driver-view/components/delivery-map';
 import { ExpenseForm } from '@/features/expenses/components/expense-form';
 import { useGetOrders } from '@/features/orders/api/use-get-orders';
 import { DriverLocationTracker } from '@/features/tracking/components/driver-location-tracker';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { cacheTodaysOrders, getCachedOrders } from '@/lib/offline-storage';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 function DeliveriesContent() {
   const { data: driver, isLoading: isLoadingDriver } = useCurrentDriver();
@@ -56,15 +60,35 @@ function DeliveriesContent() {
 
   const pendingOrders = orders.filter((o: any) => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
   const completedOrders = orders.filter((o: any) => o.status === 'COMPLETED');
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+
+  // We need current location for the map center
+  // Since useLiveLocations is not available here easily without prop drilling or new hook context,
+  // we'll rely on the Map component's default behavior or add a simple geolocation hook if needed.
+  // For now, let's pass null and let the map center on orders.
 
   return (
     <div className="space-y-6">
       <DriverStats />
       <DriverLocationTracker />
-      <div className="flex gap-2">
-        <ExpenseForm />
+
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <ExpenseForm />
+          <LoadSheet orders={pendingOrders} />
+        </div>
+
+        <div className="bg-muted rounded-lg p-1">
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as 'list' | 'map')}>
+            <ToggleGroupItem value="list" aria-label="List View" size="sm">
+              <List className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="map" aria-label="Map View" size="sm">
+              <Map className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
       </div>
-      <LoadSheet orders={pendingOrders} />
 
       <Tabs defaultValue="pending">
         <TabsList className="grid w-full grid-cols-2">
@@ -73,10 +97,16 @@ function DeliveriesContent() {
         </TabsList>
 
         <TabsContent value="pending" className="mt-4 space-y-4">
-          {pendingOrders.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">No pending deliveries</p>
+          {viewMode === 'map' ? (
+             <DeliveryMap orders={pendingOrders} height="500px" />
           ) : (
-            pendingOrders.map((order: any, index: number) => <EnhancedOrderCard key={order.id} order={order} index={index} />)
+             <>
+               {pendingOrders.length === 0 ? (
+                 <p className="py-8 text-center text-muted-foreground">No pending deliveries</p>
+               ) : (
+                 pendingOrders.map((order: any, index: number) => <EnhancedOrderCard key={order.id} order={order} index={index} />)
+               )}
+             </>
           )}
         </TabsContent>
 
