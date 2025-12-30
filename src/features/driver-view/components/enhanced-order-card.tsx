@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { AlertCircle, Building2, Clock, Landmark, MapPin, Navigation, Package, Phone, TrendingUp, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -72,6 +73,15 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
   const handleCall = () => {
     if (order.customer.user.phoneNumber) {
       window.location.href = `tel:${order.customer.user.phoneNumber}`;
+    }
+  };
+
+  const handleWhatsApp = () => {
+    if (order.customer.user.phoneNumber) {
+      // Remove non-digits and ensure format
+      const phone = order.customer.user.phoneNumber.replace(/\D/g, '').replace(/^0/, '92');
+      const message = encodeURIComponent(`Salam ${order.customer.user.name}, Blue Ice delivery is arriving soon.`);
+      window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
     }
   };
 
@@ -243,30 +253,42 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
       )}
 
       {/* Action Buttons - Extra Large for Gloves */}
-      <div className="grid grid-cols-3 gap-2 border-t bg-gray-50 p-4">
+      <div className="grid grid-cols-4 gap-2 border-t bg-gray-50 p-4">
         {/* Call Button */}
         <Button
           onClick={handleCall}
           disabled={!order.customer.user.phoneNumber}
           size="lg"
           variant="outline"
-          className="h-16 flex-col gap-1 hover:border-green-300 hover:bg-green-50"
+          className="h-16 flex-col gap-1 hover:border-green-300 hover:bg-green-50 px-0"
         >
           <Phone className="h-5 w-5 text-green-600" />
-          <span className="text-xs font-medium">Call</span>
+          <span className="text-[10px] font-medium">Call</span>
+        </Button>
+
+        {/* WhatsApp Button (New) */}
+        <Button
+          onClick={handleWhatsApp}
+          disabled={!order.customer.user.phoneNumber}
+          size="lg"
+          variant="outline"
+          className="h-16 flex-col gap-1 hover:border-green-300 hover:bg-green-50 px-0"
+        >
+          <FaWhatsapp className="h-5 w-5 text-[#25D366]" />
+          <span className="text-[10px] font-medium">WhatsApp</span>
         </Button>
 
         {/* Navigate Button */}
-        <Button onClick={handleNavigate} size="lg" variant="outline" className="h-16 flex-col gap-1 hover:border-blue-300 hover:bg-blue-50">
+        <Button onClick={handleNavigate} size="lg" variant="outline" className="h-16 flex-col gap-1 hover:border-blue-300 hover:bg-blue-50 px-0">
           <Navigation className="h-5 w-5 text-blue-600" />
-          <span className="text-xs font-medium">Navigate</span>
+          <span className="text-[10px] font-medium">Map</span>
         </Button>
 
         {/* Complete/View Button */}
         <Link href={`/deliveries/${order.id}`} className="block">
-          <Button size="lg" variant={order.status === 'COMPLETED' ? 'secondary' : 'primary'} className="h-16 w-full flex-col gap-1">
+          <Button size="lg" variant={order.status === 'COMPLETED' ? 'secondary' : 'primary'} className="h-16 w-full flex-col gap-1 px-0">
             <Package className="h-5 w-5" />
-            <span className="text-xs font-medium">{order.status === 'COMPLETED' ? 'View' : 'Deliver'}</span>
+            <span className="text-[10px] font-medium">{order.status === 'COMPLETED' ? 'View' : 'Deliver'}</span>
           </Button>
         </Link>
       </div>
