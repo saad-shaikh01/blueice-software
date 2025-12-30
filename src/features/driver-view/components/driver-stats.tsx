@@ -1,5 +1,8 @@
 'use client';
 
+import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -25,14 +28,20 @@ export const DriverStats = () => {
           <span className="text-xs text-muted-foreground">Completed</span>
         </CardContent>
       </Card>
-      <Card className="col-span-2 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/20">
-        <CardContent className="flex items-center justify-between p-4">
-          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Cash Collected</span>
-          <span className="text-xl font-bold text-blue-700 dark:text-blue-300">
-            {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(Number(stats.cashCollected))}
-          </span>
-        </CardContent>
-      </Card>
+
+      <Link href="/cash-handover" className="col-span-2">
+        <Card className="border-blue-200 bg-blue-50 transition-colors hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/20 dark:hover:bg-blue-950/40">
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Cash Collected (Tap to Handover)</span>
+              <span className="text-xl font-bold text-blue-700 dark:text-blue-300">
+                {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(Number(stats.cashCollected))}
+              </span>
+            </div>
+            <ArrowRight className="h-5 w-5 text-blue-700 dark:text-blue-300" />
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   );
 };

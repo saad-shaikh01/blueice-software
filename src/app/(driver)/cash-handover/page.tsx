@@ -108,7 +108,12 @@ function CashHandoverContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">PKR {expectedCash.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">from cash orders</p>
+            <div className="flex flex-col gap-1 mt-1">
+              <p className="text-xs text-muted-foreground">Gross: PKR {summary?.grossCash || '0.00'}</p>
+              {parseFloat(summary?.expensesAmount || '0') > 0 && (
+                <p className="text-xs text-red-500">- Exp: PKR {summary?.expensesAmount}</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
