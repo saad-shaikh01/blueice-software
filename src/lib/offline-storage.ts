@@ -161,8 +161,11 @@ export async function queueDeliveryCompletion(orderId: string, completionData: a
   console.log('[IndexedDB] Queued delivery for sync:', orderId);
 
   // Update cached order to show as completed locally
+  // We assume completionData contains the necessary fields or status update
+  // For generic updates, we merge completionData
   await updateCachedOrder(orderId, {
-    status: 'COMPLETED',
+    ...completionData,
+    status: completionData.status || 'COMPLETED',
     deliveredAt: new Date().toISOString(),
   });
 
