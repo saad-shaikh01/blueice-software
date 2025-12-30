@@ -381,7 +381,7 @@ function CashHandoverDetailContent() {
       )}
 
       {/* Verification Form (only if pending) */}
-      {isPending && (
+      {isPendingHandover && (
         <Card>
           <CardHeader>
             <CardTitle>Verify Cash Handover</CardTitle>
