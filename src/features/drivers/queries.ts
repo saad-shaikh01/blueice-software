@@ -117,6 +117,38 @@ export async function getDrivers(params: { search?: string; page: number; limit:
   };
 }
 
+// --------------------------------------------------------
+// LEDGER FUNCTIONS (Added for Driver Wallet)
+// --------------------------------------------------------
+
+export async function getDriverLedger(driverId: string) {
+  const [ledgerEntries, balance] = await Promise.all([
+    // Fetch recent ledger transactions
+    db.driverLedger.findMany({
+      where: { driverId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    }),
+
+    // Calculate current running balance (sum of all amounts)
+    // A negative sum means Debit (Driver owes company)
+    // A positive sum means Credit (Company owes driver)
+    db.driverLedger.aggregate({
+      where: { driverId },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  return {
+    transactions: ledgerEntries.map((entry) => ({
+      ...entry,
+      amount: entry.amount.toString(),
+      balanceAfter: entry.balanceAfter.toString(),
+    })),
+    currentBalance: balance._sum.amount?.toString() || '0',
+  };
+}
+
 export async function getDriver(id: string) {
   return await db.driverProfile.findUnique({
     where: { id },

@@ -1,8 +1,10 @@
+import { Wallet } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { OfflineIndicator } from '@/components/offline-indicator';
 import { ServiceWorkerRegister } from '@/components/service-worker-register';
+import { Button } from '@/components/ui/button';
 import { UserButton } from '@/features/auth/components/user-button';
 
 interface DriverLayoutProps {
@@ -24,6 +26,12 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             </Link>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/ledger">
+                <Wallet className="h-5 w-5" />
+                <span className="sr-only">Wallet</span>
+              </Link>
+            </Button>
             <UserButton />
           </div>
         </div>

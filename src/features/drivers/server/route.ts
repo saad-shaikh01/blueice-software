@@ -10,6 +10,7 @@ import {
   getDriver,
   getDriverByUserId,
   getDriverDetailStats,
+  getDriverLedger,
   getDrivers,
   updateDriver,
 } from '@/features/drivers/queries';
@@ -27,6 +28,19 @@ const app = new Hono()
       return ctx.json({ data: stats });
     } catch (error) {
       return ctx.json({ error: 'Failed to fetch stats' }, 500);
+    }
+  })
+  .get('/me/ledger', sessionMiddleware, async (ctx) => {
+    const user = ctx.get('user');
+    try {
+      const driver = await getDriverByUserId(user.id);
+      if (!driver) return ctx.json({ error: 'Driver not found' }, 404);
+
+      const ledger = await getDriverLedger(driver.id);
+      return ctx.json({ data: ledger });
+    } catch (error) {
+      console.error(error);
+      return ctx.json({ error: 'Failed to fetch ledger' }, 500);
     }
   })
   .get('/me', sessionMiddleware, async (ctx) => {
