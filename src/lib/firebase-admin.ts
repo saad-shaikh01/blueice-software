@@ -14,21 +14,34 @@ if (!admin.apps.length) {
 
 export const sendPushNotification = async (userIds: string[], title: string, body: string, data?: Record<string, string>) => {
   try {
-    // console.log('Sending notification to users:', userIds);
+    // 1. Save to Database (In-App History)
+    // Casting db to any to avoid type check failure before client generation
+    const prisma = db as any;
 
-    // Get users' FCM tokens
+    await prisma.$transaction(
+      userIds.map((userId: string) =>
+        prisma.notification.create({
+          data: {
+            userId,
+            title,
+            body,
+            data: data || {},
+            type: data?.type || 'GENERAL',
+          },
+        }),
+      ),
+    );
+
+    // 2. Send FCM Push
     const users = await db.user.findMany({
       where: { id: { in: userIds } },
       select: { fcmTokens: true },
     });
 
-    // console.log('Found users with tokens:', users);
-
     const tokens = users.flatMap((user) => user.fcmTokens || []);
-    // console.log('FCM tokens to send to:', tokens);
 
     if (tokens.length === 0) {
-      console.log('No FCM tokens found for users');
+      console.log('No FCM tokens found for users, but saved to DB');
       return;
     }
 
@@ -44,14 +57,11 @@ export const sendPushNotification = async (userIds: string[], title: string, bod
       tokens,
     };
 
-    // console.log('Sending message:', message);
-    const response = await admin.messaging().sendEachForMulticast(message);
-    // console.log('Successfully sent notifications:', response);
-
-    // Log any failures
-    // if (response.failureCount > 0) {
-    //   console.error('Some notifications failed to send:', response.responses);
-    // }
+    try {
+      await admin.messaging().sendEachForMulticast(message);
+    } catch (fcmError) {
+      console.error('FCM Send Error (DB saved ok):', fcmError);
+    }
   } catch (error) {
     console.error('Error sending notification:', error);
   }

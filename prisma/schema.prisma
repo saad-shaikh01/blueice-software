@@ -131,6 +131,8 @@ model User {
   expensesSpent    Expense[]   @relation("ExpenseSpender")
   expensesApproved Expense[]   @relation("ExpenseApprover")
 
+  notifications    Notification[]
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -586,4 +588,24 @@ model Expense {
   @@index([status])
   @@index([spentByUserId])
   @@index([driverId])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  body        String
+  type        String?  // "ORDER_ASSIGNED", "EXPENSE_APPROVED"
+  data        Json?    // { orderId: "..." }
+
+  read        Boolean  @default(false)
+  readAt      DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, read])
+  @@index([createdAt])
 }

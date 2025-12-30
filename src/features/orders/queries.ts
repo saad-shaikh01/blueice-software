@@ -1,6 +1,7 @@
 import { OrderStatus, PaymentMethod, Prisma } from '@prisma/client';
 
 import { db } from '@/lib/db';
+import { sendPushNotification } from '@/lib/firebase-admin';
 
 export async function getOrders(params: {
   search?: string;
@@ -748,7 +749,7 @@ export async function deleteOrder(id: string) {
 }
 
 export async function bulkAssignOrders(data: { orderIds: string[]; driverId: string }) {
-  return await db.order.updateMany({
+  const result = await db.order.updateMany({
     where: {
       id: { in: data.orderIds },
     },
@@ -757,6 +758,23 @@ export async function bulkAssignOrders(data: { orderIds: string[]; driverId: str
       status: OrderStatus.PENDING,
     },
   });
+
+  // Notify Driver
+  const driver = await db.driverProfile.findUnique({
+    where: { id: data.driverId },
+    select: { userId: true },
+  });
+
+  if (driver) {
+    await sendPushNotification(
+      [driver.userId],
+      'New Orders Assigned',
+      `You have been assigned ${data.orderIds.length} new orders.`,
+      { type: 'ORDER_ASSIGNED', count: data.orderIds.length.toString() },
+    );
+  }
+
+  return result;
 }
 
 export async function markOrderUnableToDeliver(data: {
