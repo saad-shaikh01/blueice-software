@@ -24,6 +24,7 @@ function DeliveriesContent() {
   const isOnline = useOnlineStatus();
   const today = format(new Date(), 'yyyy-MM-dd');
   const [cachedOrders, setCachedOrders] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   const { data: ordersData, isLoading: isLoadingOrders } = useGetOrders({
     driverId: driver?.id,
@@ -60,7 +61,6 @@ function DeliveriesContent() {
 
   const pendingOrders = orders.filter((o: any) => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
   const completedOrders = orders.filter((o: any) => o.status === 'COMPLETED');
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // We need current location for the map center
   // Since useLiveLocations is not available here easily without prop drilling or new hook context,
