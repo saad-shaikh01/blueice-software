@@ -119,14 +119,8 @@ export async function getOrder(id: string) {
     where: { id },
     include: {
       customer: {
-        include: {
-          user: true,
-          route: true,
-        },
         select: {
           id: true,
-          user: true,
-          route: true,
           address: true,
           area: true,
           landmark: true,
@@ -140,6 +134,8 @@ export async function getOrder(id: string) {
           deliveryInstructions: true,
           preferredDeliveryTime: true,
           specialNotes: true,
+          user: true,
+          route: true,
         },
       },
       driver: {

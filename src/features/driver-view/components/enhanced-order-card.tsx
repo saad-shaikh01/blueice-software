@@ -125,15 +125,15 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
   return (
     <Card className="overflow-hidden">
       {/* Header with Sequence Number */}
-      <div className="flex items-center gap-3 border-b bg-gradient-to-r from-blue-50 to-white p-4">
+      <div className="flex items-center gap-3 border-b border-border bg-gradient-to-r from-blue-50 to-white p-4 dark:from-blue-950/30 dark:to-card">
         {sequenceNumber && (
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xl font-bold text-white shadow-lg">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xl font-bold text-white shadow-lg dark:bg-blue-500">
             {sequenceNumber}
           </div>
         )}
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">{order.customer.user.name}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{order.customer.user.name}</h3>
             <Badge variant={order.status === 'COMPLETED' ? 'default' : 'secondary'} className="text-xs">
               #{order.readableId}
             </Badge>
@@ -144,7 +144,7 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-blue-600">₨{Number(order.totalAmount).toFixed(0)}</p>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">₨{Number(order.totalAmount).toFixed(0)}</p>
           <p className="text-xs text-muted-foreground">{totalBottles} bottles</p>
         </div>
       </div>
@@ -153,23 +153,23 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
       <div className="space-y-3 p-4">
         {/* Address */}
         <div className="flex items-start gap-2">
-          <MapPin className="mt-1 h-4 w-4 flex-shrink-0 text-gray-500" />
-          <p className="text-sm leading-tight">{order.customer.address}</p>
+          <MapPin className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          <p className="text-sm leading-tight text-foreground">{order.customer.address}</p>
         </div>
 
         {/* Landmark - Prominent Display */}
         {order.customer.landmark && (
-          <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
-            <Landmark className="h-4 w-4 flex-shrink-0 text-amber-600" />
-            <p className="text-sm font-medium text-amber-900">Near: {order.customer.landmark}</p>
+          <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/30">
+            <Landmark className="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Near: {order.customer.landmark}</p>
           </div>
         )}
 
         {/* Floor & Lift Info - Critical for Driver */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">
               {order.customer.floorNumber === 0 ? 'Ground Floor' : `Floor ${order.customer.floorNumber}`}
             </span>
           </div>
@@ -180,7 +180,7 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
             </Badge>
           )}
           {order.customer.hasLift && order.customer.floorNumber > 0 && (
-            <Badge variant="secondary" className="gap-1 bg-green-100 text-xs text-green-800">
+            <Badge variant="secondary" className="gap-1 bg-green-100 text-xs text-green-800 dark:bg-green-950/50 dark:text-green-300">
               Lift Available
             </Badge>
           )}
@@ -188,14 +188,14 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
 
         {/* Delivery Instructions - Most Important! */}
         {order.customer.deliveryInstructions && (
-          <div className="rounded-md border-2 border-blue-300 bg-blue-50 p-3">
-            <p className="text-sm font-semibold text-blue-900">📝 {order.customer.deliveryInstructions}</p>
+          <div className="rounded-md border-2 border-blue-300 bg-blue-50 p-3 dark:border-blue-700 dark:bg-blue-950/30">
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">📝 {order.customer.deliveryInstructions}</p>
           </div>
         )}
 
         {/* Preferred Delivery Time */}
         {order.customer.preferredDeliveryTime && (
-          <div className="flex items-center gap-2 text-sm text-gray-700">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>Best time: {order.customer.preferredDeliveryTime}</span>
           </div>
@@ -203,19 +203,19 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
 
         {/* Special Notes */}
         {order.customer.specialNotes && (
-          <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-            <p className="text-xs font-medium text-gray-700">⚠️ {order.customer.specialNotes}</p>
+          <div className="rounded-md border border-border bg-muted p-3">
+            <p className="text-xs font-medium text-muted-foreground">⚠️ {order.customer.specialNotes}</p>
           </div>
         )}
 
         {/* Customer Balance Warning */}
         {hasDebt && (
-          <div className="rounded-md border-2 border-red-200 bg-red-50 p-3">
+          <div className="rounded-md border-2 border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950/30">
             <div className="flex items-start gap-2">
-              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-red-900">Outstanding Balance: ₨{Math.abs(customerBalance).toFixed(0)}</p>
-                <p className="mt-1 text-xs text-red-700">
+                <p className="text-sm font-bold text-red-900 dark:text-red-200">Outstanding Balance: ₨{Math.abs(customerBalance).toFixed(0)}</p>
+                <p className="mt-1 text-xs text-red-700 dark:text-red-300">
                   After this delivery: ₨{totalDue.toFixed(0)}
                   {exceedsCreditLimit && <span className="ml-1 font-semibold">(⚠️ Exceeds credit limit!)</span>}
                 </p>
@@ -225,8 +225,8 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
         )}
 
         {/* Items Summary */}
-        <div className="rounded-md bg-gray-50 p-2">
-          <p className="text-xs text-gray-600">
+        <div className="rounded-md border border-border bg-muted/50 p-2">
+          <p className="text-xs text-muted-foreground">
             {order.orderItems.map((item, idx) => (
               <span key={idx}>
                 {item.quantity}x {item.product.name}
@@ -239,12 +239,12 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
 
       {/* Unable to Deliver Button - Only for pending orders */}
       {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
-        <div className="border-t bg-gray-50 px-4 pb-2 pt-3">
+        <div className="border-t border-border bg-muted/50 px-4 pb-2 pt-3">
           <Button
             onClick={() => setUnableToDeliverOpen(true)}
             variant="outline"
             size="lg"
-            className="h-14 w-full border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+            className="h-14 w-full border-red-200 bg-card text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:text-red-400 dark:hover:border-red-700 dark:hover:bg-red-950/30 dark:hover:text-red-300"
           >
             <XCircle className="mr-2 h-5 w-5" />
             <span className="font-semibold">Unable to Deliver</span>
@@ -253,16 +253,16 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
       )}
 
       {/* Action Buttons - Extra Large for Gloves */}
-      <div className="grid grid-cols-4 gap-2 border-t bg-gray-50 p-4">
+      <div className="grid grid-cols-4 gap-2 border-t border-border bg-muted/50 p-4">
         {/* Call Button */}
         <Button
           onClick={handleCall}
           disabled={!order.customer.user.phoneNumber}
           size="lg"
           variant="outline"
-          className="h-16 flex-col gap-1 hover:border-green-300 hover:bg-green-50 px-0"
+          className="h-16 flex-col gap-1 px-0 hover:border-green-300 hover:bg-green-50 dark:hover:border-green-700 dark:hover:bg-green-950/30"
         >
-          <Phone className="h-5 w-5 text-green-600" />
+          <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
           <span className="text-[10px] font-medium">Call</span>
         </Button>
 
@@ -272,15 +272,20 @@ export const EnhancedOrderCard = ({ order, index }: EnhancedOrderCardProps) => {
           disabled={!order.customer.user.phoneNumber}
           size="lg"
           variant="outline"
-          className="h-16 flex-col gap-1 hover:border-green-300 hover:bg-green-50 px-0"
+          className="h-16 flex-col gap-1 px-0 hover:border-green-300 hover:bg-green-50 dark:hover:border-green-700 dark:hover:bg-green-950/30"
         >
           <FaWhatsapp className="h-5 w-5 text-[#25D366]" />
           <span className="text-[10px] font-medium">WhatsApp</span>
         </Button>
 
         {/* Navigate Button */}
-        <Button onClick={handleNavigate} size="lg" variant="outline" className="h-16 flex-col gap-1 hover:border-blue-300 hover:bg-blue-50 px-0">
-          <Navigation className="h-5 w-5 text-blue-600" />
+        <Button
+          onClick={handleNavigate}
+          size="lg"
+          variant="outline"
+          className="h-16 flex-col gap-1 px-0 hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-700 dark:hover:bg-blue-950/30"
+        >
+          <Navigation className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           <span className="text-[10px] font-medium">Map</span>
         </Button>
 
