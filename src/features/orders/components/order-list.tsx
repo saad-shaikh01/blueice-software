@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useGetDrivers } from '@/features/drivers/api/use-get-drivers';
 import { useGetRoutes } from '@/features/routes/api/use-get-routes';
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
@@ -59,21 +60,29 @@ export function OrderTable<TData extends { id: string }, TValue>({ columns, data
   const { data: routesData, isLoading: isLoadingRoutes } = useGetRoutes();
   const routes = routesData?.routes || [];
 
+  const { data: driversData, isLoading: isLoadingDrivers } = useGetDrivers({ limit: 100 });
+  // @ts-ignore
+  const drivers = driversData?.drivers || [];
+
+  // Local state for calendar selection to handle intermediate "from-only" state
+  const [localDateRange, setLocalDateRange] = React.useState<DateRange | undefined>(
+    filters.from && filters.to
+      ? {
+          from: new Date(filters.from),
+          to: new Date(filters.to),
+        }
+      : undefined,
+  );
+
   React.useEffect(() => {
     if (debouncedSearch !== filters.search) {
       setFilters({ search: debouncedSearch || null, page: 1 });
     }
   }, [debouncedSearch, filters.search, setFilters]);
 
-  const dateRange: DateRange | undefined =
-    filters.from && filters.to
-      ? {
-          from: new Date(filters.from),
-          to: new Date(filters.to),
-        }
-      : undefined;
-
   const setDateRange = (range: DateRange | undefined) => {
+    setLocalDateRange(range); // Update UI immediately showing selection
+
     if (range?.from && range?.to) {
       setFilters({
         from: format(range.from, 'yyyy-MM-dd'),
@@ -150,7 +159,7 @@ export function OrderTable<TData extends { id: string }, TValue>({ columns, data
             onValueChange={(val) =>
               setFilters({
                 status: val === 'all' ? null : val === 'UNASSIGNED' ? null : val,
-                driverId: val === 'UNASSIGNED' ? 'unassigned' : null,
+                driverId: val === 'UNASSIGNED' ? 'unassigned' : filters.driverId, // Keep existing driver if not unassigned
                 page: 1,
               })
             }
@@ -168,22 +177,42 @@ export function OrderTable<TData extends { id: string }, TValue>({ columns, data
             </SelectContent>
           </Select>
         </div>
+        <div className="w-[180px]">
+          <Select
+            value={filters.driverId || 'all'}
+            onValueChange={(val) => setFilters({ driverId: val === 'all' ? null : val, page: 1 })}
+            disabled={isLoadingDrivers}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Driver" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Drivers</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
+              {drivers.map((driver: any) => (
+                <SelectItem key={driver.id} value={driver.id}>
+                  {driver.user.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="grid gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 id="date"
                 variant={'outline'}
-                className={cn('w-[260px] justify-start text-left font-normal', !dateRange && 'text-muted-foreground')}
+                className={cn('w-[260px] justify-start text-left font-normal', !localDateRange && 'text-muted-foreground')}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange.to ? (
+                {localDateRange?.from ? (
+                  localDateRange.to ? (
                     <>
-                      {format(dateRange.from, 'LLL dd, y')} - {format(dateRange.to, 'LLL dd, y')}
+                      {format(localDateRange.from, 'LLL dd, y')} - {format(localDateRange.to, 'LLL dd, y')}
                     </>
                   ) : (
-                    format(dateRange.from, 'LLL dd, y')
+                    format(localDateRange.from, 'LLL dd, y')
                   )
                 ) : (
                   <span>Pick a date range</span>
@@ -194,8 +223,8 @@ export function OrderTable<TData extends { id: string }, TValue>({ columns, data
               <Calendar
                 initialFocus
                 mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
+                defaultMonth={localDateRange?.from}
+                selected={localDateRange}
                 onSelect={setDateRange}
                 numberOfMonths={2}
               />
