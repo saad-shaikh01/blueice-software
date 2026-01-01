@@ -272,7 +272,7 @@ export function ComprehensiveDashboard() {
       {/* Profitability & Asset Metrics */}
       <div className="grid gap-4 md:grid-cols-3">
         {/* Net Profit Card */}
-        <Card className="glass-card transition-transform duration-300 hover:scale-[1.02]">
+        <Card className="border-emerald-200 bg-emerald-50/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-emerald-900">Net Profit</CardTitle>
             <TrendingUp className="h-4 w-4 text-emerald-600" />
@@ -288,7 +288,7 @@ export function ComprehensiveDashboard() {
 
         {/* Market Receivables Card */}
         <Card
-          className="cursor-pointer glass-card transition-transform duration-300 hover:scale-[1.02]"
+          className="cursor-pointer border-orange-200 bg-orange-50/50 transition-colors hover:bg-orange-100/50"
           onClick={() => (window.location.href = '/customers?filter=debt')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -303,7 +303,7 @@ export function ComprehensiveDashboard() {
         </Card>
 
         {/* Bottles with Customers Card */}
-        <Card className="glass-card transition-transform duration-300 hover:scale-[1.02]">
+        <Card className="border-blue-200 bg-blue-50/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Bottles with Customers</CardTitle>
             <Package className="h-4 w-4 text-blue-600" />
@@ -535,12 +535,12 @@ export function ComprehensiveDashboard() {
                 <div key={driver.driverId} className="flex items-center gap-4 rounded-lg p-2 transition-colors hover:bg-white/10">
                   <div
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold shadow-md ${index === 0
-                      ? 'bg-yellow-400 text-yellow-900'
-                      : index === 1
-                        ? 'bg-gray-300 text-gray-900'
-                        : index === 2
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-secondary text-secondary-foreground'
+                        ? 'bg-yellow-400 text-yellow-900'
+                        : index === 1
+                          ? 'bg-gray-300 text-gray-900'
+                          : index === 2
+                            ? 'bg-amber-600 text-white'
+                            : 'bg-secondary text-secondary-foreground'
                       }`}
                   >
                     {index + 1}
