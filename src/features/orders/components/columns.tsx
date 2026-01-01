@@ -3,7 +3,7 @@
 import { OrderStatus } from '@prisma/client';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { ArrowUpDown, FileText, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { ArrowUpDown, FileText, Info, MoreHorizontal, Pencil, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConfirm } from '@/hooks/use-confirm';
 
 import { useDeleteOrder } from '../api/use-delete-order';
@@ -27,6 +28,8 @@ export type Order = {
   scheduledDate: string;
   status: OrderStatus;
   totalAmount: string;
+  cancellationReason?: string | null;
+  driverNotes?: string | null;
   customer: {
     user: { name: string; phoneNumber: string };
   };
@@ -150,7 +153,39 @@ export const columns: ColumnDef<Order>[] = [
           variant = 'secondary';
       }
 
-      return <Badge variant={variant}>{status}</Badge>;
+      const reason = row.original.cancellationReason;
+      const notes = row.original.driverNotes;
+
+      const badge = <Badge variant={variant}>{status}</Badge>;
+
+      if ((status === 'CANCELLED' || status === 'RESCHEDULED') && (reason || notes)) {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger className="flex items-center gap-1 cursor-help">
+                {badge}
+                <Info className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <div className="flex flex-col gap-1">
+                  {reason && (
+                    <p>
+                      <strong>Reason:</strong> {reason.replace(/_/g, ' ')}
+                    </p>
+                  )}
+                  {notes && (
+                    <p>
+                      <strong>Notes:</strong> {notes}
+                    </p>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      }
+
+      return badge;
     },
   },
   {
