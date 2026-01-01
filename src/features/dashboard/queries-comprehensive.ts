@@ -361,11 +361,11 @@ export async function getComprehensiveDashboardData(params?: { startDate?: Date;
       ORDER BY revenue DESC
     `,
 
-    // Total Expenses (Not REJECTED)
+    // Total Expenses (Only APPROVED for Profit Calc)
     db.expense.aggregate({
       where: {
         date: { gte: startDate, lte: endDate },
-        status: { not: ExpenseStatus.REJECTED },
+        status: ExpenseStatus.APPROVED,
       },
       _sum: { amount: true },
     }),
