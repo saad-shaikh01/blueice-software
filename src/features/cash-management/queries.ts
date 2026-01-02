@@ -376,7 +376,54 @@ export async function verifyCashHandover(data: {
   }
 
   return await db.$transaction(async (tx) => {
-    // 1. Update Handover Status
+    // 0. Re-calculate Expected Cash (Crucial Step)
+    // We must ensure that any expenses added/approved AFTER the driver submitted the handover
+    // are correctly deducted from the expected cash before we verify.
+    // Otherwise, legitimate expenses (e.g. Fuel 200) will show up as Cash Shortage.
+
+    const startOfDay = new Date(handover.date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(handover.date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Get Gross Cash (Total collected from orders)
+    const cashOrders = await tx.order.aggregate({
+      where: {
+        driverId: handover.driverId,
+        scheduledDate: { gte: startOfDay, lte: endOfDay },
+        status: OrderStatus.COMPLETED,
+        paymentMethod: PaymentMethod.CASH,
+      },
+      _sum: {
+        cashCollected: true,
+      },
+    });
+    const grossCash = new Prisma.Decimal(cashOrders._sum.cashCollected?.toString() || '0');
+
+    // Get Total Expenses (Paid from Cash on Hand)
+    // We include PENDING expenses here because if the Admin is verifying the Cash Handover,
+    // they are implicitly accepting the "Net" cash. If an expense is fake, they should REJECT the expense first,
+    // which would remove it from this sum (status != REJECTED).
+    const expenses = await tx.expense.aggregate({
+      where: {
+        driverId: handover.driverId,
+        date: { gte: startOfDay, lte: endOfDay },
+        paymentMethod: 'CASH_ON_HAND',
+        status: { not: 'REJECTED' },
+      },
+      _sum: { amount: true },
+    });
+    const expensesAmount = new Prisma.Decimal(expenses._sum.amount?.toString() || '0');
+
+    // Calculate True Expected Cash
+    const trueExpectedCash = grossCash.sub(expensesAmount);
+
+    // Calculate True Discrepancy
+    // Discrepancy = Expected - Actual
+    const actualCash = new Prisma.Decimal(handover.actualCash);
+    const trueDiscrepancy = trueExpectedCash.sub(actualCash);
+
+    // 1. Update Handover Status AND Financials
     const updatedHandover = await tx.cashHandover.update({
       where: { id },
       data: {
@@ -385,6 +432,9 @@ export async function verifyCashHandover(data: {
         verifiedAt: new Date(),
         adminNotes,
         adjustmentAmount: adjustmentAmount ? adjustmentAmount : undefined,
+        // Update snapshot with verified truth
+        expectedCash: trueExpectedCash,
+        discrepancy: trueDiscrepancy,
       },
       include: {
         driver: {
@@ -408,11 +458,6 @@ export async function verifyCashHandover(data: {
 
     if (status === CashHandoverStatus.VERIFIED || status === CashHandoverStatus.ADJUSTED) {
       let finalDiscrepancy = updatedHandover.discrepancy;
-
-      // If there was a manual adjustment (e.g. waiving off 500 PKR), the discrepancy stored might be raw.
-      // But `adjustmentAmount` logic isn't fully defined in schema (is it a waiver? or a correction?).
-      // Assuming `adjustmentAmount` is a correction to Expected Cash?
-      // For now, let's stick to the calculated `discrepancy` field which is `expected - actual`.
 
       // If Shortage (Discrepancy > 0) -> Driver Owes Company -> Debit
       if (finalDiscrepancy.gt(0)) {
