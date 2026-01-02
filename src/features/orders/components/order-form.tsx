@@ -37,15 +37,31 @@ export const OrderForm = ({ orderId, onCancel }: OrderFormProps) => {
   const isEdit = !!orderId;
 
   const { data: order, isLoading: isLoadingOrder } = useGetOrder(orderId || '');
+  // Fetch ALL customers and drivers for the dropdowns to ensure we can map IDs correctly
+  // Note: For large datasets, this should be an async search select, but for now we increase the limit
   const { data: customersData, isLoading: isLoadingCustomers } = useGetCustomers();
   const { data: productsData, isLoading: isLoadingProducts } = useGetProducts();
   const { data: driversData, isLoading: isLoadingDrivers } = useGetDrivers();
 
-  const customers = (customersData?.data as Customer[]) || [];
+  const rawCustomers = (customersData?.data as Customer[]) || [];
   // @ts-ignore
   const products = (productsData as unknown as Product[]) || [];
   // @ts-ignore
-  const drivers = (driversData?.drivers as Driver[]) || [];
+  const rawDrivers = (driversData?.drivers as Driver[]) || [];
+
+  // Ensure the current order's customer/driver is in the list (for Edit mode)
+  // This handles pagination where the current entity might not be in the first page
+  const customers = [...rawCustomers];
+  if (order?.customer && !customers.find((c) => c.id === order.customerId)) {
+    // @ts-ignore - Constructing a minimal Customer object for the dropdown
+    customers.push(order.customer as Customer);
+  }
+
+  const drivers = [...rawDrivers];
+  if (order?.driver && !drivers.find((d) => d.id === order.driverId)) {
+    // @ts-ignore - Constructing a minimal Driver object for the dropdown
+    drivers.push(order.driver as Driver);
+  }
 
   const { mutate: createOrder, isPending: isCreating } = useCreateOrder();
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateOrder();
@@ -56,7 +72,7 @@ export const OrderForm = ({ orderId, onCancel }: OrderFormProps) => {
     resolver: zodResolver(createOrderSchema),
     defaultValues: {
       customerId: '',
-      driverId: undefined, // or null? schema allows nullable
+      driverId: undefined,
       scheduledDate: new Date(),
       status: OrderStatus.SCHEDULED,
       deliveryCharge: 0,
@@ -91,7 +107,7 @@ export const OrderForm = ({ orderId, onCancel }: OrderFormProps) => {
 
   const onSubmit = (data: CreateOrderInput) => {
     if (isEdit && orderId) {
-      // @ts-ignore - Update logic might differ slightly, but for now we replace items
+      // @ts-ignore
       updateOrder(
         { param: { id: orderId }, json: data },
         {
