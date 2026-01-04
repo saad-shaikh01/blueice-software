@@ -22,11 +22,11 @@ export async function getOrders(params: {
     AND: [
       search
         ? {
-            OR: [
-              { customer: { user: { name: { contains: search, mode: 'insensitive' } } } },
-              { readableId: { equals: parseInt(search) || -1 } },
-            ],
-          }
+          OR: [
+            { customer: { user: { name: { contains: search, mode: 'insensitive' } } } },
+            { readableId: { equals: parseInt(search) || -1 } },
+          ],
+        }
         : {},
       status ? { status } : {},
       customerId ? { customerId } : {},
@@ -119,10 +119,10 @@ export async function getOrder(id: string) {
     where: { id },
     include: {
       customer: {
-        include: {
-          user: true,
-          route: true,
-        },
+        // include: {
+        //   user: true,
+        //   route: true,
+        // },
         select: {
           id: true,
           user: true,

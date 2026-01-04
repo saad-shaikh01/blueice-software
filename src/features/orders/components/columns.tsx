@@ -62,6 +62,10 @@ const ActionCell = ({ order }: { order: Order }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => router.push(`/orders/${order.id}`)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Order Details
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push(`/orders/${order.id}/edit`)}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit Order
